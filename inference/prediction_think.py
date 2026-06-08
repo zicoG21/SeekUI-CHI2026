@@ -111,7 +111,6 @@ def main():
     processor = AutoProcessor.from_pretrained(args.model_path, cache_dir=args.cache_dir)
 
     # Load data
-    scanpath_train = json.load(open(args.scanpath_train, "r"))
     target2txt = json.load(open(args.target2text, "r"))
 
     if not os.path.exists(args.scanpath_test):
