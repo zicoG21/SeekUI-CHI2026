@@ -18,13 +18,9 @@ export HF_HOME="${HF_HOME:-$SEEKUI_WORK/hf_cache}"
 export TRANSFORMERS_CACHE="${TRANSFORMERS_CACHE:-$HF_HOME}"
 export PYTHONUNBUFFERED=1
 
-# Edit these lines for your CHPC Python environment.
-# Examples:
-#   module load miniconda3
-#   source activate seekui
-# or:
-#   source ~/miniconda3/etc/profile.d/conda.sh
-#   conda activate seekui
+module load miniconda3/25.9.1
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate seekui
 
 MODEL_PATH="${MODEL_PATH:-$SEEKUI_WORK/models/SeekUI}"
 OUTPUT_PATH="${OUTPUT_PATH:-$SEEKUI_WORK/outputs/demo_prediction.json}"
