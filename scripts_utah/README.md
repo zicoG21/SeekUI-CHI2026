@@ -9,6 +9,10 @@ Run this on a login node or CPU job. Choose a shared filesystem path that is vis
 ```bash
 cd /path/to/SeekUI-CHI2026
 export SEEKUI_WORK=${SCRATCH:-$PWD/.scratch}/seekui
+module load miniconda3/25.9.1
+source "$(conda info --base)/etc/profile.d/conda.sh"
+conda activate seekui
+bash scripts_utah/install_inference_deps.sh
 bash scripts_utah/download_models.sh
 ```
 
