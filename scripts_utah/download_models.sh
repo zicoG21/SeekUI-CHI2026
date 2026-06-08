@@ -13,8 +13,10 @@ mkdir -p "$MODEL_DIR" "$HF_HOME"
 
 if command -v hf >/dev/null 2>&1; then
   HF_DOWNLOAD=(hf download)
+  LOCAL_DIR_EXTRA_ARGS=()
 elif command -v huggingface-cli >/dev/null 2>&1; then
   HF_DOWNLOAD=(huggingface-cli download)
+  LOCAL_DIR_EXTRA_ARGS=(--local-dir-use-symlinks False)
 else
   echo "Hugging Face CLI not found. Install huggingface_hub in your SeekUI environment first:"
   echo "  pip install -U huggingface_hub hf_xet"
@@ -27,11 +29,11 @@ echo "HF_HOME  : $HF_HOME"
 
 "${HF_DOWNLOAD[@]}" sushizixin1/SeekUI \
   --local-dir "$MODEL_DIR/SeekUI" \
-  --local-dir-use-symlinks False
+  "${LOCAL_DIR_EXTRA_ARGS[@]}"
 
 "${HF_DOWNLOAD[@]}" sushizixin1/SeekUI_sft \
   --local-dir "$MODEL_DIR/SeekUI_sft" \
-  --local-dir-use-symlinks False
+  "${LOCAL_DIR_EXTRA_ARGS[@]}"
 
 echo
 echo "Downloaded models:"
