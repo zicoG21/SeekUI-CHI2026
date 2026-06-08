@@ -28,7 +28,19 @@ $SEEKUI_WORK/models/
 $SEEKUI_WORK/hf_cache/
 ```
 
-## 2. Run a one-image GPU smoke test
+## 2. Download VSGUI data
+
+```bash
+bash scripts_utah/download_data.sh
+```
+
+This downloads the files listed in `data/README.md` into:
+
+```text
+$SEEKUI_WORK/data/
+```
+
+## 3. Run a one-image GPU smoke test
 
 Submit the SLURM template after editing the account, partition, GPU type, and conda activation lines if needed.
 

@@ -14,7 +14,8 @@ python -m pip install \
   "tqdm" \
   "matplotlib" \
   "huggingface_hub" \
-  "hf_xet"
+  "hf_xet" \
+  "gdown"
 
 python - <<'PY'
 import torch
