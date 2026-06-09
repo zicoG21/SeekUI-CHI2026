@@ -349,3 +349,4 @@ python scripts_research/compare_predictions.py \
 - [ ] Sample qualitative review cases for semantic and absent failures.
 - [x] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."
 - [ ] Export manual review sheets for synthetic absent labels and semantic query validity. Automated in `run_offline_research_prep.sh`.
+- [ ] Fill manual review sheets and summarize label/query validity with `summarize_manual_review.py`.

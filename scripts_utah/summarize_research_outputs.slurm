@@ -24,6 +24,24 @@ conda activate seekui
 
 mkdir -p "$OUTPUT_DIR" "$COMPARE_DIR"
 
+review_inputs=()
+if [[ -f "$OUTPUT_DIR/review_cases/absent_label_review.csv" ]]; then
+  review_inputs+=("$OUTPUT_DIR/review_cases/absent_label_review.csv")
+fi
+if [[ -f "$OUTPUT_DIR/review_cases/semantic_query_review.csv" ]]; then
+  review_inputs+=("$OUTPUT_DIR/review_cases/semantic_query_review.csv")
+fi
+if [[ -f "$OUTPUT_DIR/review_cases/prediction_edge_cases_review.csv" ]]; then
+  review_inputs+=("$OUTPUT_DIR/review_cases/prediction_edge_cases_review.csv")
+fi
+
+if [[ ${#review_inputs[@]} -gt 0 ]]; then
+  python scripts_research/summarize_manual_review.py \
+    --input "${review_inputs[@]}" \
+    --output-json "$OUTPUT_DIR/review_cases/manual_review_summary.json" \
+    --output-md "$OUTPUT_DIR/review_cases/manual_review_summary.md"
+fi
+
 python scripts_research/summarize_research_outputs.py \
   --work-dir "$SEEKUI_WORK" \
   --output "$OUTPUT_DIR/research_summary.md"

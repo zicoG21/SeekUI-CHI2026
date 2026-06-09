@@ -232,3 +232,27 @@ python scripts_research/export_manual_review_sheet.py \
   --limit 100 \
   --output "$SEEKUI_WORK/outputs/review_cases/semantic_query_review.csv"
 ```
+
+Suggested `review_error_category` values:
+
+```text
+absent_label_noise
+forced_choice_hallucination
+premature_absent
+wrong_text_target
+wrong_semantic_target
+off_target_scanpath
+parsing_failure
+other
+```
+
+After filling the review columns, summarize the sheets:
+
+```bash
+python scripts_research/summarize_manual_review.py \
+  --input \
+    "$SEEKUI_WORK/outputs/review_cases/absent_label_review.csv" \
+    "$SEEKUI_WORK/outputs/review_cases/semantic_query_review.csv" \
+  --output-json "$SEEKUI_WORK/outputs/review_cases/manual_review_summary.json" \
+  --output-md "$SEEKUI_WORK/outputs/review_cases/manual_review_summary.md"
+```

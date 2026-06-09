@@ -60,6 +60,7 @@ def row_for_example(index, example):
         "review_target_visible": "",
         "review_query_valid": "",
         "review_prediction_reasonable": "",
+        "review_error_category": "",
         "review_notes": "",
     }
 
@@ -123,6 +124,7 @@ def main():
         "review_target_visible",
         "review_query_valid",
         "review_prediction_reasonable",
+        "review_error_category",
         "review_notes",
     ]
     with open(output, "w", newline="", encoding="utf-8") as f:

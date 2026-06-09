@@ -26,6 +26,12 @@ def parse_eval_log(path):
     return metrics
 
 
+def read_optional_json(path):
+    if path.exists():
+        return read_json(path)
+    return None
+
+
 def prediction_health(path):
     if not path.exists():
         return None
@@ -110,12 +116,22 @@ def export_tables(report, out_dir):
             "log": row.get("log"),
             **row.get("metrics", {}),
         })
+    manual_review_fields = []
+    manual_review_errors = []
+    manual_review = report.get("manual_review")
+    if manual_review:
+        for field, metrics in manual_review.get("fields", {}).items():
+            manual_review_fields.append({"field": field, **metrics})
+        for category, count in manual_review.get("error_category_counts", {}).items():
+            manual_review_errors.append({"category": category, "count": count})
 
     write_rows(out_dir / "prediction_health.csv", prediction_health)
     write_rows(out_dir / "overall_metrics.csv", overall_metrics)
     write_rows(out_dir / "absent_status.csv", absent_status)
     write_rows(out_dir / "semantic_query_summary.csv", semantic_query)
     write_rows(out_dir / "split_metrics.csv", split_metrics)
+    write_rows(out_dir / "manual_review_fields.csv", manual_review_fields)
+    write_rows(out_dir / "manual_review_errors.csv", manual_review_errors)
 
 
 def main():
@@ -135,6 +151,7 @@ def main():
         "prediction_health": {},
         "evaluation_metrics": {},
         "absent_status": {},
+        "manual_review": None,
         "cognitive_stopping": None,
         "data_audit": None,
     }
@@ -197,6 +214,10 @@ def main():
     semantic_review = outputs / "review_cases" / "semantic_query_review.csv"
     if semantic_review.exists():
         report["files"]["semantic_query_review"] = str(semantic_review)
+    manual_review_summary = outputs / "review_cases" / "manual_review_summary.json"
+    report["manual_review"] = read_optional_json(manual_review_summary)
+    if manual_review_summary.exists():
+        report["files"]["manual_review_summary"] = str(manual_review_summary)
 
     lines = ["# SeekUI Research Output Summary", ""]
     lines.append(f"Work dir: `{work_dir}`")
@@ -276,6 +297,22 @@ def main():
     else:
         lines.append("Pending.")
         lines.append("")
+
+    lines.append("## Manual Review")
+    lines.append("")
+    if report["manual_review"]:
+        review = report["manual_review"]
+        lines.append(f"- Rows: {review.get('num_rows')}")
+        lines.append(f"- Review types: {review.get('review_type_counts')}")
+        for field in ["review_target_visible", "review_query_valid", "review_prediction_reasonable"]:
+            field_summary = review.get("fields", {}).get(field, {})
+            lines.append(
+                f"- {field}: annotated={field_summary.get('annotated', 0)}, "
+                f"yes_rate={field_summary.get('yes_rate_annotated', 0):.4f}"
+            )
+    else:
+        lines.append("Pending.")
+    lines.append("")
 
     lines.append("## Split Evaluation Metrics")
     lines.append("")
