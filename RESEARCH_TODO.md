@@ -1,0 +1,206 @@
+# SeekUI Follow-Up Research TODO
+
+This document turns the current discussion with Prof. Jiang into concrete tasks that can move forward while long reproduction jobs are running.
+
+## Current Foundation
+
+- SeekUI full inference on the released 1362-example JSON has run successfully.
+- Overall evaluation has run successfully.
+- Utah CHPC batch scripts exist for full inference and evaluation.
+- Data and model layout should use `$SEEKUI_WORK`, not the repo directory.
+
+## Priority Order
+
+1. Target-absent search and stopping.
+2. Data audit for target modality and target presence.
+3. Cognitive stopping baseline.
+4. Non-text / multimodal target search.
+5. Associative search, only after a data source is clear.
+
+## Task 1: Data Audit
+
+Goal: determine what can be studied with current VSGUI/SeekUI data.
+
+Run:
+
+```bash
+python scripts_research/audit_vsgui.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/data_audit"
+```
+
+Questions this answers:
+
+- How many examples and unique GUI images are available?
+- What target prefixes exist, such as `txt` or non-text prefixes?
+- How many target texts are empty?
+- Are target boxes inside the image?
+- Are any required images missing?
+- What is the scanpath length distribution?
+
+Deliverables:
+
+```text
+$SEEKUI_WORK/outputs/data_audit/audit_summary.md
+$SEEKUI_WORK/outputs/data_audit/audit_summary.json
+$SEEKUI_WORK/outputs/data_audit/target_prefix_counts.csv
+$SEEKUI_WORK/outputs/data_audit/top_target_texts.csv
+```
+
+## Task 2: Synthetic Target-Absent Dataset
+
+Goal: create a first absent-target benchmark without collecting new eye-tracking data.
+
+The builder swaps a target cue from one image onto another image where the same target id/text is not annotated.
+
+Run:
+
+```bash
+python scripts_research/build_absent_dataset.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --output "$SEEKUI_WORK/data/absent_synthetic_1362.json" \
+  --mixed-output "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --limit 1362 \
+  --seed 42
+```
+
+Important caveat: this is a synthetic hard-negative benchmark. It avoids obvious positives from the current annotations, but it does not prove the target is visually absent unless we later audit with OCR/object detection or manual checks.
+
+## Task 3: Prompt-Only Absent Baseline
+
+Goal: test whether SeekUI can refuse a target that is not present without fine-tuning.
+
+Run:
+
+```bash
+ABSENT_INPUT="$SEEKUI_WORK/data/absent_synthetic_1362.json" \
+MODEL_NAME=SeekUI \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/absent_predictions_SeekUI.json" \
+sbatch scripts_utah/absent_inference.slurm
+```
+
+For a meaningful confusion matrix with both present and absent trials, use the mixed benchmark:
+
+```bash
+ABSENT_INPUT="$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+MODEL_NAME=SeekUI \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI.json" \
+sbatch scripts_utah/absent_inference.slurm
+```
+
+Run the SFT checkpoint too:
+
+```bash
+ABSENT_INPUT="$SEEKUI_WORK/data/absent_synthetic_1362.json" \
+MODEL_NAME=SeekUI_sft \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/absent_predictions_SeekUI_sft.json" \
+sbatch scripts_utah/absent_inference.slurm
+```
+
+The SLURM script automatically evaluates status classification and writes:
+
+```text
+$SEEKUI_WORK/outputs/absent_predictions_SeekUI_status_eval.json
+$SEEKUI_WORK/outputs/absent_predictions_SeekUI_sft_status_eval.json
+```
+
+Metrics:
+
+- present/absent confusion matrix
+- accuracy
+- absent precision
+- absent recall
+- absent F1
+
+## Task 4: Cognitive Stopping Baseline
+
+Goal: make the "cognitive model" direction concrete and interpretable.
+
+Minimum baseline:
+
+```text
+If no candidate region has target-match score above threshold after searching high-priority regions, stop and output absent.
+```
+
+First implementation can use:
+
+- OCR or annotated target texts as candidate text regions.
+- String similarity or embedding similarity to target cue.
+- A threshold sweep for absent detection.
+- Optional visited-region penalty and center/top-left layout prior.
+
+Initial formula:
+
+```text
+score(region) =
+  target_text_similarity
+  + layout_prior
+  - visited_penalty
+  - saccade_distance_cost
+```
+
+Deliverables:
+
+```text
+scripts_research/cognitive_stopping_baseline.py
+$SEEKUI_WORK/outputs/cognitive_stopping_threshold_sweep.csv
+$SEEKUI_WORK/outputs/cognitive_stopping_summary.md
+```
+
+Run the minimal text-candidate stopping baseline:
+
+```bash
+python scripts_research/cognitive_stopping_baseline.py \
+  --reference "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --eval "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --out-dir "$SEEKUI_WORK/outputs/cognitive_stopping"
+```
+
+This first version uses annotated target texts as candidate regions. It is not a final cognitive model, but it gives us a thresholded stopping baseline and a concrete result table.
+
+## Task 5: Non-Text / Multimodal Target Audit
+
+Goal: determine whether current data has non-text targets or whether we need synthetic/image-cue construction.
+
+Use the data audit target prefix counts:
+
+- If target prefixes are almost all `txt`, current released data cannot directly evaluate non-text targets.
+- If icon/image prefixes exist, inspect examples and create a multimodal target-crop benchmark.
+
+Potential first benchmark:
+
+```text
+Input: GUI screenshot + target crop image
+Output: scanpath
+```
+
+This requires either real non-text target trials or careful weak supervision from target boxes.
+
+## Task 6: Associative Search
+
+This is intentionally lower priority.
+
+Examples:
+
+```text
+privacy -> lock icon / security settings
+checkout -> pay now / cart
+travel -> plane / luggage
+```
+
+Main blocker: ground truth is subjective without a new dataset or manual annotation protocol.
+
+## Near-Term Checklist
+
+- [ ] Run data audit and save outputs.
+- [ ] Inspect whether any non-text target prefixes exist.
+- [ ] Build `absent_synthetic_1362.json` and `present_absent_synthetic_2724.json`.
+- [ ] Run prompt-only absent baseline for SeekUI.
+- [ ] Run prompt-only absent baseline for SeekUI-SFT.
+- [ ] Compare SeekUI vs SeekUI-SFT absent behavior.
+- [ ] Run cognitive stopping threshold sweep on the mixed benchmark.
+- [ ] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."

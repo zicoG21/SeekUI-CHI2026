@@ -116,3 +116,5 @@ sbatch scripts_utah/evaluate_predictions.slurm
 - Guest GPU partitions are preemptable, so keep smoke tests short and use checkpoints for longer training.
 
 For the complete reproduction path, see `REPRODUCTION_UTAH.md`.
+
+For follow-up research tasks, see `RESEARCH_TODO.md`.
