@@ -14,6 +14,16 @@ import math
 from tqdm import tqdm
 
 
+def save_results(results, output_path):
+    output_dir = os.path.dirname(output_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+    tmp_path = f"{output_path}.tmp"
+    with open(tmp_path, "w") as f:
+        json.dump(results, f, indent=4)
+    os.replace(tmp_path, output_path)
+
+
 def load_csv(csv_file, target2text, output_path="qwen-vl-finetune/scanpath_test.json"):
     scanpath = {}
 
@@ -98,6 +108,11 @@ def parse_args():
                         default="auto",
                         choices=["auto", "flash_attention_2", "sdpa"],
                         help="Attention implementation. Use auto to try flash_attention_2, then sdpa.")
+    parser.add_argument("--save_every", type=int,
+                        default=10,
+                        help="Save partial results every N newly processed examples")
+    parser.add_argument("--resume", action="store_true",
+                        help="Resume from an existing output file by skipping completed img_usr_tgt entries")
     return parser.parse_args()
 
 
@@ -143,7 +158,17 @@ def main():
     scanpath_example = scanpath_test
 
     results = []
+    completed_ids = set()
+    if args.resume and os.path.exists(args.output):
+        results = json.load(open(args.output, "r"))
+        completed_ids = {example.get("img_usr_tgt") for example in results if example.get("img_usr_tgt")}
+        print(f"Resuming from {args.output}: {len(completed_ids)} completed examples")
+
+    newly_processed = 0
     for idx in tqdm(range(len(scanpath_example)), total=len(scanpath_example)):
+        sample_id = scanpath_example[idx].get("img_usr_tgt")
+        if sample_id in completed_ids:
+            continue
 
         example_width, example_height = int(scanpath_example[idx]["width"]), int(scanpath_example[idx]["height"])
         example_image = scanpath_example[idx]["image"]
@@ -217,8 +242,13 @@ def main():
         if len(points) == 0:
             print(f"Warning: no points parsed for index {idx}, sample {cur_example.get('img_usr_tgt', idx)}")
         results.append(cur_example)
+        newly_processed += 1
 
-    json.dump(results, open(args.output, "w"), indent=4)
+        if args.save_every > 0 and newly_processed % args.save_every == 0:
+            save_results(results, args.output)
+            print(f"Partial predictions saved to {args.output} ({len(results)} results)")
+
+    save_results(results, args.output)
     print(f"Predictions saved to {args.output}")
 
 

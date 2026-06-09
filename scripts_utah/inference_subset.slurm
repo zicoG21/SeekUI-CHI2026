@@ -38,6 +38,8 @@ python inference/prediction_think.py \
   --target2text "$DATA_DIR/target2text.json" \
   --image_root "$DATA_DIR" \
   --output "$OUTPUT_PATH" \
-  --max_new_tokens 256
+  --max_new_tokens 256 \
+  --save_every "${SAVE_EVERY:-10}" \
+  --resume
 
 echo "Subset predictions saved to $OUTPUT_PATH"
