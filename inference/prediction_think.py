@@ -94,20 +94,42 @@ def parse_args():
     parser.add_argument("--max_new_tokens", type=int,
                         default=512,
                         help="Maximum number of new tokens to generate")
+    parser.add_argument("--attn_implementation", type=str,
+                        default="auto",
+                        choices=["auto", "flash_attention_2", "sdpa"],
+                        help="Attention implementation. Use auto to try flash_attention_2, then sdpa.")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
 
-    # Load model with flash_attention_2 for better acceleration and memory saving
-    model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
-        args.model_path,
-        torch_dtype=torch.bfloat16,
-        attn_implementation="flash_attention_2",
-        device_map="auto",
-        cache_dir=args.cache_dir
+    major, _ = torch.cuda.get_device_capability()
+    torch_dtype = torch.bfloat16 if major >= 8 else torch.float16
+    attn_attempts = (
+        ["flash_attention_2", "sdpa"]
+        if args.attn_implementation == "auto"
+        else [args.attn_implementation]
     )
+    last_error = None
+    for attn_implementation in attn_attempts:
+        try:
+            model = Qwen2_5_VLForConditionalGeneration.from_pretrained(
+                args.model_path,
+                torch_dtype=torch_dtype,
+                attn_implementation=attn_implementation,
+                device_map="auto",
+                cache_dir=args.cache_dir
+            )
+            print(f"Loaded model with {attn_implementation} and {torch_dtype}")
+            break
+        except Exception as exc:
+            last_error = exc
+            if args.attn_implementation != "auto":
+                raise
+            print(f"Failed to load with {attn_implementation}: {exc}")
+    else:
+        raise RuntimeError(f"Failed to load model. Last error: {last_error}") from last_error
     processor = AutoProcessor.from_pretrained(args.model_path, cache_dir=args.cache_dir)
 
     # Load data
