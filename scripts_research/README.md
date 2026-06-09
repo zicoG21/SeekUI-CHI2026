@@ -22,6 +22,12 @@ python scripts_research/summarize_research_outputs.py \
   --output "$SEEKUI_WORK/outputs/research_summary.md"
 ```
 
+This also writes CSV tables under:
+
+```text
+$SEEKUI_WORK/outputs/research_summary_tables/
+```
+
 ## 1. Audit Current Data
 
 ```bash
@@ -160,4 +166,24 @@ After split evaluation finishes, refresh the summary:
 python scripts_research/summarize_research_outputs.py \
   --work-dir "$SEEKUI_WORK" \
   --output "$SEEKUI_WORK/outputs/research_summary.md"
+```
+
+## 8. Sample Qualitative Review Cases
+
+```bash
+python scripts_research/sample_review_cases.py \
+  --predictions "$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
+  --mode semantic_non_exact \
+  --limit 50 \
+  --output "$SEEKUI_WORK/outputs/review_cases/semantic_non_exact_SeekUI.json"
+```
+
+Visualize sampled cases:
+
+```bash
+python scripts_research/visualize_scanpaths.py \
+  --json "$SEEKUI_WORK/outputs/review_cases/semantic_non_exact_SeekUI.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/visualizations/semantic_non_exact_SeekUI" \
+  --limit 50
 ```

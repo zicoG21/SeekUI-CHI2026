@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+import csv
 import json
 import os
 import re
@@ -79,10 +80,49 @@ def write_metric_table(lines, title, metrics_by_name):
     lines.append("")
 
 
+def write_rows(path, rows):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if not rows:
+        path.write_text("", encoding="utf-8")
+        return
+    fieldnames = sorted({key for row in rows for key in row})
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def export_tables(report, out_dir):
+    prediction_health = [{"name": name, **metrics} for name, metrics in report.get("prediction_health", {}).items()]
+    overall_metrics = [{"name": name, **metrics} for name, metrics in report.get("evaluation_metrics", {}).items()]
+    absent_status = [{"name": name, **metrics} for name, metrics in report.get("absent_status", {}).items()]
+    semantic_query = []
+    for model, groups in report.get("semantic_query", {}).items():
+        for query_type, metrics in groups.items():
+            semantic_query.append({"model": model, "query_type": query_type, **metrics})
+    split_metrics = []
+    for row in report.get("split_metrics", []):
+        split_metrics.append({
+            "group": row.get("group"),
+            "field": row.get("field"),
+            "value": row.get("value"),
+            "count": row.get("count"),
+            "log": row.get("log"),
+            **row.get("metrics", {}),
+        })
+
+    write_rows(out_dir / "prediction_health.csv", prediction_health)
+    write_rows(out_dir / "overall_metrics.csv", overall_metrics)
+    write_rows(out_dir / "absent_status.csv", absent_status)
+    write_rows(out_dir / "semantic_query_summary.csv", semantic_query)
+    write_rows(out_dir / "split_metrics.csv", split_metrics)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Summarize SeekUI reproduction and follow-up research outputs.")
     parser.add_argument("--work-dir", default=os.environ.get("SEEKUI_WORK", ""))
     parser.add_argument("--output", default="")
+    parser.add_argument("--tables-dir", default="", help="Optional CSV table output directory. Defaults to <output stem>_tables.")
     args = parser.parse_args()
 
     work_dir = Path(args.work_dir) if args.work_dir else Path(".scratch/seekui")
@@ -263,8 +303,12 @@ def main():
     with open(json_output, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
 
+    tables_dir = Path(args.tables_dir) if args.tables_dir else output.with_suffix("").parent / f"{output.with_suffix('').name}_tables"
+    export_tables(report, tables_dir)
+
     print(f"Wrote Markdown summary: {output}")
     print(f"Wrote JSON summary    : {json_output}")
+    print(f"Wrote CSV tables      : {tables_dir}")
 
 
 if __name__ == "__main__":

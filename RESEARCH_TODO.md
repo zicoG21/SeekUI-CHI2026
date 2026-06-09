@@ -69,6 +69,8 @@ python scripts_research/summarize_research_outputs.py \
   --output "$SEEKUI_WORK/outputs/research_summary.md"
 ```
 
+This also exports CSV tables to `$SEEKUI_WORK/outputs/research_summary_tables/`.
+
 ## Task 2: Synthetic Target-Absent Dataset
 
 Goal: create a first absent-target benchmark without collecting new eye-tracking data.
@@ -323,4 +325,6 @@ sbatch scripts_utah/evaluate_prediction_splits.slurm
 - [ ] Run semantic-query inference baseline for SeekUI.
 - [ ] Run split evaluation by `query_type` for semantic-query predictions.
 - [ ] Generate `research_summary.md`.
+- [ ] Export CSV tables from summary.
+- [ ] Sample qualitative review cases for semantic and absent failures.
 - [ ] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."
