@@ -1,0 +1,230 @@
+#!/usr/bin/env python
+import argparse
+import json
+import os
+import re
+from pathlib import Path
+
+
+METRIC_RE = re.compile(r"^([A-Za-z0-9_]+)\s*:\s*([-+0-9.]+)\s*$")
+
+
+def read_json(path):
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def parse_eval_log(path):
+    metrics = {}
+    if not path.exists():
+        return metrics
+    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        match = METRIC_RE.match(line.strip())
+        if match:
+            metrics[match.group(1)] = float(match.group(2))
+    return metrics
+
+
+def prediction_health(path):
+    if not path.exists():
+        return None
+    data = read_json(path)
+    lengths = [len(item.get("prediction", []) or []) for item in data]
+    return {
+        "num_examples": len(data),
+        "empty_predictions": sum(1 for length in lengths if length == 0),
+        "min_prediction_len": min(lengths) if lengths else 0,
+        "max_prediction_len": max(lengths) if lengths else 0,
+        "avg_prediction_len": sum(lengths) / len(lengths) if lengths else 0,
+    }
+
+
+def write_metric_table(lines, title, metrics_by_name):
+    lines.append(f"## {title}")
+    lines.append("")
+    if not metrics_by_name:
+        lines.append("Pending.")
+        lines.append("")
+        return
+    metric_names = sorted({metric for metrics in metrics_by_name.values() for metric in metrics})
+    header = "| Model | " + " | ".join(metric_names) + " |"
+    sep = "|---" * (len(metric_names) + 1) + "|"
+    lines.append(header)
+    lines.append(sep)
+    for model, metrics in metrics_by_name.items():
+        values = [f"{metrics.get(metric, ''):.4f}" if metric in metrics else "" for metric in metric_names]
+        lines.append("| " + model + " | " + " | ".join(values) + " |")
+    lines.append("")
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Summarize SeekUI reproduction and follow-up research outputs.")
+    parser.add_argument("--work-dir", default=os.environ.get("SEEKUI_WORK", ""))
+    parser.add_argument("--output", default="")
+    args = parser.parse_args()
+
+    work_dir = Path(args.work_dir) if args.work_dir else Path(".scratch/seekui")
+    outputs = work_dir / "outputs"
+    data_dir = work_dir / "data"
+
+    report = {
+        "work_dir": str(work_dir),
+        "files": {},
+        "prediction_health": {},
+        "evaluation_metrics": {},
+        "absent_status": {},
+        "cognitive_stopping": None,
+        "data_audit": None,
+    }
+
+    audit_path = outputs / "data_audit" / "audit_summary.json"
+    if audit_path.exists():
+        report["data_audit"] = read_json(audit_path)
+
+    for model in ["SeekUI", "SeekUI_sft"]:
+        pred_path = outputs / f"predictions_{model}_1362.json"
+        eval_path = outputs / f"eval_{model}_1362.txt"
+        image_cue_path = outputs / f"image_cue_predictions_{model}_1362.json"
+        semantic_path = outputs / f"semantic_query_predictions_{model}_1362_v2.json"
+        semantic_summary_path = outputs / f"semantic_query_predictions_{model}_1362_v2_summary.json"
+        absent_path = outputs / f"present_absent_predictions_{model}.json"
+        absent_eval_path = outputs / f"present_absent_predictions_{model}_status_eval.json"
+
+        report["files"][f"{model}_predictions"] = str(pred_path) if pred_path.exists() else None
+        report["files"][f"{model}_eval"] = str(eval_path) if eval_path.exists() else None
+        report["files"][f"{model}_image_cue_predictions"] = str(image_cue_path) if image_cue_path.exists() else None
+        report["files"][f"{model}_semantic_query_predictions"] = str(semantic_path) if semantic_path.exists() else None
+        report["files"][f"{model}_present_absent_predictions"] = str(absent_path) if absent_path.exists() else None
+
+        health = prediction_health(pred_path)
+        if health:
+            report["prediction_health"][model] = health
+        image_health = prediction_health(image_cue_path)
+        if image_health:
+            report["prediction_health"][f"{model}_image_cue"] = image_health
+        semantic_health = prediction_health(semantic_path)
+        if semantic_health:
+            report["prediction_health"][f"{model}_semantic_query"] = semantic_health
+
+        metrics = parse_eval_log(eval_path)
+        if metrics:
+            report["evaluation_metrics"][model] = metrics
+        if absent_eval_path.exists():
+            report["absent_status"][model] = read_json(absent_eval_path)
+        if semantic_summary_path.exists():
+            report.setdefault("semantic_query", {})[model] = read_json(semantic_summary_path)
+
+    cognitive_path = outputs / "cognitive_stopping" / "cognitive_stopping_summary.json"
+    if cognitive_path.exists():
+        report["cognitive_stopping"] = read_json(cognitive_path)
+
+    validation_path = outputs / "absent_validation.json"
+    if validation_path.exists():
+        report["absent_validation"] = read_json(validation_path)
+
+    image_cue_json = data_dir / "image_cue_1362.json"
+    if image_cue_json.exists():
+        report["files"]["image_cue_dataset"] = str(image_cue_json)
+    mixed_json = data_dir / "present_absent_synthetic_2724.json"
+    if mixed_json.exists():
+        report["files"]["present_absent_dataset"] = str(mixed_json)
+
+    lines = ["# SeekUI Research Output Summary", ""]
+    lines.append(f"Work dir: `{work_dir}`")
+    lines.append("")
+
+    lines.append("## Data Audit")
+    lines.append("")
+    if report["data_audit"]:
+        audit = report["data_audit"]
+        lines.append(f"- Examples: {audit.get('num_examples')}")
+        lines.append(f"- Unique images: {audit.get('unique_images')}")
+        lines.append(f"- Unique targets: {audit.get('unique_targets')}")
+        lines.append(f"- Target prefixes: {audit.get('target_prefix_counts')}")
+        lines.append(f"- Missing images: {audit.get('missing_image_files')}")
+    else:
+        lines.append("Pending.")
+    lines.append("")
+
+    lines.append("## Prediction Health")
+    lines.append("")
+    if report["prediction_health"]:
+        lines.append("| Output | N | Empty | Min Len | Avg Len | Max Len |")
+        lines.append("|---|---:|---:|---:|---:|---:|")
+        for name, health in report["prediction_health"].items():
+            lines.append(
+                f"| {name} | {health['num_examples']} | {health['empty_predictions']} | "
+                f"{health['min_prediction_len']} | {health['avg_prediction_len']:.2f} | {health['max_prediction_len']} |"
+            )
+    else:
+        lines.append("Pending.")
+    lines.append("")
+
+    write_metric_table(lines, "Overall Evaluation Metrics", report["evaluation_metrics"])
+
+    lines.append("## Present/Absent Status")
+    lines.append("")
+    if report["absent_status"]:
+        lines.append("| Model | N | Accuracy | Absent Precision | Absent Recall | Absent F1 |")
+        lines.append("|---|---:|---:|---:|---:|---:|")
+        for model, status in report["absent_status"].items():
+            lines.append(
+                f"| {model} | {status.get('num_examples', '')} | {status.get('accuracy', 0):.4f} | "
+                f"{status.get('absent_precision', 0):.4f} | {status.get('absent_recall', 0):.4f} | "
+                f"{status.get('absent_f1', 0):.4f} |"
+            )
+    else:
+        lines.append("Pending.")
+    lines.append("")
+
+    lines.append("## Cognitive Stopping")
+    lines.append("")
+    if report["cognitive_stopping"]:
+        best = report["cognitive_stopping"].get("best_by_absent_f1", {})
+        lines.append(f"- Examples: {report['cognitive_stopping'].get('num_examples')}")
+        lines.append(f"- Present: {report['cognitive_stopping'].get('num_present')}")
+        lines.append(f"- Absent: {report['cognitive_stopping'].get('num_absent')}")
+        lines.append(f"- Best threshold: {best.get('threshold')}")
+        lines.append(f"- Absent F1: {best.get('absent_f1', 0):.4f}")
+    else:
+        lines.append("Pending.")
+    lines.append("")
+
+    lines.append("## Semantic Query Robustness")
+    lines.append("")
+    if report.get("semantic_query"):
+        for model, summary in report["semantic_query"].items():
+            lines.append(f"### {model}")
+            lines.append("")
+            lines.append("| Query Type | N | Empty | Avg Len | Predicted Absent Rate |")
+            lines.append("|---|---:|---:|---:|---:|")
+            for query_type, row in sorted(summary.items()):
+                lines.append(
+                    f"| {query_type} | {row.get('num_examples', '')} | {row.get('empty_predictions', '')} | "
+                    f"{row.get('avg_prediction_len', 0):.2f} | {row.get('predicted_absent_rate', 0):.4f} |"
+                )
+            lines.append("")
+    else:
+        lines.append("Pending.")
+        lines.append("")
+
+    lines.append("## Files")
+    lines.append("")
+    for key, value in sorted(report["files"].items()):
+        lines.append(f"- {key}: `{value or 'pending'}`")
+    lines.append("")
+
+    output = Path(args.output) if args.output else outputs / "research_summary.md"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text("\n".join(lines), encoding="utf-8")
+
+    json_output = output.with_suffix(".json")
+    with open(json_output, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2, ensure_ascii=False)
+
+    print(f"Wrote Markdown summary: {output}")
+    print(f"Wrote JSON summary    : {json_output}")
+
+
+if __name__ == "__main__":
+    main()

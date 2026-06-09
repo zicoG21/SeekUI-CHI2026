@@ -60,6 +60,8 @@ def save_results(results, output_path):
 
 
 def get_target_text(example, target2text):
+    if example.get("query_text"):
+        return str(example["query_text"])
     if example.get("target"):
         return str(example["target"])
     target_id = example.get("target_id", "")

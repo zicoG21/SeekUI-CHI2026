@@ -61,6 +61,14 @@ or:
 sbatch scripts_utah/offline_research_prep.slurm
 ```
 
+Generate a rolling summary report from available outputs:
+
+```bash
+python scripts_research/summarize_research_outputs.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output "$SEEKUI_WORK/outputs/research_summary.md"
+```
+
 ## Task 2: Synthetic Target-Absent Dataset
 
 Goal: create a first absent-target benchmark without collecting new eye-tracking data.
@@ -252,7 +260,7 @@ This is useful for checking whether SeekUI/Qwen2.5-VL can use visual target cues
 
 ## Task 6: Associative Search
 
-This is intentionally lower priority.
+This is intentionally lower priority, but we now have a lightweight semantic-query scaffold.
 
 Examples:
 
@@ -263,6 +271,31 @@ travel -> plane / luggage
 ```
 
 Main blocker: ground truth is subjective without a new dataset or manual annotation protocol.
+
+Implemented scaffold:
+
+```bash
+python scripts_research/build_semantic_query_dataset.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --output "$SEEKUI_WORK/data/semantic_queries_1362_v2.json" \
+  --limit 1362 \
+  --variants-per-example 2 \
+  --seed 42
+```
+
+Run:
+
+```bash
+MODEL_NAME=SeekUI \
+SEMANTIC_LIMIT=1362 \
+VARIANTS_PER_EXAMPLE=2 \
+SEMANTIC_JSON="$SEEKUI_WORK/data/semantic_queries_1362_v2.json" \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
+sbatch scripts_utah/semantic_query_inference.slurm
+```
+
+This measures robustness to query rephrasing/templates. It should be described as semantic-query robustness, not as a full associative-search benchmark.
 
 ## Near-Term Checklist
 
@@ -277,4 +310,7 @@ Main blocker: ground truth is subjective without a new dataset or manual annotat
 - [ ] Generate visualization examples for present/absent/prediction cases.
 - [ ] Build target-crop image-cue benchmark.
 - [ ] Run image-cue inference baseline for SeekUI.
+- [ ] Build semantic-query benchmark.
+- [ ] Run semantic-query inference baseline for SeekUI.
+- [ ] Generate `research_summary.md`.
 - [ ] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."

@@ -13,6 +13,7 @@ TARGET2TEXT_JSON="$DATA_DIR/target2text.json"
 ABSENT_JSON="$DATA_DIR/absent_synthetic_${LIMIT}.json"
 MIXED_JSON="$DATA_DIR/present_absent_synthetic_$((LIMIT * 2)).json"
 IMAGE_CUE_JSON="$DATA_DIR/image_cue_${LIMIT}.json"
+SEMANTIC_JSON="$DATA_DIR/semantic_queries_${LIMIT}_v${VARIANTS_PER_EXAMPLE:-2}.json"
 CROP_DIR="$DATA_DIR/target_crops"
 
 python scripts_utah/check_reproduction_inputs.py
@@ -52,6 +53,14 @@ python scripts_research/build_target_crop_dataset.py \
   --crop-prefix "target_crops" \
   --limit "$LIMIT"
 
+python scripts_research/build_semantic_query_dataset.py \
+  --scanpath "$SCANPATH_JSON" \
+  --target2text "$TARGET2TEXT_JSON" \
+  --output "$SEMANTIC_JSON" \
+  --limit "$LIMIT" \
+  --variants-per-example "${VARIANTS_PER_EXAMPLE:-2}" \
+  --seed "${SEED:-42}"
+
 python scripts_research/visualize_scanpaths.py \
   --json "$MIXED_JSON" \
   --image-root "$DATA_DIR" \
@@ -59,6 +68,10 @@ python scripts_research/visualize_scanpaths.py \
   --status absent \
   --limit "${VIZ_LIMIT:-20}" \
   --max-scan "${VIZ_MAX_SCAN:-0}"
+
+python scripts_research/summarize_research_outputs.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output "$SEEKUI_WORK/outputs/research_summary.md"
 
 cat <<EOF
 Offline research prep complete.
@@ -71,5 +84,7 @@ Generated:
   $SEEKUI_WORK/outputs/cognitive_stopping/cognitive_stopping_summary.md
   $IMAGE_CUE_JSON
   $CROP_DIR
+  $SEMANTIC_JSON
   $SEEKUI_WORK/outputs/visualizations/absent_examples
+  $SEEKUI_WORK/outputs/research_summary.md
 EOF

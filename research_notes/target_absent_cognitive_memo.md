@@ -81,6 +81,7 @@ A richer later version can use:
 2. Cognitive model: used to frame stopping and uncertainty accumulation.
 3. Non-text/multimodal targets: important, but current released JSON is text-only, so this needs additional data construction.
 4. Associative search: high-level future direction requiring new annotation or a separate benchmark.
+   - Near-term scaffold: semantic-query robustness with template/query variants.
 
 ## Immediate Deliverables
 
@@ -91,6 +92,7 @@ A richer later version can use:
 - Cognitive stopping threshold sweep.
 - Visualization examples of present, absent, and failure cases.
 - Target-crop image-cue benchmark as a multimodal prototype.
+- Semantic-query variant benchmark as an associative-search scaffold.
 
 ## Risks and Mitigations
 
@@ -101,3 +103,5 @@ A richer later version can use:
 - Text-only data limits multimodal claims.
   - Mitigation: position non-text search as a second-stage extension after auditing data availability.
   - Mitigation: use target-crop image cues as a prototype while clearly labeling it as weakly constructed from text-target data.
+- Associative search labels are subjective.
+  - Mitigation: first report semantic-query robustness separately from true associative search.

@@ -14,6 +14,14 @@ Or submit it as a CPU batch job:
 sbatch scripts_utah/offline_research_prep.slurm
 ```
 
+Generate a rolling Markdown summary from whatever outputs exist:
+
+```bash
+python scripts_research/summarize_research_outputs.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output "$SEEKUI_WORK/outputs/research_summary.md"
+```
+
 ## 1. Audit Current Data
 
 ```bash
@@ -110,4 +118,29 @@ SUBSET_LIMIT=1362 \
 IMAGE_CUE_JSON="$SEEKUI_WORK/data/image_cue_1362.json" \
 OUTPUT_PATH="$SEEKUI_WORK/outputs/image_cue_predictions_SeekUI_1362.json" \
 sbatch scripts_utah/image_cue_inference.slurm
+```
+
+## 7. Build Semantic Query Benchmark
+
+This is a lightweight scaffold for semantic/associative search. It creates query variants from templates and a small handwritten mapping. It is not a replacement for a real associative-search dataset.
+
+```bash
+python scripts_research/build_semantic_query_dataset.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --output "$SEEKUI_WORK/data/semantic_queries_1362_v2.json" \
+  --limit 1362 \
+  --variants-per-example 2 \
+  --seed 42
+```
+
+Run semantic-query inference:
+
+```bash
+MODEL_NAME=SeekUI \
+SEMANTIC_LIMIT=1362 \
+VARIANTS_PER_EXAMPLE=2 \
+SEMANTIC_JSON="$SEEKUI_WORK/data/semantic_queries_1362_v2.json" \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
+sbatch scripts_utah/semantic_query_inference.slurm
 ```
