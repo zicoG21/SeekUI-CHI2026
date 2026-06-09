@@ -225,6 +225,12 @@ def main():
     semantic_review = outputs / "review_cases" / "semantic_query_review.csv"
     if semantic_review.exists():
         report["files"]["semantic_query_review"] = str(semantic_review)
+    prediction_review = outputs / "review_cases" / "prediction_edge_cases_review.csv"
+    if prediction_review.exists():
+        report["files"]["prediction_edge_cases_review"] = str(prediction_review)
+    review_manifest = outputs / "review_cases" / "review_artifacts_manifest.json"
+    if review_manifest.exists():
+        report["files"]["review_artifacts_manifest"] = str(review_manifest)
     manual_review_summary = outputs / "review_cases" / "manual_review_summary.json"
     report["manual_review"] = read_optional_json(manual_review_summary)
     if manual_review_summary.exists():

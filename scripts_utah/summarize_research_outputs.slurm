@@ -24,6 +24,13 @@ conda activate seekui
 
 mkdir -p "$OUTPUT_DIR" "$COMPARE_DIR"
 
+python scripts_research/generate_review_artifacts.py \
+  --work-dir "$SEEKUI_WORK" \
+  --limit "$SUBSET_LIMIT" \
+  --variants-per-example "$VARIANTS_PER_EXAMPLE" \
+  --review-limit "${REVIEW_LIMIT:-50}" \
+  --out-dir "$OUTPUT_DIR/review_cases"
+
 review_inputs=()
 if [[ -f "$OUTPUT_DIR/review_cases/absent_label_review.csv" ]]; then
   review_inputs+=("$OUTPUT_DIR/review_cases/absent_label_review.csv")
@@ -41,17 +48,6 @@ if [[ ${#review_inputs[@]} -gt 0 ]]; then
     --output-json "$OUTPUT_DIR/review_cases/manual_review_summary.json" \
     --output-md "$OUTPUT_DIR/review_cases/manual_review_summary.md"
 fi
-
-python scripts_research/check_followup_status.py \
-  --work-dir "$SEEKUI_WORK" \
-  --limit "$SUBSET_LIMIT" \
-  --variants-per-example "$VARIANTS_PER_EXAMPLE" \
-  --output-json "$OUTPUT_DIR/followup_status.json" \
-  --output-md "$OUTPUT_DIR/followup_status.md"
-
-python scripts_research/summarize_research_outputs.py \
-  --work-dir "$SEEKUI_WORK" \
-  --output "$OUTPUT_DIR/research_summary.md"
 
 compare_if_available() {
   local name="$1"
@@ -93,6 +89,17 @@ compare_if_available \
   "semantic_query_SeekUI_vs_SeekUI_sft_${SUBSET_LIMIT}_v${VARIANTS_PER_EXAMPLE}" \
   "$OUTPUT_DIR/semantic_query_predictions_SeekUI_${SUBSET_LIMIT}_v${VARIANTS_PER_EXAMPLE}.json" \
   "$OUTPUT_DIR/semantic_query_predictions_SeekUI_sft_${SUBSET_LIMIT}_v${VARIANTS_PER_EXAMPLE}.json"
+
+python scripts_research/check_followup_status.py \
+  --work-dir "$SEEKUI_WORK" \
+  --limit "$SUBSET_LIMIT" \
+  --variants-per-example "$VARIANTS_PER_EXAMPLE" \
+  --output-json "$OUTPUT_DIR/followup_status.json" \
+  --output-md "$OUTPUT_DIR/followup_status.md"
+
+python scripts_research/summarize_research_outputs.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output "$OUTPUT_DIR/research_summary.md"
 
 echo "Research summary written to $OUTPUT_DIR/research_summary.md"
 echo "CSV tables written under $OUTPUT_DIR/research_summary_tables"

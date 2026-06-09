@@ -356,6 +356,7 @@ python scripts_research/compare_predictions.py \
 - [ ] Generate `research_summary.md`.
 - [ ] Export CSV tables from summary.
 - [ ] Sample qualitative review cases for semantic and absent failures.
+- [ ] Generate prediction edge-case review artifacts with `generate_review_artifacts.py`.
 - [x] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."
 - [ ] Export manual review sheets for synthetic absent labels and semantic query validity. Automated in `run_offline_research_prep.sh`.
 - [ ] Fill manual review sheets and summarize label/query validity with `summarize_manual_review.py`.

@@ -220,6 +220,24 @@ python scripts_research/visualize_scanpaths.py \
   --limit 50
 ```
 
+Generate qualitative review artifacts automatically from all prediction files that already exist:
+
+```bash
+python scripts_research/generate_review_artifacts.py \
+  --work-dir "$SEEKUI_WORK" \
+  --limit 1362 \
+  --variants-per-example 2 \
+  --review-limit 50 \
+  --out-dir "$SEEKUI_WORK/outputs/review_cases"
+```
+
+This writes per-condition sample JSON/CSV files and, when any prediction files exist:
+
+```text
+$SEEKUI_WORK/outputs/review_cases/prediction_edge_cases_review.csv
+$SEEKUI_WORK/outputs/review_cases/review_artifacts_manifest.json
+```
+
 ## 9. Export Manual Review Sheets
 
 For checking whether synthetic absent labels are truly absent:
