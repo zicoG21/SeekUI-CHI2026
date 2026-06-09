@@ -69,6 +69,17 @@ python scripts_research/build_absent_dataset.py \
 
 Important caveat: this is a synthetic hard-negative benchmark. It avoids obvious positives from the current annotations, but it does not prove the target is visually absent unless we later audit with OCR/object detection or manual checks.
 
+Validate the synthetic benchmark:
+
+```bash
+python scripts_research/validate_absent_dataset.py \
+  --reference "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --dataset "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --output "$SEEKUI_WORK/outputs/absent_validation.json" \
+  --fail-on-conflict
+```
+
 ## Task 3: Prompt-Only Absent Baseline
 
 Goal: test whether SeekUI can refuse a target that is not present without fine-tuning.
@@ -162,6 +173,29 @@ python scripts_research/cognitive_stopping_baseline.py \
 
 This first version uses annotated target texts as candidate regions. It is not a final cognitive model, but it gives us a thresholded stopping baseline and a concrete result table.
 
+## Task 4.5: Visualization for Discussion
+
+Create examples for slides and debugging:
+
+```bash
+python scripts_research/visualize_scanpaths.py \
+  --json "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/visualizations/absent_examples" \
+  --status absent \
+  --limit 20
+```
+
+For model predictions:
+
+```bash
+python scripts_research/visualize_scanpaths.py \
+  --json "$SEEKUI_WORK/outputs/predictions_SeekUI_1362.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/visualizations/seekui_predictions" \
+  --limit 20
+```
+
 ## Task 5: Non-Text / Multimodal Target Audit
 
 Goal: determine whether current data has non-text targets or whether we need synthetic/image-cue construction.
@@ -199,8 +233,10 @@ Main blocker: ground truth is subjective without a new dataset or manual annotat
 - [ ] Run data audit and save outputs.
 - [ ] Inspect whether any non-text target prefixes exist.
 - [ ] Build `absent_synthetic_1362.json` and `present_absent_synthetic_2724.json`.
+- [ ] Validate synthetic absent benchmark with `validate_absent_dataset.py`.
 - [ ] Run prompt-only absent baseline for SeekUI.
 - [ ] Run prompt-only absent baseline for SeekUI-SFT.
 - [ ] Compare SeekUI vs SeekUI-SFT absent behavior.
 - [ ] Run cognitive stopping threshold sweep on the mixed benchmark.
+- [ ] Generate visualization examples for present/absent/prediction cases.
 - [ ] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."

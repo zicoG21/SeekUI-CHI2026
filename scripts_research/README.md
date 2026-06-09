@@ -24,7 +24,39 @@ python scripts_research/build_absent_dataset.py \
   --seed 42
 ```
 
-## 3. Evaluate Prompt-Only Absent Predictions
+Validate it:
+
+```bash
+python scripts_research/validate_absent_dataset.py \
+  --reference "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --dataset "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --output "$SEEKUI_WORK/outputs/absent_validation.json" \
+  --fail-on-conflict
+```
+
+## 3. Visualize Examples
+
+```bash
+python scripts_research/visualize_scanpaths.py \
+  --json "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/visualizations/absent_examples" \
+  --status absent \
+  --limit 20
+```
+
+For predictions:
+
+```bash
+python scripts_research/visualize_scanpaths.py \
+  --json "$SEEKUI_WORK/outputs/predictions_SeekUI_1362.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/visualizations/seekui_predictions" \
+  --limit 20
+```
+
+## 4. Evaluate Prompt-Only Absent Predictions
 
 After running `scripts_utah/absent_inference.slurm`:
 
@@ -34,7 +66,7 @@ python scripts_research/evaluate_absent_status.py \
   --output "$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_status_eval.json"
 ```
 
-## 4. Run Minimal Cognitive Stopping Baseline
+## 5. Run Minimal Cognitive Stopping Baseline
 
 ```bash
 python scripts_research/cognitive_stopping_baseline.py \
