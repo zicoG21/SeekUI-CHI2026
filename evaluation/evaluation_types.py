@@ -10,10 +10,15 @@ warnings.filterwarnings("ignore")
 
 
 def test_prediction_form(predictions):
-    for line in predictions:
-        prediction = line["prediction"]
-        for pred in prediction:
-            assert len(pred) == 2
+    for idx, line in enumerate(predictions):
+        cleaned_prediction = []
+        for pred in line.get("prediction", []):
+            if len(pred) == 2:
+                cleaned_prediction.append(pred)
+        if len(cleaned_prediction) == 0:
+            cleaned_prediction.append([int(line["width"] // 2), int(line["height"] // 2)])
+            print(f"Warning: replaced empty/invalid prediction at index {idx} with image center")
+        line["prediction"] = cleaned_prediction
 
 
 def process_scores(scores, sal_scores=None):
@@ -288,5 +293,4 @@ for cur_key, cur_prediction in all_predictions.items():
               (metric_name=metric_name, metric_value=metric_value))
 
     print("\n")
-
 

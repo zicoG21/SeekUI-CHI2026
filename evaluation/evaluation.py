@@ -6,14 +6,14 @@ import numpy as np
 
 def test_prediction_form(predictions):
     for idx, line in enumerate(predictions):
-        prediction = line["prediction"]
-        for pred in prediction:
-            try:
-                assert len(pred) == 2
-            except AssertionError:
-                prediction.remove(pred)
-                if len(prediction) == 0:
-                    prediction.append([int(line["width"] // 2), int(line["height"] // 2)])
+        cleaned_prediction = []
+        for pred in line.get("prediction", []):
+            if len(pred) == 2:
+                cleaned_prediction.append(pred)
+        if len(cleaned_prediction) == 0:
+            cleaned_prediction.append([int(line["width"] // 2), int(line["height"] // 2)])
+            print(f"Warning: replaced empty/invalid prediction at index {idx} with image center")
+        line["prediction"] = cleaned_prediction
 
 
 def process_scores(scores, sal_scores=None):
@@ -259,6 +259,5 @@ cur_metrics = process_scores(scores, sal_scores)
 for (metric_name, metric_value) in cur_metrics.items():
     print("{metric_name:15}: {metric_value:.4f}".format
           (metric_name=metric_name, metric_value=metric_value))
-
 
 
