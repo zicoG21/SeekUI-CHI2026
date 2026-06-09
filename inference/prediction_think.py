@@ -208,11 +208,14 @@ def main():
         sentence = sentence.replace("-", " ")
         points = re.findall(r'\[(\d+) \s*(\d+)\]', sentence)
         points = [[int(x), int(y)] for x, y in points]
-        assert len(points) != 0
 
         cur_example = scanpath_example[idx]
         cur_example["prediction"] = points
         cur_example["think"] = think_answer
+        cur_example["raw_output"] = content
+        cur_example["answer"] = scanpath_answer
+        if len(points) == 0:
+            print(f"Warning: no points parsed for index {idx}, sample {cur_example.get('img_usr_tgt', idx)}")
         results.append(cur_example)
 
     json.dump(results, open(args.output, "w"), indent=4)
