@@ -118,3 +118,11 @@ sbatch scripts_utah/evaluate_predictions.slurm
 For the complete reproduction path, see `REPRODUCTION_UTAH.md`.
 
 For follow-up research tasks, see `RESEARCH_TODO.md`.
+
+Useful follow-up batch jobs:
+
+```bash
+sbatch scripts_utah/offline_research_prep.slurm
+sbatch scripts_utah/absent_inference.slurm
+sbatch scripts_utah/image_cue_inference.slurm
+```

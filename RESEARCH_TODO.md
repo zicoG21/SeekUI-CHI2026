@@ -49,6 +49,18 @@ $SEEKUI_WORK/outputs/data_audit/target_prefix_counts.csv
 $SEEKUI_WORK/outputs/data_audit/top_target_texts.csv
 ```
 
+Run all offline preparation tasks at once:
+
+```bash
+bash scripts_research/run_offline_research_prep.sh
+```
+
+or:
+
+```bash
+sbatch scripts_utah/offline_research_prep.slurm
+```
+
 ## Task 2: Synthetic Target-Absent Dataset
 
 Goal: create a first absent-target benchmark without collecting new eye-tracking data.
@@ -214,6 +226,30 @@ Output: scanpath
 
 This requires either real non-text target trials or careful weak supervision from target boxes.
 
+Implemented prototype: target-crop image cue.
+
+```bash
+python scripts_research/build_target_crop_dataset.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --output "$SEEKUI_WORK/data/image_cue_1362.json" \
+  --crop-dir "$SEEKUI_WORK/data/target_crops" \
+  --crop-prefix "target_crops" \
+  --limit 1362
+```
+
+Run a two-image VLM prompt where the first image is the GUI and the second image is the target crop:
+
+```bash
+MODEL_NAME=SeekUI \
+SUBSET_LIMIT=1362 \
+IMAGE_CUE_JSON="$SEEKUI_WORK/data/image_cue_1362.json" \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/image_cue_predictions_SeekUI_1362.json" \
+sbatch scripts_utah/image_cue_inference.slurm
+```
+
+This is useful for checking whether SeekUI/Qwen2.5-VL can use visual target cues, but it is not a substitute for real non-text target trials.
+
 ## Task 6: Associative Search
 
 This is intentionally lower priority.
@@ -239,4 +275,6 @@ Main blocker: ground truth is subjective without a new dataset or manual annotat
 - [ ] Compare SeekUI vs SeekUI-SFT absent behavior.
 - [ ] Run cognitive stopping threshold sweep on the mixed benchmark.
 - [ ] Generate visualization examples for present/absent/prediction cases.
+- [ ] Build target-crop image-cue benchmark.
+- [ ] Run image-cue inference baseline for SeekUI.
 - [ ] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."

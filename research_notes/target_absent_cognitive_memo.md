@@ -90,6 +90,7 @@ A richer later version can use:
 - Status evaluation table.
 - Cognitive stopping threshold sweep.
 - Visualization examples of present, absent, and failure cases.
+- Target-crop image-cue benchmark as a multimodal prototype.
 
 ## Risks and Mitigations
 
@@ -99,3 +100,4 @@ A richer later version can use:
   - Mitigation: this itself demonstrates forced-choice behavior and motivates fine-tuning/stopping.
 - Text-only data limits multimodal claims.
   - Mitigation: position non-text search as a second-stage extension after auditing data availability.
+  - Mitigation: use target-crop image cues as a prototype while clearly labeling it as weakly constructed from text-target data.

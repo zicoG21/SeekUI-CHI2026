@@ -2,6 +2,18 @@
 
 These scripts support follow-up experiments that do not require changing or retraining SeekUI first.
 
+## 0. Run All Offline Prep
+
+```bash
+bash scripts_research/run_offline_research_prep.sh
+```
+
+Or submit it as a CPU batch job:
+
+```bash
+sbatch scripts_utah/offline_research_prep.slurm
+```
+
 ## 1. Audit Current Data
 
 ```bash
@@ -74,4 +86,28 @@ python scripts_research/cognitive_stopping_baseline.py \
   --eval "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
   --target2text "$SEEKUI_WORK/data/target2text.json" \
   --out-dir "$SEEKUI_WORK/outputs/cognitive_stopping"
+```
+
+## 6. Build Image-Cue Target-Crop Benchmark
+
+This creates target crops from existing target bounding boxes. It is a multimodal prototype, not proof that current data has non-text targets.
+
+```bash
+python scripts_research/build_target_crop_dataset.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --output "$SEEKUI_WORK/data/image_cue_1362.json" \
+  --crop-dir "$SEEKUI_WORK/data/target_crops" \
+  --crop-prefix "target_crops" \
+  --limit 1362
+```
+
+Run image-cue inference:
+
+```bash
+MODEL_NAME=SeekUI \
+SUBSET_LIMIT=1362 \
+IMAGE_CUE_JSON="$SEEKUI_WORK/data/image_cue_1362.json" \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/image_cue_predictions_SeekUI_1362.json" \
+sbatch scripts_utah/image_cue_inference.slurm
 ```
