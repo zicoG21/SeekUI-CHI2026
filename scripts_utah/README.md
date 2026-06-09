@@ -114,3 +114,5 @@ sbatch scripts_utah/evaluate_predictions.slurm
 - Prefer `a40`, `a6000`, `l40`, `l40s`, `a100`, `a800`, `h100`, or `h200` for SeekUI.
 - Avoid small MIG slices for training. They are fine only for basic environment checks.
 - Guest GPU partitions are preemptable, so keep smoke tests short and use checkpoints for longer training.
+
+For the complete reproduction path, see `REPRODUCTION_UTAH.md`.
