@@ -54,6 +54,26 @@ The script runs inference on `demo/c3f5f9.png` and writes:
 $SEEKUI_WORK/outputs/demo_prediction.json
 ```
 
+## 4. Run a real-data subset smoke test
+
+After placing `scanpath_train_explanation.json`, `target2text.json`, and at least some images under `$SEEKUI_WORK/data`, submit:
+
+```bash
+sbatch scripts_utah/inference_subset.slurm
+```
+
+This first creates:
+
+```text
+$SEEKUI_WORK/data/subset_available_10.json
+```
+
+then writes predictions to:
+
+```text
+$SEEKUI_WORK/outputs/subset_predictions.json
+```
+
 ## Notes
 
 - Prefer `a40`, `a6000`, `l40`, `l40s`, `a100`, `a800`, `h100`, or `h200` for SeekUI.
