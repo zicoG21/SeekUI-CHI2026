@@ -31,14 +31,14 @@ fi
 
 if [[ ! -f scanpath_train_explanation.json ]]; then
   echo "Downloading scanpath_train_explanation.json..."
-  gdown --id 1ZIlf3GTTqXn-_kE8DBy-F1VV8QhAlBRh -O scanpath_train_explanation.json
+  gdown 1ZIlf3GTTqXn-_kE8DBy-F1VV8QhAlBRh -O scanpath_train_explanation.json
 else
   echo "Skipping scanpath_train_explanation.json; file already exists."
 fi
 
 if [[ ! -f target2text.json ]]; then
   echo "Downloading target2text.json..."
-  gdown --id 1pLHVWtbS3y6jWDTmwYmmQrXzKFKwWZDl -O target2text.json
+  gdown 1pLHVWtbS3y6jWDTmwYmmQrXzKFKwWZDl -O target2text.json
 else
   echo "Skipping target2text.json; file already exists."
 fi
