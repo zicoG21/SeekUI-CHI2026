@@ -147,3 +147,12 @@ If offline prep has already finished and the derived datasets exist:
 ```bash
 SKIP_PREP=1 RUN_SFT=1 bash scripts_utah/submit_followup_experiments.sh
 ```
+
+To inspect what is done or still missing:
+
+```bash
+python scripts_research/check_followup_status.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output-json "$SEEKUI_WORK/outputs/followup_status.json" \
+  --output-md "$SEEKUI_WORK/outputs/followup_status.md"
+```

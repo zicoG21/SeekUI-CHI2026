@@ -40,6 +40,15 @@ Submit the full follow-up pipeline with SLURM dependencies:
 RUN_SFT=1 bash scripts_utah/submit_followup_experiments.sh
 ```
 
+Check which follow-up artifacts already exist and what command should run next:
+
+```bash
+python scripts_research/check_followup_status.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output-json "$SEEKUI_WORK/outputs/followup_status.json" \
+  --output-md "$SEEKUI_WORK/outputs/followup_status.md"
+```
+
 ## 1. Audit Current Data
 
 ```bash

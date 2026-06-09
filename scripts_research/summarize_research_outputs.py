@@ -124,6 +124,16 @@ def export_tables(report, out_dir):
             manual_review_fields.append({"field": field, **metrics})
         for category, count in manual_review.get("error_category_counts", {}).items():
             manual_review_errors.append({"category": category, "count": count})
+    followup_status = []
+    if report.get("followup_status"):
+        for item in report["followup_status"].get("items", []):
+            followup_status.append({
+                "id": item.get("id"),
+                "title": item.get("title"),
+                "state": item.get("state"),
+                "missing_count": len(item.get("missing", [])),
+                "command": item.get("command", ""),
+            })
 
     write_rows(out_dir / "prediction_health.csv", prediction_health)
     write_rows(out_dir / "overall_metrics.csv", overall_metrics)
@@ -132,6 +142,7 @@ def export_tables(report, out_dir):
     write_rows(out_dir / "split_metrics.csv", split_metrics)
     write_rows(out_dir / "manual_review_fields.csv", manual_review_fields)
     write_rows(out_dir / "manual_review_errors.csv", manual_review_errors)
+    write_rows(out_dir / "followup_status.csv", followup_status)
 
 
 def main():
@@ -218,6 +229,10 @@ def main():
     report["manual_review"] = read_optional_json(manual_review_summary)
     if manual_review_summary.exists():
         report["files"]["manual_review_summary"] = str(manual_review_summary)
+    followup_status = outputs / "followup_status.json"
+    if followup_status.exists():
+        report["followup_status"] = read_json(followup_status)
+        report["files"]["followup_status"] = str(followup_status)
 
     lines = ["# SeekUI Research Output Summary", ""]
     lines.append(f"Work dir: `{work_dir}`")
@@ -232,6 +247,27 @@ def main():
         lines.append(f"- Unique targets: {audit.get('unique_targets')}")
         lines.append(f"- Target prefixes: {audit.get('target_prefix_counts')}")
         lines.append(f"- Missing images: {audit.get('missing_image_files')}")
+    else:
+        lines.append("Pending.")
+    lines.append("")
+
+    lines.append("## Follow-Up Status")
+    lines.append("")
+    if report.get("followup_status"):
+        status = report["followup_status"]
+        counts = status.get("counts", {})
+        lines.append(f"- Done: {counts.get('done', 0)}")
+        lines.append(f"- Pending: {counts.get('pending', 0)}")
+        pending = [item for item in status.get("items", []) if item.get("state") == "pending"]
+        if pending:
+            lines.append("")
+            lines.append("| ID | Task | Missing | Next command |")
+            lines.append("|---|---|---:|---|")
+            for item in pending[:10]:
+                lines.append(
+                    f"| {item.get('id')} | {item.get('title')} | {len(item.get('missing', []))} | "
+                    f"`{item.get('command', '')}` |"
+                )
     else:
         lines.append("Pending.")
     lines.append("")

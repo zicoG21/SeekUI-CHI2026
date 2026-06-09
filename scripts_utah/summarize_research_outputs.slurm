@@ -42,6 +42,13 @@ if [[ ${#review_inputs[@]} -gt 0 ]]; then
     --output-md "$OUTPUT_DIR/review_cases/manual_review_summary.md"
 fi
 
+python scripts_research/check_followup_status.py \
+  --work-dir "$SEEKUI_WORK" \
+  --limit "$SUBSET_LIMIT" \
+  --variants-per-example "$VARIANTS_PER_EXAMPLE" \
+  --output-json "$OUTPUT_DIR/followup_status.json" \
+  --output-md "$OUTPUT_DIR/followup_status.md"
+
 python scripts_research/summarize_research_outputs.py \
   --work-dir "$SEEKUI_WORK" \
   --output "$OUTPUT_DIR/research_summary.md"

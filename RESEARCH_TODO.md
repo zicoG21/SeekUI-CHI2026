@@ -71,6 +71,15 @@ python scripts_research/summarize_research_outputs.py \
 
 This also exports CSV tables to `$SEEKUI_WORK/outputs/research_summary_tables/`.
 
+Check follow-up status and next commands:
+
+```bash
+python scripts_research/check_followup_status.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output-json "$SEEKUI_WORK/outputs/followup_status.json" \
+  --output-md "$SEEKUI_WORK/outputs/followup_status.md"
+```
+
 Or let SLURM run the whole follow-up pipeline with dependencies:
 
 ```bash
@@ -350,3 +359,4 @@ python scripts_research/compare_predictions.py \
 - [x] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."
 - [ ] Export manual review sheets for synthetic absent labels and semantic query validity. Automated in `run_offline_research_prep.sh`.
 - [ ] Fill manual review sheets and summarize label/query validity with `summarize_manual_review.py`.
+- [ ] Track follow-up completion with `check_followup_status.py`.
