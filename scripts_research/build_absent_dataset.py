@@ -46,6 +46,16 @@ def mark_present(example):
     return result
 
 
+def make_unique_id(base, used_ids):
+    candidate = base
+    suffix = 1
+    while candidate in used_ids:
+        candidate = f"{base}_{suffix}"
+        suffix += 1
+    used_ids.add(candidate)
+    return candidate
+
+
 def main():
     parser = argparse.ArgumentParser(description="Build synthetic target-absent VSGUI trials.")
     parser.add_argument("--scanpath", required=True, help="Present-target scanpath JSON.")
@@ -80,6 +90,7 @@ def main():
 
     absent_examples = []
     present_examples = []
+    used_img_usr_tgt = {example.get("img_usr_tgt", "") for example in examples if example.get("img_usr_tgt")}
     skipped = 0
     for source in source_examples:
         source_target_id = source.get("target_id", "")
@@ -104,7 +115,10 @@ def main():
 
         present_examples.append(mark_present(source))
         absent = strip_ground_truth(destination)
-        absent["img_usr_tgt"] = f"{destination['image'].split('/')[-1].split('.')[0]}_{destination.get('username', 'synthetic')}_{source_target_id}_absent"
+        destination_stem = destination["image"].split("/")[-1].split(".")[0]
+        source_key = source.get("img_usr_tgt") or f"source_{len(absent_examples)}"
+        absent_id_base = f"{destination_stem}_{destination.get('username', 'synthetic')}_{source_target_id}_{source_key}_absent"
+        absent["img_usr_tgt"] = make_unique_id(absent_id_base, used_img_usr_tgt)
         absent["target_id"] = source_target_id
         absent["target"] = source_target_text
         absent["absent_source_img_usr_tgt"] = source.get("img_usr_tgt")
