@@ -7,6 +7,12 @@ cd "$REPO_ROOT"
 SEEKUI_WORK="${SEEKUI_WORK:-${SCRATCH:-$REPO_ROOT/.scratch}/seekui}"
 SUBSET_LIMIT="${SUBSET_LIMIT:-1362}"
 
+if ! command -v python >/dev/null 2>&1; then
+  module load miniconda3/25.9.1
+  source "$(conda info --base)/etc/profile.d/conda.sh"
+  conda activate seekui
+fi
+
 submit_inference() {
   local model_name="$1"
   local output_path="$SEEKUI_WORK/outputs/predictions_${model_name}_${SUBSET_LIMIT}.json"
