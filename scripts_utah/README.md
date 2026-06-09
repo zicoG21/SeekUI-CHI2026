@@ -101,6 +101,14 @@ cd evaluation
 python evaluation.py --prediction_file test_predictions_seekui_1362.json
 ```
 
+Or submit it as a batch job:
+
+```bash
+PREDICTION_FILE="$SEEKUI_WORK/outputs/predictions_1362.json" \
+EVAL_LOG="$SEEKUI_WORK/outputs/eval_seekui_1362.txt" \
+sbatch scripts_utah/evaluate_predictions.slurm
+```
+
 ## Notes
 
 - Prefer `a40`, `a6000`, `l40`, `l40s`, `a100`, `a800`, `h100`, or `h200` for SeekUI.
