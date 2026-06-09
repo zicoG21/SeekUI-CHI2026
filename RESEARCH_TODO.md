@@ -362,3 +362,4 @@ python scripts_research/compare_predictions.py \
 - [ ] Export manual review sheets for synthetic absent labels and semantic query validity. Automated in `run_offline_research_prep.sh`.
 - [ ] Fill manual review sheets and summarize label/query validity with `summarize_manual_review.py`.
 - [ ] Track follow-up completion with `check_followup_status.py`.
+- [x] Define manual review annotation protocol.

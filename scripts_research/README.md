@@ -8,6 +8,12 @@ For a concise separation between completed local/offline preparation and CHPC-ou
 research_notes/offline_completion_audit.md
 ```
 
+For manual review annotation rules, see:
+
+```text
+research_notes/manual_review_protocol.md
+```
+
 ## 0. Run All Offline Prep
 
 ```bash

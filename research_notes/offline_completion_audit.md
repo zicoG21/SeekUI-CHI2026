@@ -34,6 +34,7 @@ This note separates tasks that have been completed as local/offline preparation 
 - `scripts_research/export_manual_review_sheet.py` exports absent-label, semantic-query, and prediction-review CSV sheets.
 - `scripts_research/generate_review_artifacts.py` samples edge cases from available prediction files.
 - `scripts_research/summarize_manual_review.py` summarizes filled manual review sheets.
+- `research_notes/manual_review_protocol.md` defines how to fill manual review sheets.
 - `scripts_research/summarize_research_outputs.py` creates the rolling markdown/json report and CSV tables.
 - `scripts_utah/summarize_research_outputs.slurm` runs review artifact generation, manual-review summary, comparisons, follow-up status, and final summary in the correct order.
 
