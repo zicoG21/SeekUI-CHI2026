@@ -71,6 +71,14 @@ python scripts_research/summarize_research_outputs.py \
 
 This also exports CSV tables to `$SEEKUI_WORK/outputs/research_summary_tables/`.
 
+Or let SLURM run the whole follow-up pipeline with dependencies:
+
+```bash
+RUN_SFT=1 bash scripts_utah/submit_followup_experiments.sh
+```
+
+This submits offline prep, present/absent prompt baselines, image-cue baselines, semantic-query baselines, semantic split evaluation, and a final summary job. Use `SKIP_PREP=1` if the derived datasets have already been prepared.
+
 ## Task 2: Synthetic Target-Absent Dataset
 
 Goal: create a first absent-target benchmark without collecting new eye-tracking data.
@@ -308,6 +316,17 @@ SPLIT_NAME=semantic_query_SeekUI_query_type \
 sbatch scripts_utah/evaluate_prediction_splits.slurm
 ```
 
+Compare SeekUI and SFT outputs on matched examples:
+
+```bash
+python scripts_research/compare_predictions.py \
+  --a "$SEEKUI_WORK/outputs/predictions_SeekUI_1362.json" \
+  --b "$SEEKUI_WORK/outputs/predictions_SeekUI_sft_1362.json" \
+  --label-a SeekUI \
+  --label-b SeekUI_sft \
+  --out-csv "$SEEKUI_WORK/outputs/comparisons/base_SeekUI_vs_SeekUI_sft_1362.csv"
+```
+
 ## Near-Term Checklist
 
 - [ ] Run data audit and save outputs.
@@ -324,6 +343,7 @@ sbatch scripts_utah/evaluate_prediction_splits.slurm
 - [ ] Build semantic-query benchmark.
 - [ ] Run semantic-query inference baseline for SeekUI.
 - [ ] Run split evaluation by `query_type` for semantic-query predictions.
+- [ ] Compare SeekUI vs SeekUI-SFT base, absent, image-cue, and semantic outputs.
 - [ ] Generate `research_summary.md`.
 - [ ] Export CSV tables from summary.
 - [ ] Sample qualitative review cases for semantic and absent failures.

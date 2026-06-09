@@ -127,4 +127,23 @@ sbatch scripts_utah/absent_inference.slurm
 sbatch scripts_utah/image_cue_inference.slurm
 sbatch scripts_utah/semantic_query_inference.slurm
 sbatch scripts_utah/evaluate_prediction_splits.slurm
+sbatch scripts_utah/summarize_research_outputs.slurm
+```
+
+To submit the follow-up pipeline with dependencies:
+
+```bash
+bash scripts_utah/submit_followup_experiments.sh
+```
+
+By default this runs SeekUI only. To include the SFT checkpoint too:
+
+```bash
+RUN_SFT=1 bash scripts_utah/submit_followup_experiments.sh
+```
+
+If offline prep has already finished and the derived datasets exist:
+
+```bash
+SKIP_PREP=1 RUN_SFT=1 bash scripts_utah/submit_followup_experiments.sh
 ```

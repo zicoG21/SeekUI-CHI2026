@@ -22,10 +22,22 @@ python scripts_research/summarize_research_outputs.py \
   --output "$SEEKUI_WORK/outputs/research_summary.md"
 ```
 
+Or submit summary generation as a CPU job:
+
+```bash
+sbatch scripts_utah/summarize_research_outputs.slurm
+```
+
 This also writes CSV tables under:
 
 ```text
 $SEEKUI_WORK/outputs/research_summary_tables/
+```
+
+Submit the full follow-up pipeline with SLURM dependencies:
+
+```bash
+RUN_SFT=1 bash scripts_utah/submit_followup_experiments.sh
 ```
 
 ## 1. Audit Current Data
@@ -166,6 +178,17 @@ After split evaluation finishes, refresh the summary:
 python scripts_research/summarize_research_outputs.py \
   --work-dir "$SEEKUI_WORK" \
   --output "$SEEKUI_WORK/outputs/research_summary.md"
+```
+
+Compare two prediction files on matched examples:
+
+```bash
+python scripts_research/compare_predictions.py \
+  --a "$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
+  --b "$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_sft_1362_v2.json" \
+  --label-a SeekUI \
+  --label-b SeekUI_sft \
+  --out-csv "$SEEKUI_WORK/outputs/comparisons/semantic_query_SeekUI_vs_SeekUI_sft.csv"
 ```
 
 ## 8. Sample Qualitative Review Cases
