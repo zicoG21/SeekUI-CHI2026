@@ -144,3 +144,20 @@ SEMANTIC_JSON="$SEEKUI_WORK/data/semantic_queries_1362_v2.json" \
 OUTPUT_PATH="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
 sbatch scripts_utah/semantic_query_inference.slurm
 ```
+
+Evaluate scanpath metrics separately by query type:
+
+```bash
+PREDICTION_FILE="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
+SPLIT_FIELD=query_type \
+SPLIT_NAME=semantic_query_SeekUI_query_type \
+sbatch scripts_utah/evaluate_prediction_splits.slurm
+```
+
+After split evaluation finishes, refresh the summary:
+
+```bash
+python scripts_research/summarize_research_outputs.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output "$SEEKUI_WORK/outputs/research_summary.md"
+```

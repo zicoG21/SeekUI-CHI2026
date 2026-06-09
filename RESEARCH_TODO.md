@@ -297,6 +297,15 @@ sbatch scripts_utah/semantic_query_inference.slurm
 
 This measures robustness to query rephrasing/templates. It should be described as semantic-query robustness, not as a full associative-search benchmark.
 
+Evaluate semantic-query scanpath quality by `query_type`:
+
+```bash
+PREDICTION_FILE="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
+SPLIT_FIELD=query_type \
+SPLIT_NAME=semantic_query_SeekUI_query_type \
+sbatch scripts_utah/evaluate_prediction_splits.slurm
+```
+
 ## Near-Term Checklist
 
 - [ ] Run data audit and save outputs.
@@ -312,5 +321,6 @@ This measures robustness to query rephrasing/templates. It should be described a
 - [ ] Run image-cue inference baseline for SeekUI.
 - [ ] Build semantic-query benchmark.
 - [ ] Run semantic-query inference baseline for SeekUI.
+- [ ] Run split evaluation by `query_type` for semantic-query predictions.
 - [ ] Generate `research_summary.md`.
 - [ ] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."

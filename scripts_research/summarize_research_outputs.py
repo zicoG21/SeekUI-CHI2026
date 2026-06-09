@@ -39,6 +39,28 @@ def prediction_health(path):
     }
 
 
+def collect_split_metrics(outputs):
+    split_root = outputs / "split_eval"
+    rows = []
+    if not split_root.exists():
+        return rows
+    for manifest_path in sorted(split_root.glob("**/manifest_with_logs.json")):
+        group = manifest_path.parent.name
+        manifest = read_json(manifest_path)
+        for item in manifest:
+            log_path = Path(item.get("eval_log", ""))
+            metrics = parse_eval_log(log_path)
+            rows.append({
+                "group": group,
+                "field": item.get("field"),
+                "value": item.get("value"),
+                "count": item.get("count"),
+                "metrics": metrics,
+                "log": str(log_path) if log_path else "",
+            })
+    return rows
+
+
 def write_metric_table(lines, title, metrics_by_name):
     lines.append(f"## {title}")
     lines.append("")
@@ -121,6 +143,7 @@ def main():
     validation_path = outputs / "absent_validation.json"
     if validation_path.exists():
         report["absent_validation"] = read_json(validation_path)
+    report["split_metrics"] = collect_split_metrics(outputs)
 
     image_cue_json = data_dir / "image_cue_1362.json"
     if image_cue_json.exists():
@@ -207,6 +230,24 @@ def main():
     else:
         lines.append("Pending.")
         lines.append("")
+
+    lines.append("## Split Evaluation Metrics")
+    lines.append("")
+    if report["split_metrics"]:
+        preferred = ["sm_score_wo_d", "mm_score_Pos", "sed_score", "stde_score", "ss_score", "AUC", "NSS", "sAUC"]
+        lines.append("| Group | Field | Value | N | " + " | ".join(preferred) + " |")
+        lines.append("|---|---|---|---:|" + "|".join(["---:"] * len(preferred)) + "|")
+        for row in report["split_metrics"]:
+            metrics = row["metrics"]
+            values = [f"{metrics.get(metric, ''):.4f}" if metric in metrics else "" for metric in preferred]
+            lines.append(
+                f"| {row['group']} | {row.get('field', '')} | {row.get('value', '')} | {row.get('count', '')} | "
+                + " | ".join(values)
+                + " |"
+            )
+    else:
+        lines.append("Pending.")
+    lines.append("")
 
     lines.append("## Files")
     lines.append("")

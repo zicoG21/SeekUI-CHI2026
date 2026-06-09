@@ -126,4 +126,5 @@ sbatch scripts_utah/offline_research_prep.slurm
 sbatch scripts_utah/absent_inference.slurm
 sbatch scripts_utah/image_cue_inference.slurm
 sbatch scripts_utah/semantic_query_inference.slurm
+sbatch scripts_utah/evaluate_prediction_splits.slurm
 ```
