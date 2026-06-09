@@ -18,11 +18,15 @@ echo "Data dir : $DATA_DIR"
 
 cd "$DATA_DIR"
 
-if [[ ! -d vsgui10k-images ]]; then
-  echo "Downloading vsgui10k-images folder..."
-  gdown --folder "https://drive.google.com/drive/folders/1Qbrwa6uZqRxgcwyWTF0bVZCEYkP7xTWK?usp=sharing"
+if [[ "${SKIP_IMAGES:-0}" == "1" ]]; then
+  echo "Skipping vsgui10k-images because SKIP_IMAGES=1."
 else
-  echo "Skipping vsgui10k-images; directory already exists."
+  echo "Downloading/resuming vsgui10k-images folder..."
+  gdown --folder "https://drive.google.com/drive/folders/1Qbrwa6uZqRxgcwyWTF0bVZCEYkP7xTWK?usp=sharing" || {
+    echo
+    echo "Image folder download stopped before completion."
+    echo "Google Drive often throttles large folder downloads; rerun this script to continue."
+  }
 fi
 
 if [[ ! -f scanpath_train_explanation.json ]]; then
