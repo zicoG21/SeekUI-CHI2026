@@ -54,6 +54,20 @@ The script runs inference on `demo/c3f5f9.png` and writes:
 $SEEKUI_WORK/outputs/demo_prediction.json
 ```
 
+## 3.5. Install FlashAttention 2
+
+For production inference/training, install FlashAttention 2 inside a GPU job:
+
+```bash
+sbatch scripts_utah/install_flash_attn.slurm
+```
+
+Check the log with:
+
+```bash
+tail -n 120 seekui-fa2-*.out
+```
+
 ## 4. Run a real-data subset smoke test
 
 After placing `scanpath_train_explanation.json`, `target2text.json`, and at least some images under `$SEEKUI_WORK/data`, submit:
