@@ -2,6 +2,12 @@
 
 These scripts support follow-up experiments that do not require changing or retraining SeekUI first.
 
+For a concise separation between completed local/offline preparation and CHPC-output-dependent tasks, see:
+
+```text
+research_notes/offline_completion_audit.md
+```
+
 ## 0. Run All Offline Prep
 
 ```bash

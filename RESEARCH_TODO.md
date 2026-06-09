@@ -8,6 +8,7 @@ This document turns the current discussion with Prof. Jiang into concrete tasks 
 - Overall evaluation has run successfully.
 - Utah CHPC batch scripts exist for full inference and evaluation.
 - Data and model layout should use `$SEEKUI_WORK`, not the repo directory.
+- Local/offline preparation status is summarized in `research_notes/offline_completion_audit.md`.
 
 ## Priority Order
 
