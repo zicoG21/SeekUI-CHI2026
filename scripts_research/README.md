@@ -210,3 +210,25 @@ python scripts_research/visualize_scanpaths.py \
   --out-dir "$SEEKUI_WORK/outputs/visualizations/semantic_non_exact_SeekUI" \
   --limit 50
 ```
+
+## 9. Export Manual Review Sheets
+
+For checking whether synthetic absent labels are truly absent:
+
+```bash
+python scripts_research/export_manual_review_sheet.py \
+  --input "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --mode absent \
+  --limit 100 \
+  --output "$SEEKUI_WORK/outputs/review_cases/absent_label_review.csv"
+```
+
+For checking whether semantic query variants are valid:
+
+```bash
+python scripts_research/export_manual_review_sheet.py \
+  --input "$SEEKUI_WORK/data/semantic_queries_1362_v2.json" \
+  --mode semantic_non_exact \
+  --limit 100 \
+  --output "$SEEKUI_WORK/outputs/review_cases/semantic_query_review.csv"
+```

@@ -191,6 +191,12 @@ def main():
     mixed_json = data_dir / "present_absent_synthetic_2724.json"
     if mixed_json.exists():
         report["files"]["present_absent_dataset"] = str(mixed_json)
+    absent_review = outputs / "review_cases" / "absent_label_review.csv"
+    if absent_review.exists():
+        report["files"]["absent_label_review"] = str(absent_review)
+    semantic_review = outputs / "review_cases" / "semantic_query_review.csv"
+    if semantic_review.exists():
+        report["files"]["semantic_query_review"] = str(semantic_review)
 
     lines = ["# SeekUI Research Output Summary", ""]
     lines.append(f"Work dir: `{work_dir}`")

@@ -15,6 +15,7 @@ MIXED_JSON="$DATA_DIR/present_absent_synthetic_$((LIMIT * 2)).json"
 IMAGE_CUE_JSON="$DATA_DIR/image_cue_${LIMIT}.json"
 SEMANTIC_JSON="$DATA_DIR/semantic_queries_${LIMIT}_v${VARIANTS_PER_EXAMPLE:-2}.json"
 CROP_DIR="$DATA_DIR/target_crops"
+REVIEW_DIR="$SEEKUI_WORK/outputs/review_cases"
 
 python scripts_utah/check_reproduction_inputs.py
 
@@ -61,6 +62,18 @@ python scripts_research/build_semantic_query_dataset.py \
   --variants-per-example "${VARIANTS_PER_EXAMPLE:-2}" \
   --seed "${SEED:-42}"
 
+python scripts_research/export_manual_review_sheet.py \
+  --input "$MIXED_JSON" \
+  --mode absent \
+  --limit "${REVIEW_LIMIT:-100}" \
+  --output "$REVIEW_DIR/absent_label_review.csv"
+
+python scripts_research/export_manual_review_sheet.py \
+  --input "$SEMANTIC_JSON" \
+  --mode semantic_non_exact \
+  --limit "${REVIEW_LIMIT:-100}" \
+  --output "$REVIEW_DIR/semantic_query_review.csv"
+
 python scripts_research/visualize_scanpaths.py \
   --json "$MIXED_JSON" \
   --image-root "$DATA_DIR" \
@@ -85,6 +98,8 @@ Generated:
   $IMAGE_CUE_JSON
   $CROP_DIR
   $SEMANTIC_JSON
+  $REVIEW_DIR/absent_label_review.csv
+  $REVIEW_DIR/semantic_query_review.csv
   $SEEKUI_WORK/outputs/visualizations/absent_examples
   $SEEKUI_WORK/outputs/research_summary.md
 EOF

@@ -347,4 +347,5 @@ python scripts_research/compare_predictions.py \
 - [ ] Generate `research_summary.md`.
 - [ ] Export CSV tables from summary.
 - [ ] Sample qualitative review cases for semantic and absent failures.
-- [ ] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."
+- [x] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."
+- [ ] Export manual review sheets for synthetic absent labels and semantic query validity. Automated in `run_offline_research_prep.sh`.
