@@ -88,6 +88,19 @@ then writes predictions to:
 $SEEKUI_WORK/outputs/subset_predictions.json
 ```
 
+## 5. Install Evaluation Dependencies
+
+```bash
+bash scripts_utah/install_eval_deps.sh
+```
+
+Then run:
+
+```bash
+cd evaluation
+python evaluation.py --prediction_file test_predictions_seekui_1362.json
+```
+
 ## Notes
 
 - Prefer `a40`, `a6000`, `l40`, `l40s`, `a100`, `a800`, `h100`, or `h200` for SeekUI.
