@@ -50,17 +50,23 @@ Current core table:
 | SeekUI | cognitive stop, present-only | 0.8414 | 0.7981 | 0.9141 | 0.8522 | 315 | 117 |
 | SeekUI | oracle candidate verifier | 0.9523 | 0.9173 | 0.9941 | 0.9542 | 122 | 8 |
 | SeekUI | OCR verifier, threshold 0.70 | 0.7070 | 0.6323 | 0.9897 | 0.7716 | 784 | 14 |
+| SeekUI | combined OR, default | 0.7834 | 0.7091 | 0.9611 | 0.8161 | 537 | 53 |
+| SeekUI | combined AND, default | 0.8377 | 0.8657 | 0.7996 | 0.8313 | 169 | 273 |
 | SeekUI-SFT | prompt-only | 0.7430 | 0.8761 | 0.5661 | 0.6878 | 109 | 591 |
 | SeekUI-SFT | cognitive stop, override | 0.6711 | 0.6122 | 0.9332 | 0.7394 | 805 | 91 |
 | SeekUI-SFT | cognitive stop, present-only | 0.7375 | 0.6704 | 0.9347 | 0.7807 | 626 | 89 |
 | SeekUI-SFT | oracle candidate verifier | 0.9548 | 0.9252 | 0.9897 | 0.9564 | 109 | 14 |
 | SeekUI-SFT | OCR verifier, threshold 0.70 | 0.7001 | 0.6272 | 0.9868 | 0.7669 | 799 | 18 |
+| SeekUI-SFT | combined OR, default | 0.6920 | 0.6233 | 0.9706 | 0.7591 | 799 | 40 |
+| SeekUI-SFT | combined AND, default | 0.8084 | 0.8292 | 0.7768 | 0.8021 | 218 | 304 |
 
 Important interpretation:
 
 - Cognitive stopping is the strongest practical non-oracle result for SeekUI so far.
+- Combined `AND` is the strongest current non-oracle result after threshold sweep.
 - Oracle candidate verifier is a diagnostic upper bound because it uses annotated same-screen candidate inventory.
 - OCR-only verifier catches absent cases but over-rejects present cases.
+- Combined `OR` is too aggressive or collapses to the stronger single signal; combined `AND` balances OCR false rejection against cognitive evidence.
 
 ## OCR Threshold Sweep
 
@@ -74,6 +80,40 @@ Best OCR-only settings from sweep:
 | SeekUI-SFT | best accuracy | 0.40 | 0.7628 | 0.7390 | 0.8128 | 0.7741 | 391 | 255 |
 
 Takeaway: OCR-only improves absent F1 over prompt-only but does not clearly beat cognitive stopping, especially for SeekUI.
+
+## Combined Cognitive + OCR Verifier
+
+Default combined settings used:
+
+```text
+cognitive_threshold = 0.05
+ocr_threshold = 0.40
+mode = present_only
+```
+
+Default `AND` is conservative and reduces OCR false rejection; default `OR` is generally too aggressive.
+
+Best threshold-sweep results:
+
+| Model | Rule | Criterion | Cognitive Threshold | OCR Threshold | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| SeekUI | OR | best F1/accuracy | 0.05 | 0.00 | 0.8414 | 0.7981 | 0.9141 | 0.8522 | 315 | 117 |
+| SeekUI | AND | best F1 | 0.20 | 0.60 | 0.8711 | 0.8115 | 0.9670 | 0.8824 | 306 | 45 |
+| SeekUI | AND | best accuracy | 0.10 | 0.55 | 0.8730 | 0.8369 | 0.9266 | 0.8794 | 246 | 100 |
+| SeekUI-SFT | OR | best F1 | 0.00 | 0.55 | 0.7445 | 0.6701 | 0.9633 | 0.7904 | 646 | 50 |
+| SeekUI-SFT | OR | best accuracy | 0.00 | 0.40 | 0.7628 | 0.7390 | 0.8128 | 0.7741 | 391 | 255 |
+| SeekUI-SFT | AND | best F1 | 0.05 | 0.55 | 0.8278 | 0.7853 | 0.9023 | 0.8398 | 336 | 133 |
+| SeekUI-SFT | AND | best accuracy | 0.05 | 0.50 | 0.8286 | 0.8030 | 0.8708 | 0.8355 | 291 | 176 |
+
+Takeaway:
+
+- `OR` does not add value: for SeekUI it collapses to cognitive stopping; for SeekUI-SFT it collapses to OCR-only.
+- `AND` is the current best non-oracle method:
+  - SeekUI absent F1: `0.8522 -> 0.8824`
+  - SeekUI accuracy: `0.8414 -> 0.8711/0.8730`
+  - SeekUI-SFT absent F1: `0.7807 -> 0.8398`
+  - SeekUI-SFT accuracy: `0.7375 -> 0.8278/0.8286`
+- Interpretation: cognitive stopping catches low scanpath evidence; OCR acts as a guard against over-rejecting present targets when visible text evidence exists. Requiring both to be low gives a better precision/recall tradeoff.
 
 ## Dev/Test Validation
 
@@ -119,8 +159,8 @@ Observed patterns:
 ## Pending Results
 
 - Combined cognitive + OCR verifier:
-  - `combined_or_present_only`
-  - `combined_and_present_only`
+  - completed on full benchmark
+  - needs dev/test validation
 - v3 semantic-query jobs.
 - Combined-verifier case mining if it improves over cognitive stopping.
 

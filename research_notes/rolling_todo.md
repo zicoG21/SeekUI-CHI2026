@@ -9,9 +9,9 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | Priority | Item | Status | Next action |
 |---:|---|---|---|
 | P0 | Finish v3 semantic-query jobs | running on CHPC | Check `squeue -u $USER`; when done, rerun summary and inspect semantic split tables |
-| P0 | Combined cognitive + OCR verifier | code ready | Run `sbatch scripts_utah/apply_combined_verifier.slurm`, then inspect best `or`/`and` sweeps |
-| P0 | Summarize combined verifier results | pending | Update `absent_status_core.csv` and copy best F1/accuracy rows into `rolling_results.md` |
-| P1 | Mine combined-verifier cases | pending | If combined beats stopping or OCR, create case sheets for corrected/new errors |
+| P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
+| P0 | Mine combined-verifier cases | pending | Create case sheets for corrected/new errors, especially SeekUI `and` at cognitive=0.20/OCR=0.60 |
+| P1 | Add dev/test validation for combined verifier | pending | Select thresholds on dev and report held-out deltas for combined `and` |
 | P1 | OCR verifier diagnosis | partial | Use details CSV to identify why present targets are missed by OCR |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
@@ -22,10 +22,9 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 ```bash
 cd ~/projects/SeekUI-CHI2026
 git pull
-sbatch scripts_utah/apply_combined_verifier.slurm
 ```
 
-After the combined job finishes:
+Refresh summary tables after new jobs finish:
 
 ```bash
 python scripts_research/summarize_research_outputs.py \
@@ -36,21 +35,10 @@ python scripts_research/summarize_research_outputs.py \
 cat "$SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv"
 ```
 
-Find best combined thresholds:
+Mine combined verifier cases once a case-mining script is added:
 
 ```bash
-python - <<'PY'
-import csv, os
-for model in ["SeekUI", "SeekUI_sft"]:
-    for rule in ["or", "and"]:
-        p = os.environ["SEEKUI_WORK"] + f"/outputs/present_absent_predictions_{model}_combined_{rule}_present_only_threshold_sweep.csv"
-        rows = list(csv.DictReader(open(p)))
-        best_f1 = max(rows, key=lambda r: float(r["absent_f1"]))
-        best_acc = max(rows, key=lambda r: float(r["accuracy"]))
-        print("\n", model, rule)
-        print("best by F1 :", best_f1)
-        print("best by Acc:", best_acc)
-PY
+# TODO: add script wrapper for combined verifier case mining.
 ```
 
 ## Recently Completed
@@ -65,10 +53,12 @@ PY
 - Added oracle candidate verifier as diagnostic upper bound.
 - Added OCR candidate verifier as a non-oracle text-only baseline.
 - Added combined cognitive + OCR verifier code.
+- Ran combined cognitive + OCR verifier; `AND` improves over cognitive stopping.
 
 ## Decision Log
 
 - Main research path is target-absent UI search with cognitive stopping.
 - Oracle candidate verifier is an upper bound, not a deployable method.
 - OCR-only verifier is useful as ablation, but currently too aggressive.
-- Next practical question: can combined cognitive + OCR improve over cognitive stopping alone?
+- Combined `AND` works better than either cognitive-only or OCR-only; `OR` is too aggressive or redundant.
+- Next practical question: does combined `AND` hold up under dev/test threshold selection?
