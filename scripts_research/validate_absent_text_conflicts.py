@@ -44,7 +44,7 @@ def norm(text):
 
 
 def tokens(text):
-    return {token for token in norm(text).split() if token and token not in STOPWORDS}
+    return {token for token in norm(text).split() if len(token) >= 2 and token not in STOPWORDS}
 
 
 def status(example):
@@ -66,7 +66,7 @@ def conflict_reason(query, candidate, min_fuzzy, min_token_overlap):
         return None, 0.0
     if q == c:
         return "exact_text_match", 1.0
-    if len(q) >= 4 and (q in c or c in q):
+    if min(len(q), len(c)) >= 4 and (q in c or c in q):
         return "substring_text_match", 1.0
     q_tokens = tokens(q)
     c_tokens = tokens(c)
