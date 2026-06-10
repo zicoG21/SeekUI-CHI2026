@@ -288,6 +288,10 @@ $SEEKUI_WORK/outputs/combined_error_taxonomy/combined_error_taxonomy_summary.md
 $SEEKUI_WORK/outputs/combined_error_taxonomy/combined_error_taxonomy_rows.csv
 ```
 
+The taxonomy summary uses the selected case-mining rows exported for contact
+sheet review. It reports full mined case counts separately from selected tagged
+rows when `stopping_cases_manifest.json` is available.
+
 Compute behavioral scanpath metrics for prompt-only, cognitive stopping, and
 combined verifier predictions:
 
@@ -302,6 +306,8 @@ $SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_summary.md
 $SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_summary.csv
 $SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_rows.csv
 ```
+
+Target-distance metrics are reported only for gold-present examples.
 
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 

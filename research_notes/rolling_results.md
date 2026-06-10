@@ -288,12 +288,57 @@ $SEEKUI_WORK/outputs/combined_cases/SeekUI_and_present_only_best_f1_contact_shee
 $SEEKUI_WORK/outputs/combined_cases/SeekUI_sft_and_present_only_best_f1_contact_sheets.tgz
 ```
 
+## Heuristic Error Taxonomy
+
+The taxonomy script summarizes selected case-mining rows, not every full benchmark example. It should be used as structured qualitative evidence alongside the full case counts above.
+
+Selected combined-case taxonomy:
+
+| Model | Case Type | Tagged Rows | Mean Pred Len | Mean Path Evidence | Mean OCR Score |
+|---|---|---:|---:|---:|---:|
+| SeekUI | corrected absent false-present | 40 | 3.62 | 0.0000 | 0.2346 |
+| SeekUI | kept absent false-present | 40 | 4.15 | 0.1036 | 0.6638 |
+| SeekUI | new present false-absent | 40 | 3.27 | 0.1458 | 0.3557 |
+| SeekUI-SFT | corrected absent false-present | 40 | 1.35 | 0.0000 | 0.2364 |
+| SeekUI-SFT | kept absent false-present | 40 | 1.50 | 0.0093 | 0.7332 |
+| SeekUI-SFT | new present false-absent | 40 | 1.18 | 0.0389 | 0.3606 |
+
+Takeaways:
+
+- Corrected absent false-present cases are characterized by near-zero path evidence and low OCR score.
+- Kept absent false-present cases have much higher OCR scores, suggesting text-like distractors are a major residual failure mode.
+- New present false-absent cases often have low OCR score and short scanpaths; these are likely OCR misses, weakly visible text, or under-search failures.
+- SeekUI-SFT selected cases are dominated by very short scanpaths (`mean pred len` around 1-1.5), reinforcing the earlier observation that SFT compresses search behavior.
+
+## Behavioral Search Metrics
+
+Behavioral metrics compare the scanpaths behind different status decisions. Post-hoc status layers do not change the scanpath itself, so all/gold-status averages are identical within the same base model; the useful comparisons are by error type after reclassification.
+
+Key patterns:
+
+| Model | Variant | Error Type | Count | Pred Len | Path Len Norm | Coverage | Revisit Rate | Convergence | Last Target Dist |
+|---|---|---|---:|---:|---:|---:|---:|---:|---:|
+| SeekUI | prompt | absent false-present | 509 | 3.16 | 0.1459 | 0.1126 | 0.1728 | 0.9138 | n/a |
+| SeekUI | combined best-F1 | absent false-present | 45 | 4.09 | 0.2339 | 0.1375 | 0.1929 | 0.8606 | n/a |
+| SeekUI | prompt | present false-absent | 122 | 4.70 | 0.2740 | 0.1537 | 0.3430 | 0.8089 | 255.80 |
+| SeekUI | combined best-F1 | present false-absent | 306 | 3.26 | 0.1609 | 0.1142 | 0.2204 | 0.8871 | 370.24 |
+| SeekUI-SFT | prompt | absent false-present | 591 | 1.39 | 0.0530 | 0.0765 | 0.0439 | 0.9573 | n/a |
+| SeekUI-SFT | combined best-F1 | absent false-present | 133 | 1.55 | 0.0823 | 0.0841 | 0.0471 | 0.9357 | n/a |
+| SeekUI-SFT | prompt | present false-absent | 109 | 1.63 | 0.0973 | 0.0843 | 0.0850 | 0.9173 | 455.52 |
+| SeekUI-SFT | combined best-F1 | present false-absent | 336 | 1.40 | 0.0584 | 0.0759 | 0.0648 | 0.9494 | 517.45 |
+
+Takeaways:
+
+- SeekUI prompt-only absent false-present errors are short, highly converged paths. This supports the forced-choice interpretation: the model commits to a plausible area rather than searching broadly.
+- Combined best-F1 removes most absent false-present cases; the remaining ones have longer paths and higher OCR/distractor evidence, so they are harder residual errors.
+- Present false-absent errors under combined best-F1 are shorter and farther from the target than prompt-only false-absent errors, consistent with under-search or weak evidence accumulation.
+- SeekUI-SFT scanpaths are consistently much shorter than SeekUI scanpaths, making evidence accumulation brittle.
+
 ## Pending Results
 
 - v3 semantic-query jobs.
-- Combined contact-sheet analysis.
-- Combined heuristic error taxonomy via `scripts_utah/summarize_combined_error_taxonomy.slurm`.
-- Behavioral scanpath metrics via `scripts_utah/summarize_behavioral_metrics.slurm`.
+- Combined contact-sheet visual analysis.
+- Rerun taxonomy and behavioral summaries after pulling the latest formatting/validity-count fixes.
 
 ## Files To Check
 

@@ -17,8 +17,8 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Analyze combined contact sheets | pending | Inspect corrected absent false-present, new present false-absent, and kept absent false-present sheets for both models |
 | P0 | Refresh filtered sensitivity analysis | completed | SFT best-F1 adjusted output is included; combined AND remains strongest under filtering |
 | P1 | OCR verifier diagnosis | partial | Use details CSV to identify why present targets are missed by OCR |
-| P1 | Combined verifier error taxonomy | code ready | Run `sbatch scripts_utah/summarize_combined_error_taxonomy.slurm` |
-| P1 | Behavioral search metrics | code ready | Run `sbatch scripts_utah/summarize_behavioral_metrics.slurm` |
+| P1 | Combined verifier error taxonomy | completed | Rerun after pulling latest fix so summary separates total cases from selected tagged rows |
+| P1 | Behavioral search metrics | completed | Rerun after pulling latest fix so target-distance columns show valid gold-present N |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
 | P1 | Simple VLM/OCR verifier baselines | pending | Compare against OCR exact/fuzzy match and generic VLM yes/no target-presence verifier |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
@@ -85,6 +85,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Ran combined-verifier case mining for SeekUI and SeekUI-SFT; contact-sheet exports are packaged on CHPC.
 - Refreshed filtered sensitivity after combined case mining; SFT best-F1 adjusted output is now included.
 - Added code for combined-verifier heuristic taxonomy and behavioral scanpath metrics.
+- Ran combined taxonomy and behavioral metrics; patched summaries to reduce ambiguity in selected-case counts and target-distance validity.
 
 ## Decision Log
 

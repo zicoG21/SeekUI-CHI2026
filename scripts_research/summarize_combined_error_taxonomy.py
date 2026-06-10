@@ -29,6 +29,14 @@ def write_json(path, data):
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
+def load_manifest(path):
+    if not path.exists() or path.stat().st_size == 0:
+        return {}
+    with open(path, "r", encoding="utf-8") as f:
+        items = json.load(f)
+    return {item.get("case_type", ""): item for item in items}
+
+
 def safe_float(value, default=0.0):
     try:
         if value == "":
@@ -132,7 +140,7 @@ def tag_row(row):
     return tags
 
 
-def summarize(rows):
+def summarize(rows, manifest):
     by_case = defaultdict(list)
     tag_counts = Counter()
     case_tag_counts = Counter()
@@ -146,9 +154,11 @@ def summarize(rows):
 
     case_rows = []
     for case_type, case_rows_raw in sorted(by_case.items()):
+        manifest_item = manifest.get(case_type, {})
         case_rows.append({
             "case_type": case_type,
-            "count": len(case_rows_raw),
+            "total_count": manifest_item.get("count", ""),
+            "selected_count": len(case_rows_raw),
             "mean_prediction_len": sum(safe_float(r.get("prediction_len")) for r in case_rows_raw) / len(case_rows_raw),
             "mean_path_best_evidence": sum(safe_float(r.get("path_best_evidence")) for r in case_rows_raw) / len(case_rows_raw),
             "mean_ocr_score": sum(safe_float(r.get("ocr_candidate_verifier_score")) for r in case_rows_raw) / len(case_rows_raw),
@@ -172,18 +182,19 @@ def summarize(rows):
 
 def write_md(path, model_summaries):
     lines = ["# Combined Verifier Error Taxonomy", ""]
-    lines.append("Heuristic tags are computed from case-mining metadata, path evidence, OCR score, and prediction length.")
+    lines.append("Heuristic tags are computed from selected case-mining rows, path evidence, OCR score, and prediction length.")
+    lines.append("`Total cases` is the full mined count; `Tagged rows` is the selected subset exported for contact-sheet review.")
     lines.append("")
     for model, summary in model_summaries.items():
         lines.extend([
             f"## {model}",
             "",
-            "| Case Type | Count | Mean Pred Len | Mean Path Evidence | Mean OCR Score |",
-            "|---|---:|---:|---:|---:|",
+            "| Case Type | Total Cases | Tagged Rows | Mean Pred Len | Mean Path Evidence | Mean OCR Score |",
+            "|---|---:|---:|---:|---:|---:|",
         ])
         for row in summary["case_rows"]:
             lines.append(
-                f"| {row['case_type']} | {row['count']} | {row['mean_prediction_len']:.2f} | "
+                f"| {row['case_type']} | {row['total_count']} | {row['selected_count']} | {row['mean_prediction_len']:.2f} | "
                 f"{row['mean_path_best_evidence']:.4f} | {row['mean_ocr_score']:.4f} |"
             )
         lines.extend(["", "Top tags:", "", "| Tag | Count | Rate |", "|---|---:|---:|"])
@@ -207,6 +218,7 @@ def main():
         case_dir = Path(raw_case_dir)
         model = parse_model(case_dir)
         rows = read_csv(case_dir / "stopping_cases_index.csv")
+        manifest = load_manifest(case_dir / "stopping_cases_manifest.json")
         tagged = []
         for row in rows:
             row = dict(row)
@@ -218,7 +230,7 @@ def main():
             continue
         fieldnames = list(tagged[0].keys())
         write_csv(out_dir / f"{model}_combined_error_taxonomy_rows.csv", tagged, fieldnames)
-        case_rows, tag_rows, case_tag_rows = summarize(tagged)
+        case_rows, tag_rows, case_tag_rows = summarize(tagged, manifest)
         write_csv(out_dir / f"{model}_combined_error_taxonomy_cases.csv", case_rows)
         write_csv(out_dir / f"{model}_combined_error_taxonomy_tags.csv", tag_rows)
         write_csv(out_dir / f"{model}_combined_error_taxonomy_case_tags.csv", case_tag_rows)

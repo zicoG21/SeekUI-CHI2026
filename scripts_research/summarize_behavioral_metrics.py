@@ -177,7 +177,7 @@ def analyze_example(index, model, example, image_root, args):
     first_to_target = ""
     last_to_target = ""
     min_to_target = ""
-    if target and points:
+    if gold == "present" and target and points:
         distances = [math.dist(p, target) for p in points]
         first_to_target = distances[0]
         last_to_target = distances[-1]
@@ -212,6 +212,10 @@ def mean(values):
     return sum(clean) / len(clean) if clean else 0.0
 
 
+def count_numeric(values):
+    return sum(1 for v in values if isinstance(v, (int, float)))
+
+
 def summarize(rows):
     groups = defaultdict(list)
     for row in rows:
@@ -239,7 +243,9 @@ def summarize(rows):
             "count": len(group_rows),
         }
         for metric in metrics:
-            out[f"mean_{metric}"] = mean([row.get(metric) for row in group_rows])
+            values = [row.get(metric) for row in group_rows]
+            out[f"mean_{metric}"] = mean(values)
+            out[f"n_{metric}"] = count_numeric(values)
         summary_rows.append(out)
     return summary_rows
 
@@ -248,8 +254,10 @@ def write_md(path, summary_rows):
     lines = [
         "# Behavioral Search Metrics",
         "",
-        "| Model | Group | Value | Count | Pred Len | Path Len Norm | Coverage | Revisit Rate | Convergence | Last Target Dist |",
-        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|",
+        "Target-distance metrics are computed only for gold-present examples.",
+        "",
+        "| Model | Group | Value | Count | Pred Len | Path Len Norm | Coverage | Revisit Rate | Convergence | Last Target Dist | Target Dist N |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in summary_rows:
         if row["group_field"] not in {"all", "gold_status", "error_type"}:
@@ -258,7 +266,8 @@ def write_md(path, summary_rows):
             f"| {row['model']} | {row['group_field']} | {row['group_value']} | {row['count']} | "
             f"{row['mean_prediction_len']:.2f} | {row['mean_path_length_norm']:.4f} | "
             f"{row['mean_grid_coverage']:.4f} | {row['mean_revisit_rate']:.4f} | "
-            f"{row['mean_convergence_score']:.4f} | {row['mean_last_to_target_px']:.2f} |"
+            f"{row['mean_convergence_score']:.4f} | {row['mean_last_to_target_px']:.2f} | "
+            f"{row['n_last_to_target_px']} |"
         )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
