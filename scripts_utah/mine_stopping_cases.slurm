@@ -37,11 +37,18 @@ for case_type in \
   kept_absent_false_present; do
   json_path="$OUT_DIR/${case_type}.json"
   if [[ -s "$json_path" ]]; then
+    viz_dir="$OUT_DIR/visualizations/$case_type"
     python scripts_research/visualize_scanpaths.py \
       --json "$json_path" \
       --image-root "$DATA_DIR" \
-      --out-dir "$OUT_DIR/visualizations/$case_type" \
+      --out-dir "$viz_dir" \
       --limit "$CASE_LIMIT"
+
+    python scripts_research/make_contact_sheet.py \
+      --input-dir "$viz_dir" \
+      --output "$OUT_DIR/visualizations/${case_type}_contact_sheet.jpg" \
+      --limit "$CASE_LIMIT" \
+      --cols "${CONTACT_SHEET_COLS:-5}"
   fi
 done
 

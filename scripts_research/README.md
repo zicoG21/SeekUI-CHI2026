@@ -231,6 +231,12 @@ Mine stopping success/failure cases and visualizations:
 sbatch scripts_utah/mine_stopping_cases.slurm
 ```
 
+This also writes contact sheets under:
+
+```text
+$SEEKUI_WORK/outputs/stopping_cases/SeekUI_present_only/visualizations/*_contact_sheet.jpg
+```
+
 For SeekUI-SFT:
 
 ```bash
