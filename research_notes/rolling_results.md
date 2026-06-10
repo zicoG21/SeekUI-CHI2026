@@ -223,6 +223,27 @@ Observed patterns:
 - New false-absent cases often involve small, edge, low-contrast, or weakly OCR-readable targets.
 - Kept false-present cases often contain strong distractor controls such as login, upload, play, settings, or menu buttons.
 
+Combined AND case mining, SeekUI best-F1 thresholds:
+
+```text
+cognitive_threshold = 0.20
+ocr_threshold = 0.60
+```
+
+| Model | Corrected absent false-present | New present false-absent | Corrected present false-absent | Kept absent false-present |
+|---|---:|---:|---:|---:|
+| SeekUI + combined AND | 464 | 184 | 0 | 45 |
+
+Compared with cognitive stopping alone for SeekUI:
+
+```text
+corrected absent false-present: 392 -> 464
+new present false-absent:       193 -> 184
+kept absent false-present:      117 -> 45
+```
+
+Takeaway: combined AND improves the qualitative error profile: it fixes more absent hallucinations, creates slightly fewer present false-absent errors, and leaves far fewer absent false-present failures.
+
 ## Pending Results
 
 - Combined cognitive + OCR verifier:

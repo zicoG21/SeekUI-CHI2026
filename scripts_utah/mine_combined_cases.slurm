@@ -25,6 +25,17 @@ module load miniconda3/25.9.1
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate seekui
 
+json_has_examples() {
+  python - "$1" <<'PY'
+import json
+import sys
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+raise SystemExit(0 if len(data) > 0 else 1)
+PY
+}
+
 for model in SeekUI SeekUI_sft; do
   if [[ "$model" == "SeekUI" ]]; then
     cog_threshold="${SEEKUI_COGNITIVE_THRESHOLD:-0.20}"
@@ -66,7 +77,7 @@ for model in SeekUI SeekUI_sft; do
     corrected_present_false_absent \
     kept_absent_false_present; do
     json_path="$out_dir/${case_type}.json"
-    if [[ -s "$json_path" ]]; then
+    if [[ -s "$json_path" ]] && json_has_examples "$json_path"; then
       viz_dir="$out_dir/visualizations/$case_type"
       python scripts_research/visualize_scanpaths.py \
         --json "$json_path" \
@@ -82,6 +93,8 @@ for model in SeekUI SeekUI_sft; do
 
       cp "$out_dir/visualizations/${case_type}_contact_sheet.jpg" \
         "$out_dir/visualizations/${model}_${RULE}_${case_type}_contact_sheet.jpg"
+    else
+      echo "Skipping empty case set: $json_path"
     fi
   done
 

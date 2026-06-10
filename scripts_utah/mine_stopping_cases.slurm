@@ -23,6 +23,17 @@ module load miniconda3/25.9.1
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate seekui
 
+json_has_examples() {
+  python - "$1" <<'PY'
+import json
+import sys
+path = sys.argv[1]
+with open(path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+raise SystemExit(0 if len(data) > 0 else 1)
+PY
+}
+
 python scripts_research/mine_stopping_cases.py \
   --original "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}.json" \
   --adjusted "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_cognitive_stop_present_only.json" \
@@ -36,7 +47,7 @@ for case_type in \
   corrected_present_false_absent \
   kept_absent_false_present; do
   json_path="$OUT_DIR/${case_type}.json"
-  if [[ -s "$json_path" ]]; then
+  if [[ -s "$json_path" ]] && json_has_examples "$json_path"; then
     viz_dir="$OUT_DIR/visualizations/$case_type"
     python scripts_research/visualize_scanpaths.py \
       --json "$json_path" \
@@ -52,6 +63,8 @@ for case_type in \
 
     cp "$OUT_DIR/visualizations/${case_type}_contact_sheet.jpg" \
       "$OUT_DIR/visualizations/${MODEL_NAME}_${case_type}_contact_sheet.jpg"
+  else
+    echo "Skipping empty case set: $json_path"
   fi
 done
 
