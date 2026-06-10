@@ -99,6 +99,10 @@ def write_rows(path, rows):
 
 
 def absent_variant(name):
+    marker = "_combined_"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"combined_{variant}"
     marker = "_ocr_candidate_verifier_"
     if marker in name:
         model, variant = name.split(marker, 1)
@@ -140,6 +144,8 @@ def absent_status_core_rows(absent_status):
         "candidate_verifier_hybrid_present_only": 4,
         "candidate_verifier_path_best_evidence_present_only": 5,
         "ocr_candidate_verifier_present_only": 6,
+        "combined_or_present_only": 7,
+        "combined_and_present_only": 8,
     }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
@@ -282,6 +288,13 @@ def main():
             suffix = "_status_eval"
             variant = ocr_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
             report["absent_status"][f"{model}_{variant}"] = read_json(ocr_eval_path)
+        for combined_eval_path in sorted(
+            outputs.glob(f"present_absent_predictions_{model}_combined_*_status_eval.json")
+        ):
+            prefix = f"present_absent_predictions_{model}_"
+            suffix = "_status_eval"
+            variant = combined_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            report["absent_status"][f"{model}_{variant}"] = read_json(combined_eval_path)
         if semantic_summary_path.exists():
             report.setdefault("semantic_query", {})[model] = read_json(semantic_summary_path)
 

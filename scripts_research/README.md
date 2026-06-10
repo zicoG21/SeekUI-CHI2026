@@ -242,6 +242,20 @@ For a quick smoke test:
 OCR_LIMIT=20 sbatch scripts_utah/build_ocr_candidates.slurm
 ```
 
+Combine cognitive stopping with the OCR verifier. `or` marks a target absent if
+either signal is low; `and` only marks absent when both signals are low:
+
+```bash
+sbatch scripts_utah/apply_combined_verifier.slurm
+```
+
+This also writes threshold sweeps:
+
+```text
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_combined_or_present_only_threshold_sweep.csv
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_combined_and_present_only_threshold_sweep.csv
+```
+
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 
 ```bash

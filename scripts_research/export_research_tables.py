@@ -24,6 +24,10 @@ def flatten_metrics(name, metrics):
 
 
 def absent_variant(name):
+    marker = "_combined_"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"combined_{variant}"
     marker = "_ocr_candidate_verifier_"
     if marker in name:
         model, variant = name.split(marker, 1)
@@ -65,6 +69,8 @@ def absent_status_core_rows(absent_status):
         "candidate_verifier_hybrid_present_only": 4,
         "candidate_verifier_path_best_evidence_present_only": 5,
         "ocr_candidate_verifier_present_only": 6,
+        "combined_or_present_only": 7,
+        "combined_and_present_only": 8,
     }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
