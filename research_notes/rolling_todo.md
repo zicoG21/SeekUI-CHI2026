@@ -16,7 +16,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Analyze combined dev/test results | completed | Combined AND is now strongest non-oracle result; keep random/image CI tables in `rolling_results.md` |
 | P0 | Mine combined-verifier cases | completed | Contact-sheet exports are available for SeekUI and SeekUI-SFT combined best-F1 variants |
 | P0 | Synthetic absent benchmark sanity check | completed | Annotation conflicts are low; random split leaks images; use image split as cleaner held-out result |
-| P0 | Analyze combined contact sheets | pending | Preliminary stopping-sheet taxonomy is in `research_notes/contact_sheet_visual_taxonomy.md`; repeat on combined sheets after download |
+| P0 | Analyze combined contact sheets | completed | Combined-sheet visual taxonomy is in `research_notes/contact_sheet_visual_taxonomy.md` |
 | P0 | Contact-sheet visual review sheet | code ready | Run `sbatch scripts_utah/export_contact_sheet_review.slurm`; fill CSV, then `sbatch scripts_utah/summarize_contact_sheet_review.slurm` |
 | P0 | Export main result table | completed | Image split table is paper-ready and stored under `$SEEKUI_WORK/outputs/paper_tables` |
 | P0 | Refresh filtered sensitivity analysis | completed | SFT best-F1 adjusted output is included; combined AND remains strongest under filtering |
@@ -158,7 +158,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Added VLM prompt variants (`direct`, `conservative`, `ocr_aware`, `search_behavior`) and Great Lakes submission helper.
 - Added summary support for VLM presence baselines so `absent_status_core.csv` includes full VLM results.
 - Hid pilot-only `*_n200` rows from default research tables while preserving an `--include-pilots` option.
-- Reviewed available stopping contact sheets and wrote a working visual taxonomy in `research_notes/contact_sheet_visual_taxonomy.md`.
+- Reviewed stopping and combined contact sheets; visual taxonomy and CSV mapping are in `research_notes/contact_sheet_visual_taxonomy.md`.
 
 ## Decision Log
 

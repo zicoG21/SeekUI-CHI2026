@@ -2,14 +2,14 @@
 
 Last updated: 2026-06-10
 
-These notes summarize the currently available local stopping-case contact sheets:
+These notes summarize the locally reviewed stopping-case and combined-verifier contact sheets:
 
 ```text
 /home/perzival/HCI_Research/seekui_stopping_cases/packaged/SeekUI/visualizations
 /home/perzival/HCI_Research/seekui_stopping_cases/packaged/SeekUI_sft/visualizations
+/home/perzival/HCI_Research/seekui_combined_cases/SeekUI_and_present_only_best_f1_contact_sheets/contact_sheet_export
+/home/perzival/HCI_Research/seekui_combined_cases/SeekUI_sft_and_present_only_best_f1_contact_sheets/contact_sheet_export
 ```
-
-The combined-verifier contact sheets were not present locally at the time of review, so this is a working taxonomy to reuse and verify once the combined sheets are downloaded.
 
 ## Reviewed Sheets
 
@@ -21,6 +21,19 @@ The combined-verifier contact sheets were not present locally at the time of rev
 | SeekUI_sft | corrected_absent_false_present | `SeekUI_sft_corrected_absent_false_present_contact_sheet.jpg` |
 | SeekUI_sft | new_present_false_absent | `SeekUI_sft_new_present_false_absent_contact_sheet.jpg` |
 | SeekUI_sft | kept_absent_false_present | `SeekUI_sft_kept_absent_false_present_contact_sheet.jpg` |
+| SeekUI + combined AND | corrected_absent_false_present | `SeekUI_and_corrected_absent_false_present_contact_sheet.jpg` |
+| SeekUI + combined AND | new_present_false_absent | `SeekUI_and_new_present_false_absent_contact_sheet.jpg` |
+| SeekUI + combined AND | kept_absent_false_present | `SeekUI_and_kept_absent_false_present_contact_sheet.jpg` |
+| SeekUI_sft + combined AND | corrected_absent_false_present | `SeekUI_sft_and_corrected_absent_false_present_contact_sheet.jpg` |
+| SeekUI_sft + combined AND | new_present_false_absent | `SeekUI_sft_and_new_present_false_absent_contact_sheet.jpg` |
+| SeekUI_sft + combined AND | kept_absent_false_present | `SeekUI_sft_and_kept_absent_false_present_contact_sheet.jpg` |
+
+## Combined Case Counts
+
+| Model | Corrected absent false-present | New present false-absent | Kept absent false-present |
+|---|---:|---:|---:|
+| SeekUI + combined AND | 464 | 184 | 45 |
+| SeekUI_sft + combined AND | 458 | 227 | 133 |
 
 ## Working Taxonomy
 
@@ -86,31 +99,80 @@ SeekUI-SFT:
 - New false-absent cases more often look like evidence accumulation failures: the target may be visible, but the predicted path gives too little support.
 - Kept false-present cases still show strong distractors, but short-path behavior makes the distinction between false absent and false present less stable.
 
-## Combined-Sheet Review Plan
+## Combined-Sheet Review
 
-When the combined-verifier contact sheets are available locally, review the same three case types:
+The combined-verifier sheets largely confirm the stopping-only taxonomy, but sharpen the mechanism.
+
+### SeekUI + Combined AND
+
+Corrected absent false-present:
+
+- The corrected examples are mostly weak-evidence forced-choice errors.
+- Many screens contain plausible UI elements, but no clear visual/text target match.
+- The combined rule suppresses cases where neither the path evidence nor OCR evidence strongly supports the predicted target.
+- This is the strongest qualitative support for the claim that target-absent errors are often forced-choice commitments rather than meaningful searches.
+
+New present false-absent:
+
+- The dominant failure mode is conservative rejection of present targets.
+- Many true targets are small, peripheral, low contrast, or embedded in long/cluttered pages.
+- OCR and local candidate evidence appear brittle around compact buttons, menu items, stylized text, and dense web layouts.
+- These are the main cost of the combined method: improved absent recall in exchange for some missed present targets.
+
+Kept absent false-present:
+
+- These are genuine hard residual cases.
+- Most include a strong text, button, menu, or functional distractor that overlaps with the target cue.
+- Common examples include login/continue/save/open-type controls, language buttons, menu items, news/site navigation, and visually salient action buttons.
+- The residual set is qualitatively harder than the corrected set; these are not merely low-evidence hallucinations.
+
+### SeekUI-SFT + Combined AND
+
+Corrected absent false-present:
+
+- The corrected examples again show weak target evidence and forced-choice behavior.
+- Compared with SeekUI, the correction often looks more like evidence absence from short paths rather than a robust search process.
+
+New present false-absent:
+
+- This is the clearest SFT weakness.
+- Many targets are visibly present, sometimes even clearly boxed, but the generated scanpath is short, off-target, or provides too little support.
+- Combined AND amplifies this brittleness because both cognitive/path evidence and OCR evidence can fail on small or peripheral present targets.
+
+Kept absent false-present:
+
+- Residual SFT errors are dominated by strong distractors and cluttered screens.
+- There are more kept false-present cases for SFT than SeekUI, consistent with weaker base scanpaths and shorter evidence accumulation.
+- The residual set includes semantically broad or function-like targets where a related visible control makes the absent/present decision ambiguous.
+
+## Paper-Useful Takeaways
+
+1. Combined AND does not merely threshold random outputs. It preferentially removes weak-evidence forced-choice absent errors.
+2. The remaining false-present errors are harder: they usually have a real distractor with text, visual, or functional overlap.
+3. The main tradeoff is conservative false absence on present targets, especially small, edge, low-contrast, stylized, or cluttered targets.
+4. SeekUI-SFT is more brittle because short scanpaths provide less evidence for the stopping/verifier layer.
+5. This supports framing the method as an interpretable safety layer, not a replacement for better visual grounding.
+
+## Review CSV Mapping
+
+If filling the CHPC review CSV, use this sheet-level mapping:
+
+| Model | Case type | Primary pattern | Secondary pattern | Review status |
+|---|---|---|---|---|
+| SeekUI | corrected_absent_false_present | `overconfident_forced_choice;no_clear_target_match` | `under_search_short_path;layout_clutter` | reviewed |
+| SeekUI | new_present_false_absent | `small_target;edge_or_corner_target` | `ocr_miss;low_contrast_or_stylized_text;layout_clutter` | reviewed |
+| SeekUI | kept_absent_false_present | `strong_text_distractor;strong_icon_or_button_distractor` | `ambiguous_target;layout_clutter` | reviewed |
+| SeekUI_sft | corrected_absent_false_present | `overconfident_forced_choice;no_clear_target_match` | `under_search_short_path` | reviewed |
+| SeekUI_sft | new_present_false_absent | `under_search_short_path;small_target` | `ocr_miss;edge_or_corner_target;layout_clutter` | reviewed |
+| SeekUI_sft | kept_absent_false_present | `strong_text_distractor;strong_icon_or_button_distractor` | `ambiguous_target;layout_clutter;under_search_short_path` | reviewed |
+
+Suggested notes:
 
 ```text
-corrected_absent_false_present
-new_present_false_absent
-kept_absent_false_present
-```
-
-Expected questions:
-
-- Does combined AND mainly remove the short-path forced-choice errors?
-- Are remaining false-present cases dominated by strong textual or functional distractors?
-- Are new false-absent cases mainly OCR miss / small target / edge target cases?
-- Does combined AND reduce the SFT short-path brittleness or merely shift it into present false-absent errors?
-
-The completed review should fill:
-
-```text
-$SEEKUI_WORK/outputs/contact_sheet_review/combined_contact_sheet_review.csv
-```
-
-and then rerun:
-
-```bash
-sbatch scripts_utah/summarize_contact_sheet_review.slurm
+SeekUI corrected: Combined AND removes many weak-evidence forced-choice absent errors where no clear target match is visible.
+SeekUI new false-absent: Errors concentrate on small, edge, stylized, or cluttered present targets where OCR/path evidence is brittle.
+SeekUI kept false-present: Residual errors usually contain strong text/button/function distractors, making them genuinely hard.
+SeekUI_sft corrected: Similar forced-choice corrections, but often driven by missing evidence from short generated paths.
+SeekUI_sft new false-absent: Short/off-target paths make SFT more likely to reject visible present targets.
+SeekUI_sft kept false-present: Residual cases combine strong distractors with SFT's weaker evidence accumulation.
 ```
