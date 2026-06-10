@@ -118,6 +118,8 @@ def model_records(predictions, evidence):
         original = predicted_status(example)
         records.append({
             "index": idx,
+            "image": example.get("image", ""),
+            "img_usr_tgt": example.get("img_usr_tgt", idx),
             "gold": gold_status(example),
             "original": original,
             "score": safe_float(row.get("path_best_evidence")),
@@ -125,7 +127,7 @@ def model_records(predictions, evidence):
     return records
 
 
-def split_indices(records, dev_fraction, seed):
+def split_random_indices(records, dev_fraction, seed):
     rng = random.Random(seed)
     by_gold = defaultdict(list)
     for idx, record in enumerate(records):
@@ -142,6 +144,42 @@ def split_indices(records, dev_fraction, seed):
     dev.sort()
     test.sort()
     return dev, test
+
+
+def image_majority_status(records, indices):
+    counts = Counter(records[idx]["gold"] for idx in indices)
+    return counts.most_common(1)[0][0]
+
+
+def split_image_indices(records, dev_fraction, seed):
+    rng = random.Random(seed)
+    image_to_indices = defaultdict(list)
+    for idx, record in enumerate(records):
+        image_to_indices[record["image"]].append(idx)
+
+    by_status = defaultdict(list)
+    for image, indices in image_to_indices.items():
+        by_status[image_majority_status(records, indices)].append((image, indices))
+
+    dev = []
+    test = []
+    for groups in by_status.values():
+        groups = list(groups)
+        rng.shuffle(groups)
+        n_dev = round(len(groups) * dev_fraction)
+        for _, indices in groups[:n_dev]:
+            dev.extend(indices)
+        for _, indices in groups[n_dev:]:
+            test.extend(indices)
+    dev.sort()
+    test.sort()
+    return dev, test
+
+
+def split_indices(records, dev_fraction, seed, split_by):
+    if split_by == "image":
+        return split_image_indices(records, dev_fraction, seed)
+    return split_random_indices(records, dev_fraction, seed)
 
 
 def evaluate_indices(records, indices, mode="prompt_only", threshold=None):
@@ -241,8 +279,11 @@ def write_summary_md(path, summaries):
         lines.extend([
             f"## {summary['name']} ({summary['mode']})",
             "",
+            f"- Split by: {summary['split_by']}",
             f"- Dev examples: {summary['num_dev']}",
             f"- Test examples: {summary['num_test']}",
+            f"- Dev images: {summary['num_dev_images']}",
+            f"- Test images: {summary['num_test_images']}",
             f"- Selected threshold on dev: {summary['selected_threshold']}",
             f"- Optimize metric: {summary['optimize_metric']}",
             "",
@@ -282,6 +323,7 @@ def main():
     parser = argparse.ArgumentParser(description="Dev/test evaluation and bootstrap CI for cognitive stopping.")
     parser.add_argument("--model", action="append", required=True, help="NAME=PREDICTIONS:EVIDENCE. Can repeat.")
     parser.add_argument("--mode", choices=["override", "present_only"], default="present_only")
+    parser.add_argument("--split-by", choices=["random", "image"], default="random")
     parser.add_argument("--dev-fraction", type=float, default=0.5)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--threshold-step", type=float, default=0.05)
@@ -300,7 +342,7 @@ def main():
         name, rest = spec.split("=", 1)
         predictions_path, evidence_path = rest.split(":", 1)
         records = model_records(load_json(Path(predictions_path)), load_evidence(Path(evidence_path)))
-        dev_indices, test_indices = split_indices(records, args.dev_fraction, args.seed)
+        dev_indices, test_indices = split_indices(records, args.dev_fraction, args.seed, args.split_by)
 
         best_dev, dev_sweep = tune_threshold(records, dev_indices, args.mode, args.threshold_step, args.optimize_metric)
         threshold = best_dev["threshold"]
@@ -321,8 +363,11 @@ def main():
         summaries.append({
             "name": name,
             "mode": args.mode,
+            "split_by": args.split_by,
             "num_dev": len(dev_indices),
             "num_test": len(test_indices),
+            "num_dev_images": len({records[idx]["image"] for idx in dev_indices}),
+            "num_test_images": len({records[idx]["image"] for idx in test_indices}),
             "selected_threshold": threshold,
             "optimize_metric": args.optimize_metric,
             "prediction_file": predictions_path,
@@ -334,6 +379,7 @@ def main():
 
     write_json(Path(args.output_json), {
         "mode": args.mode,
+        "split_by": args.split_by,
         "dev_fraction": args.dev_fraction,
         "seed": args.seed,
         "threshold_step": args.threshold_step,

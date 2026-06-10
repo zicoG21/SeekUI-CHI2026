@@ -20,6 +20,7 @@ DEV_FRACTION="${DEV_FRACTION:-0.5}"
 SEED="${SEED:-42}"
 BOOTSTRAP="${BOOTSTRAP:-1000}"
 THRESHOLD_STEP="${THRESHOLD_STEP:-0.05}"
+SPLITS="${SPLITS:-random image}"
 
 module load miniconda3/25.9.1
 source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -27,19 +28,22 @@ conda activate seekui
 
 mkdir -p "$OUT_DIR"
 
-python scripts_research/evaluate_stopping_devtest.py \
-  --model SeekUI="$OUTPUT_DIR/present_absent_predictions_SeekUI.json:$OUTPUT_DIR/stopping_evidence/SeekUI_stopping_evidence.csv" \
-  --model SeekUI_sft="$OUTPUT_DIR/present_absent_predictions_SeekUI_sft.json:$OUTPUT_DIR/stopping_evidence/SeekUI_sft_stopping_evidence.csv" \
-  --mode "$MODE" \
-  --dev-fraction "$DEV_FRACTION" \
-  --seed "$SEED" \
-  --threshold-step "$THRESHOLD_STEP" \
-  --bootstrap "$BOOTSTRAP" \
-  --output-json "$OUT_DIR/devtest_stopping_${MODE}.json" \
-  --output-csv "$OUT_DIR/devtest_stopping_${MODE}.csv" \
-  --output-md "$OUT_DIR/devtest_stopping_${MODE}.md"
+for split_by in $SPLITS; do
+  python scripts_research/evaluate_stopping_devtest.py \
+    --model SeekUI="$OUTPUT_DIR/present_absent_predictions_SeekUI.json:$OUTPUT_DIR/stopping_evidence/SeekUI_stopping_evidence.csv" \
+    --model SeekUI_sft="$OUTPUT_DIR/present_absent_predictions_SeekUI_sft.json:$OUTPUT_DIR/stopping_evidence/SeekUI_sft_stopping_evidence.csv" \
+    --mode "$MODE" \
+    --split-by "$split_by" \
+    --dev-fraction "$DEV_FRACTION" \
+    --seed "$SEED" \
+    --threshold-step "$THRESHOLD_STEP" \
+    --bootstrap "$BOOTSTRAP" \
+    --output-json "$OUT_DIR/devtest_stopping_${MODE}_${split_by}.json" \
+    --output-csv "$OUT_DIR/devtest_stopping_${MODE}_${split_by}.csv" \
+    --output-md "$OUT_DIR/devtest_stopping_${MODE}_${split_by}.md"
 
-echo "Dev/test stopping outputs:"
-echo "  $OUT_DIR/devtest_stopping_${MODE}.md"
-echo "  $OUT_DIR/devtest_stopping_${MODE}.csv"
-echo "  $OUT_DIR/devtest_stopping_${MODE}.json"
+  echo "Dev/test stopping outputs for split=$split_by:"
+  echo "  $OUT_DIR/devtest_stopping_${MODE}_${split_by}.md"
+  echo "  $OUT_DIR/devtest_stopping_${MODE}_${split_by}.csv"
+  echo "  $OUT_DIR/devtest_stopping_${MODE}_${split_by}.json"
+done

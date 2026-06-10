@@ -219,6 +219,24 @@ $SEEKUI_WORK/outputs/devtest_stopping/devtest_stopping_present_only.csv
 $SEEKUI_WORK/outputs/devtest_stopping/devtest_stopping_present_only.json
 ```
 
+Run a stricter image-level dev/test split:
+
+```bash
+SPLITS=image sbatch scripts_utah/evaluate_stopping_devtest.slurm
+```
+
+Mine stopping success/failure cases and visualizations:
+
+```bash
+sbatch scripts_utah/mine_stopping_cases.slurm
+```
+
+For SeekUI-SFT:
+
+```bash
+MODEL_NAME=SeekUI_sft sbatch scripts_utah/mine_stopping_cases.slurm
+```
+
 ## 6. Build Image-Cue Target-Crop Benchmark
 
 This creates target crops from existing target bounding boxes. It is a multimodal prototype, not proof that current data has non-text targets.
