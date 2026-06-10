@@ -96,6 +96,24 @@ This turns stopping into a diagnostic question:
 
 The script `scripts_research/analyze_prediction_stopping_evidence.py` implements this diagnostic for completed present/absent prediction JSONs and writes per-example evidence, per-step evidence, and threshold sweeps.
 
+The first completed prediction-path evidence run supports the stopping hypothesis:
+
+| Model | Prompt-Only Absent F1 | Best Path-Evidence Absent F1 | Best Threshold | Low-Evidence Share of Absent False-Present |
+|---|---:|---:|---:|---:|
+| SeekUI | 0.7300 | 0.8380 | 0.20 | 489 / 509 = 96.1% |
+| SeekUI-SFT | 0.6878 | 0.7394 | 0.10 | 578 / 591 = 97.8% |
+
+For SeekUI, correct-present examples have much higher path evidence than absent false-present examples:
+
+```text
+correct_present mean evidence:       0.4175
+absent_false_present mean evidence:  0.0379
+correct_absent mean evidence:        0.0480
+present_false_absent mean evidence:  0.3381
+```
+
+This suggests that many false-present errors are not cases where the model found strong misleading evidence. They are low-evidence forced-choice guesses. That distinction matters for the paper framing: the contribution can be a stopping/calibration layer over scanpath generation, not necessarily a new end-to-end generator.
+
 A richer later version can use:
 
 - OCR boxes as candidate regions

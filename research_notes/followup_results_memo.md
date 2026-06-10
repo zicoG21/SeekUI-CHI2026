@@ -83,6 +83,52 @@ They can generate plausible gaze paths, but they often still ground an absent ta
 
 SeekUI-SFT is not an absent-target improvement over SeekUI. It has lower absent recall and more absent->present errors.
 
+## Prediction-Path Stopping Evidence
+
+We analyzed whether each model's actual predicted fixation path accumulated enough target-match evidence to justify a present decision. For each predicted fixation, the analysis aligns the point to nearby annotated candidates in the same screenshot and computes:
+
+```text
+path_evidence(step) =
+  text_similarity(query, nearby_candidate)
+  * exp(-distance_to_candidate / radius)
+
+path_best_evidence = max_step path_evidence(step)
+```
+
+This is not an oracle candidate-search baseline. It only scores evidence along the path the model actually produced.
+
+Key result: most absent false-present errors have very low path evidence.
+
+| Model | Mean Path Evidence | Best Evidence Threshold | Threshold Accuracy | Threshold Absent F1 | Absent False-Present | Low-Evidence False-Present |
+|---|---:|---:|---:|---:|---:|---:|
+| SeekUI | 0.2273 | 0.20 | 0.8139 | 0.8380 | 509 | 489 / 509 = 96.1% |
+| SeekUI-SFT | 0.0911 | 0.10 | 0.6711 | 0.7394 | 591 | 578 / 591 = 97.8% |
+
+Group means show a clean separation for SeekUI:
+
+| Group | Count | Mean Evidence | Mean Visited Candidate Rate | Mean Prediction Length |
+|---|---:|---:|---:|---:|
+| absent false-present | 509 | 0.0379 | 0.1297 | 3.16 |
+| correct absent | 853 | 0.0480 | 0.1723 | 4.72 |
+| correct present | 1240 | 0.4175 | 0.4246 | 4.21 |
+| present false-absent | 122 | 0.3381 | 0.2992 | 4.70 |
+
+For SeekUI-SFT, evidence is low overall, consistent with its much shorter scanpaths:
+
+| Group | Count | Mean Evidence | Mean Visited Candidate Rate | Mean Prediction Length |
+|---|---:|---:|---:|---:|
+| absent false-present | 591 | 0.0275 | 0.0753 | 1.39 |
+| correct absent | 771 | 0.0280 | 0.0681 | 1.56 |
+| correct present | 1253 | 0.1599 | 0.1121 | 1.57 |
+| present false-absent | 109 | 0.0928 | 0.0505 | 1.63 |
+
+Interpretation:
+
+1. The prompt-only present/absent output is not well calibrated to search evidence.
+2. False-present predictions are usually not caused by the model finding strong but misleading evidence; they are mostly low-evidence forced-choice guesses.
+3. A simple path-evidence stopping rule substantially improves absent F1 for SeekUI, from 0.7300 prompt-only to 0.8380 at threshold 0.20.
+4. SeekUI-SFT remains weaker because its paths are too short and visit fewer useful candidates.
+
 ## Image-Cue Benchmark
 
 The image-cue benchmark uses target crops as visual cue proxies. It tests whether the model can follow a visual target cue instead of only a text cue.
@@ -225,15 +271,19 @@ This limits claims about native non-text or associative search. Current image-cu
 
 Even with prompt-only absent handling, SeekUI predicts present for 509/1362 absent examples. SeekUI-SFT predicts present for 591/1362 absent examples.
 
-3. SeekUI-SFT is not more robust in these follow-up settings.
+3. Prediction-path evidence explains much of the stopping failure.
+
+For SeekUI, 489/509 absent false-present errors have low path evidence. A path-evidence threshold improves absent F1 to 0.8380, suggesting that a cognitive stopping layer could reject many forced-choice guesses without retraining the base generator.
+
+4. SeekUI-SFT is not more robust in these follow-up settings.
 
 It produces shorter scanpaths, lower base metrics, lower absent recall, and larger final distances to the target.
 
-4. Image-cue search is feasible but harder.
+5. Image-cue search is feasible but harder.
 
 Both models produce non-empty outputs, but final fixations are farther from the target than in the base text setting.
 
-5. Shallow semantic templates are not enough to stress the model strongly.
+6. Shallow semantic templates are not enough to stress the model strongly.
 
 Functional-template queries are close to exact text queries. Association mappings show a stronger drop, but the current subset is only 32 examples.
 
@@ -296,3 +346,14 @@ Possible stopping signals:
 - inhibition of return,
 - movement cost,
 - uncertainty threshold.
+
+The first practical version can be a post-hoc stopping layer:
+
+```text
+if path_best_evidence < threshold:
+    status = absent
+else:
+    status = present
+```
+
+For SeekUI, this already improves absent F1 from 0.7300 to 0.8380 on the synthetic present/absent benchmark.
