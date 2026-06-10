@@ -120,6 +120,18 @@ python scripts_research/validate_absent_dataset.py \
   --fail-on-conflict
 ```
 
+Run annotation-assisted text-conflict validation for likely false absent labels:
+
+```bash
+python scripts_research/validate_absent_text_conflicts.py \
+  --reference "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --dataset "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --out-dir "$SEEKUI_WORK/outputs/absent_text_conflicts"
+```
+
+This catches destination images that may contain the target text under a different annotation, including substring cases such as `Search` versus `Search GymShark`.
+
 ## Task 3: Prompt-Only Absent Baseline
 
 Goal: test whether SeekUI can refuse a target that is not present without fine-tuning.
@@ -334,6 +346,32 @@ SEMANTIC_LIMIT=1362 \
 VARIANTS_PER_EXAMPLE=2 \
 SEMANTIC_JSON="$SEEKUI_WORK/data/semantic_queries_1362_v2.json" \
 OUTPUT_PATH="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v2.json" \
+sbatch scripts_utah/semantic_query_inference.slurm
+```
+
+Run the stronger association-first v3 benchmark:
+
+```bash
+MODEL_NAME=SeekUI \
+SEMANTIC_LIMIT=1362 \
+VARIANTS_PER_EXAMPLE=2 \
+SEMANTIC_MAPPING=scripts_research/associative_query_mapping.json \
+SEMANTIC_SELECTION_POLICY=association_first \
+SEMANTIC_JSON="$SEEKUI_WORK/data/semantic_queries_1362_v3_assocfirst.json" \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v3_assocfirst.json" \
+sbatch scripts_utah/semantic_query_inference.slurm
+```
+
+Run the SFT checkpoint too:
+
+```bash
+MODEL_NAME=SeekUI_sft \
+SEMANTIC_LIMIT=1362 \
+VARIANTS_PER_EXAMPLE=2 \
+SEMANTIC_MAPPING=scripts_research/associative_query_mapping.json \
+SEMANTIC_SELECTION_POLICY=association_first \
+SEMANTIC_JSON="$SEEKUI_WORK/data/semantic_queries_1362_v3_assocfirst.json" \
+OUTPUT_PATH="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_sft_1362_v3_assocfirst.json" \
 sbatch scripts_utah/semantic_query_inference.slurm
 ```
 

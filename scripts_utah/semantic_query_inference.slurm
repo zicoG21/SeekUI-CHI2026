@@ -27,7 +27,14 @@ MODEL_PATH="${MODEL_PATH:-$SEEKUI_WORK/models/$MODEL_NAME}"
 SEMANTIC_LIMIT="${SEMANTIC_LIMIT:-1362}"
 VARIANTS_PER_EXAMPLE="${VARIANTS_PER_EXAMPLE:-2}"
 SEMANTIC_JSON="${SEMANTIC_JSON:-$DATA_DIR/semantic_queries_${SEMANTIC_LIMIT}_v${VARIANTS_PER_EXAMPLE}.json}"
+SEMANTIC_MAPPING="${SEMANTIC_MAPPING:-}"
+SEMANTIC_SELECTION_POLICY="${SEMANTIC_SELECTION_POLICY:-shuffle}"
 OUTPUT_PATH="${OUTPUT_PATH:-$SEEKUI_WORK/outputs/semantic_query_predictions_${MODEL_NAME}_${SEMANTIC_LIMIT}_v${VARIANTS_PER_EXAMPLE}.json}"
+
+mapping_args=()
+if [[ -n "$SEMANTIC_MAPPING" ]]; then
+  mapping_args+=(--mapping "$SEMANTIC_MAPPING")
+fi
 
 python scripts_research/build_semantic_query_dataset.py \
   --scanpath "$DATA_DIR/scanpath_train_explanation.json" \
@@ -35,6 +42,8 @@ python scripts_research/build_semantic_query_dataset.py \
   --output "$SEMANTIC_JSON" \
   --limit "$SEMANTIC_LIMIT" \
   --variants-per-example "$VARIANTS_PER_EXAMPLE" \
+  --selection-policy "$SEMANTIC_SELECTION_POLICY" \
+  "${mapping_args[@]}" \
   --seed "${SEED:-42}"
 
 python inference/prediction_absent.py \
