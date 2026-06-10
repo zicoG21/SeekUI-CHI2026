@@ -382,10 +382,10 @@ Takeaway: OCR is a strong absent detector but rejects many present targets becau
 ## Pending Results
 
 - v3 semantic-query jobs.
-- Combined contact-sheet visual analysis.
+- GL VLM prompt ablation jobs: conservative, OCR-aware, and search-behavior prompts.
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
-- VLM yes/no presence baseline pilot/full run.
-- Contact-sheet visual review sheet export and filled visual taxonomy summary.
+- VLM hard-case overlap analysis between combined AND and direct/best VLM prompts.
+- Small real/manual absent validation protocol execution.
 
 ## Files To Check
 
@@ -401,4 +401,23 @@ $SEEKUI_WORK/outputs/ocr_diagnosis/ocr_verifier_diagnosis.md
 $SEEKUI_WORK/outputs/contact_sheet_review/combined_contact_sheet_review.csv
 $SEEKUI_WORK/outputs/vlm_presence_predictions_*.json
 $SEEKUI_WORK/outputs/absent_sanity/absent_benchmark_sanity.md
+```
+
+## Current Paper Assets
+
+Local planning files:
+
+```text
+research_notes/paper_skeleton.md
+research_notes/paper_assets.md
+research_notes/vlm_prompt_ablation_template.md
+research_notes/contact_sheet_visual_taxonomy.md
+research_notes/manual_real_absent_validation_protocol.md
+```
+
+Code-ready next analysis:
+
+```text
+scripts_research/export_vlm_hard_cases.py
+scripts_utah/export_vlm_hard_cases.slurm
 ```

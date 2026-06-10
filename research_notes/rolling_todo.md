@@ -26,11 +26,12 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Behavioral search metrics | completed | Optional rerun after pulling latest polish so zero-N target-distance rows display `n/a` |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
 | P1 | Simple VLM/OCR verifier baselines | in progress | CHPC direct VLM is done; GL is running prompt ablations for conservative/OCR-aware/search-behavior prompts |
-| P1 | VLM hard-case analysis | pending | After GL ablations finish, run VLM only on combined kept false-present and new false-absent cases if full prompts expose useful differences |
+| P1 | VLM hard-case analysis | code ready | After GL ablations finish, run `sbatch scripts_utah/export_vlm_hard_cases.slurm` for direct/best VLM prompt comparisons |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
 | P2 | Multi-sample scanpath uncertainty | pending | Sample K scanpaths per target to measure endpoint variance and agreement if extra A40 capacity remains |
+| P2 | Small real/manual absent validation | protocol ready | See `research_notes/manual_real_absent_validation_protocol.md`; start with 100 manually verified GUI-query pairs |
 
 ## Commands To Run Next
 
@@ -121,6 +122,12 @@ find "$SEEKUI_WORK/outputs" -maxdepth 1 \
   -print -exec cat {} \;
 ```
 
+Export VLM-vs-combined hard-case lists after a VLM output is available:
+
+```bash
+VLM_LABEL=SeekUI_vlm_presence sbatch scripts_utah/export_vlm_hard_cases.slurm
+```
+
 Download combined contact sheets locally:
 
 ```bash
@@ -159,6 +166,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Added summary support for VLM presence baselines so `absent_status_core.csv` includes full VLM results.
 - Hid pilot-only `*_n200` rows from default research tables while preserving an `--include-pilots` option.
 - Reviewed stopping and combined contact sheets; visual taxonomy and CSV mapping are in `research_notes/contact_sheet_visual_taxonomy.md`.
+- Added a one-page paper skeleton, paper asset checklist, VLM prompt-ablation template, manual validation protocol, and VLM hard-case export script.
 
 ## Decision Log
 
