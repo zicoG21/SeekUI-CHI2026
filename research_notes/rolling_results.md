@@ -39,6 +39,26 @@ Synthetic benchmark:
 2724 total examples
 ```
 
+Sanity audit:
+
+| Check | Value |
+|---|---:|
+| Unique images | 646 |
+| Present unique images | 646 |
+| Absent unique images | 566 |
+| Shared present/absent images | 566 |
+| Annotation conflicts | 4 |
+| OCR leak absent examples | 225 / 1362 = 0.1652 |
+
+Split leakage:
+
+| Split | Dev examples | Test examples | Shared images | Shared target texts | Shared image-target pairs |
+|---|---:|---:|---:|---:|---:|
+| Random | 1362 | 1362 | 507 | 495 | 217 |
+| Image | 1395 | 1329 | 0 | 465 | 0 |
+
+Takeaway: annotation conflicts are low, so the synthetic absent labels are mostly not contradicted by known target annotations. However, random split has heavy image and image-target leakage; image split should be treated as the more credible held-out evaluation. OCR leak rate is nontrivial, so OCR-based verifier results must be interpreted carefully: some "absent" examples contain visually similar or identical OCR text.
+
 ## Present/Absent Status Results
 
 Current core table:
@@ -178,6 +198,15 @@ Image split bootstrap 95% CI:
 | SeekUI-SFT | +0.1535 | [0.1232, 0.1834] | +0.0820 | [0.0558, 0.1080] |
 
 Takeaway: combined AND holds up under held-out threshold selection. It improves both absent F1 and accuracy with positive bootstrap CIs on random and image splits. This is now the strongest non-oracle result.
+
+Because the sanity audit shows heavy random split image leakage, the image-split combined result is the cleaner headline:
+
+```text
+SeekUI image split absent F1: 0.7347 -> 0.8804
+SeekUI image split accuracy: 0.7708 -> 0.8692
+Delta F1 95% CI: [0.1167, 0.1739]
+Delta accuracy 95% CI: [0.0720, 0.1220]
+```
 
 ## Qualitative Case Mining
 
