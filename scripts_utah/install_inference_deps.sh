@@ -14,7 +14,7 @@ python -m pip install \
   "regex" \
   "requests[socks]" \
   "safetensors" \
-  "tokenizers" \
+  "tokenizers>=0.21,<0.22" \
   "tqdm" \
   "transformers==4.55.0" \
   "accelerate" \
@@ -32,10 +32,15 @@ import accelerate
 import requests
 import yaml
 import tqdm
+import tokenizers
 
 print("torch", torch.__version__)
 print("cuda available", torch.cuda.is_available())
 print("transformers", transformers.__version__)
+print("tokenizers", tokenizers.__version__)
 print("accelerate", accelerate.__version__)
 print("requests", requests.__version__)
+
+major, minor, *_ = [int(part) for part in tokenizers.__version__.split(".")[:2]]
+assert (major, minor) >= (0, 21) and (major, minor) < (0, 22), tokenizers.__version__
 PY
