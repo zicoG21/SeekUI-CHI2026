@@ -31,7 +31,8 @@ python scripts_research/apply_cognitive_stopping.py \
   --threshold "$SEEKUI_THRESHOLD" \
   --mode "$STOPPING_MODE" \
   --output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop.json" \
-  --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_status_eval.json"
+  --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_status_eval.json" \
+  --sweep-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_${STOPPING_MODE}_threshold_sweep.csv"
 
 python scripts_research/apply_cognitive_stopping.py \
   --predictions "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft.json" \
@@ -39,7 +40,8 @@ python scripts_research/apply_cognitive_stopping.py \
   --threshold "$SEEKUI_SFT_THRESHOLD" \
   --mode "$STOPPING_MODE" \
   --output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop.json" \
-  --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_status_eval.json"
+  --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_status_eval.json" \
+  --sweep-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_${STOPPING_MODE}_threshold_sweep.csv"
 
 echo "Cognitive stopping outputs:"
 echo "  $OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_status_eval.json"
@@ -52,7 +54,8 @@ if [[ "$RUN_PRESENT_ONLY" == "1" ]]; then
     --threshold "$SEEKUI_THRESHOLD" \
     --mode present_only \
     --output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only.json" \
-    --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only_status_eval.json"
+    --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only_status_eval.json" \
+    --sweep-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only_threshold_sweep.csv"
 
   python scripts_research/apply_cognitive_stopping.py \
     --predictions "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft.json" \
@@ -60,9 +63,33 @@ if [[ "$RUN_PRESENT_ONLY" == "1" ]]; then
     --threshold "$SEEKUI_SFT_THRESHOLD" \
     --mode present_only \
     --output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only.json" \
-    --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only_status_eval.json"
+    --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only_status_eval.json" \
+    --sweep-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only_threshold_sweep.csv"
 
   echo "Conservative present-only stopping outputs:"
   echo "  $OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only_status_eval.json"
   echo "  $OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only_status_eval.json"
+fi
+
+summary_inputs=()
+for path in \
+  "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_${STOPPING_MODE}_threshold_sweep.csv" \
+  "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_${STOPPING_MODE}_threshold_sweep.csv" \
+  "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only_threshold_sweep.csv" \
+  "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only_threshold_sweep.csv"; do
+  if [[ -f "$path" ]]; then
+    name="$(basename "${path%.csv}")"
+    summary_inputs+=("${name}=${path}")
+  fi
+done
+
+if [[ ${#summary_inputs[@]} -gt 0 ]]; then
+  sweep_args=()
+  for input in "${summary_inputs[@]}"; do
+    sweep_args+=(--sweep "$input")
+  done
+  python scripts_research/summarize_stopping_thresholds.py \
+    "${sweep_args[@]}" \
+    --output-csv "$OUTPUT_DIR/cognitive_stopping_threshold_summary.csv" \
+    --output-md "$OUTPUT_DIR/cognitive_stopping_threshold_summary.md"
 fi

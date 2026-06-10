@@ -189,6 +189,9 @@ $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_cognitive_stop.json
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_cognitive_stop_status_eval.json
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop_present_only.json
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop_present_only_status_eval.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop_present_only_threshold_sweep.csv
+$SEEKUI_WORK/outputs/cognitive_stopping_threshold_summary.md
+$SEEKUI_WORK/outputs/cognitive_stopping_threshold_summary.csv
 ```
 
 Default thresholds come from the completed evidence sweep:
