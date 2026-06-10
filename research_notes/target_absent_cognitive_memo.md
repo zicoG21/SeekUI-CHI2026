@@ -65,6 +65,18 @@ stop as absent if max target-match evidence < threshold after candidate coverage
 
 The first implementation uses annotated target texts as candidate regions and string similarity as evidence. This is intentionally simple. It establishes an interpretable lower bound and a threshold sweep.
 
+The second implementation should make the cognitive process explicit. Instead of only taking the maximum candidate similarity, it simulates a short sequence of candidate inspections:
+
+```text
+score(region) =
+  target_similarity
+  + layout_prior
+  - saccade_distance_cost
+  - visited_region_penalty
+```
+
+At each step, the model visits the highest-scoring unvisited candidate. It then stops as absent when accumulated target-match evidence remains below threshold after the simulated search budget. This does not require training, but it gives us interpretable per-step traces and makes the stopping decision closer to a search process.
+
 A richer later version can use:
 
 - OCR boxes as candidate regions

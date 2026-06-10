@@ -225,6 +225,19 @@ python scripts_research/cognitive_stopping_baseline.py \
 
 This first version uses annotated target texts as candidate regions. It is not a final cognitive model, but it gives us a thresholded stopping baseline and a concrete result table.
 
+Run the process-style cognitive baseline:
+
+```bash
+python scripts_research/cognitive_stopping_process.py \
+  --reference "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --eval "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/cognitive_stopping_process"
+```
+
+This version simulates a sequential search over annotated candidate regions. It combines target-text similarity, a simple UI layout prior, movement cost, and inhibition through visited candidates. It remains a lightweight baseline, but it is closer to a cognitive stopping process than the initial max-similarity threshold.
+
 ## Task 6: Stronger Associative Query Benchmark
 
 Goal: separate shallow semantic paraphrases from stronger associative or functional target descriptions.
