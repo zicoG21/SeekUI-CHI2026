@@ -83,6 +83,9 @@ VLM_LIMIT=200 bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
 
 # Full run after the pilot looks sane:
 bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
+
+# Override the allocation/account when needed:
+SBATCH_ACCOUNT=jaabell0 bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
 ```
 
 Run the semantic v3 association-first jobs:
