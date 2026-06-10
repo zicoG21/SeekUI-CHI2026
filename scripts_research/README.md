@@ -333,7 +333,8 @@ This writes:
 
 ```text
 $SEEKUI_WORK/outputs/ocr_diagnosis/ocr_verifier_diagnosis.md
-$SEEKUI_WORK/outputs/ocr_diagnosis/ocr_verifier_diagnosis_summary.csv
+$SEEKUI_WORK/outputs/ocr_diagnosis/ocr_verifier_outcomes.csv
+$SEEKUI_WORK/outputs/ocr_diagnosis/ocr_present_rejection_reasons.csv
 $SEEKUI_WORK/outputs/ocr_diagnosis/combined_guard_effects.csv
 ```
 

@@ -236,6 +236,24 @@ Delta F1 95% CI: [0.1167, 0.1739]
 Delta accuracy 95% CI: [0.0720, 0.1220]
 ```
 
+Paper-ready main result table:
+
+| Model | Split | Prompt F1 | Combined F1 | Delta F1 95% CI | Prompt Acc | Combined Acc | Delta Acc 95% CI |
+|---|---|---:|---:|---|---:|---:|---|
+| SeekUI | image | 0.7347 | 0.8804 | [0.1167, 0.1739] | 0.7708 | 0.8692 | [0.0720, 0.1220] |
+| SeekUI-SFT | image | 0.6744 | 0.8279 | [0.1232, 0.1834] | 0.7325 | 0.8148 | [0.0558, 0.1080] |
+| SeekUI | random | 0.7451 | 0.8738 | [0.1001, 0.1573] | 0.7805 | 0.8634 | [0.0580, 0.1087] |
+| SeekUI-SFT | random | 0.6882 | 0.8345 | [0.1143, 0.1770] | 0.7452 | 0.8209 | [0.0462, 0.1035] |
+
+Error-count shift on the preferred image split:
+
+| Model | Prompt Present->Absent | Prompt Absent->Present | Combined Present->Absent | Combined Absent->Present |
+|---|---:|---:|---:|---:|
+| SeekUI | 62 | 250 | 151 | 27 |
+| SeekUI-SFT | 59 | 305 | 176 | 76 |
+
+Takeaway: the combined verifier primarily reduces absent false-present failures, while increasing present false-absent errors. The net F1/accuracy gains and positive bootstrap CIs show that this tradeoff is beneficial on the held-out image split.
+
 ## Qualitative Case Mining
 
 Cognitive stopping case counts:
@@ -334,12 +352,38 @@ Takeaways:
 - Present false-absent errors under combined best-F1 are shorter and farther from the target than prompt-only false-absent errors, consistent with under-search or weak evidence accumulation.
 - SeekUI-SFT scanpaths are consistently much shorter than SeekUI scanpaths, making evidence accumulation brittle.
 
+## OCR Diagnosis
+
+OCR-only verification is useful but too brittle to use as the sole decision rule.
+
+Synthetic absent OCR leak audit:
+
+```text
+225 / 1362 absent examples have OCR score >= 0.5
+15 absent examples have OCR score >= 0.8
+```
+
+OCR-only behavior at the diagnosis threshold:
+
+| Model | Absent Kept by OCR | Absent Rejected by OCR | Present Kept by OCR | Present Rejected by OCR | Combined Guard Saved Present |
+|---|---:|---:|---:|---:|---:|
+| SeekUI | 14 | 1348 | 578 | 482 | 478 |
+| SeekUI-SFT | 18 | 1344 | 563 | 497 | 463 |
+
+Present rejection reasons:
+
+| Reason | Count |
+|---|---:|
+| Low OCR match | 278 |
+| No best OCR text | 24 |
+
+Takeaway: OCR is a strong absent detector but rejects many present targets because target text is missed or weakly matched. The combined AND rule acts as a guard: it saves 478 SeekUI and 463 SeekUI-SFT present examples that OCR-only would reject, which explains why combined AND outperforms OCR-only.
+
 ## Pending Results
 
 - v3 semantic-query jobs.
 - Combined contact-sheet visual analysis.
-- Paper-ready main result table via `scripts_utah/export_main_result_table.slurm`.
-- OCR verifier diagnosis via `scripts_utah/diagnose_ocr_verifier.slurm`.
+- Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
 
 ## Files To Check
 

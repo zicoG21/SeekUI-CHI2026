@@ -73,7 +73,9 @@ def model_from_path(path):
 
 
 def diagnose_ocr_rows(model, rows, threshold):
-    summary = Counter()
+    outcomes = Counter()
+    present_rejection_reasons = Counter()
+    changed = Counter()
     score_buckets = Counter()
     examples = defaultdict(list)
     for row in rows:
@@ -86,41 +88,55 @@ def diagnose_ocr_rows(model, rows, threshold):
         score_buckets[(gold, bucket_score(score))] += 1
 
         if gold == "present" and verified == "absent":
-            key = "present_rejected_by_ocr"
             if n_candidates == 0:
-                key = "present_rejected_no_ocr_candidates"
+                reason = "no_ocr_candidates"
             elif not text:
-                key = "present_rejected_no_best_text"
+                reason = "no_best_text"
             elif score < threshold:
-                key = "present_rejected_low_match"
-            summary[key] += 1
-            if len(examples[key]) < 20:
-                examples[key].append(row)
+                reason = "low_match"
+            else:
+                reason = "other"
+            outcomes["present_rejected_by_ocr"] += 1
+            present_rejection_reasons[reason] += 1
+            if len(examples[f"present_rejected_{reason}"]) < 20:
+                examples[f"present_rejected_{reason}"].append(row)
         elif gold == "absent" and verified == "present":
-            key = "absent_kept_by_ocr"
+            outcomes["absent_kept_by_ocr"] += 1
             if score >= threshold:
-                key = "absent_kept_high_ocr_match"
-            summary[key] += 1
-            if len(examples[key]) < 20:
-                examples[key].append(row)
+                if len(examples["absent_kept_high_ocr_match"]) < 20:
+                    examples["absent_kept_high_ocr_match"].append(row)
         elif gold == "absent" and verified == "absent":
-            summary["absent_rejected_by_ocr"] += 1
+            outcomes["absent_rejected_by_ocr"] += 1
         elif gold == "present" and verified == "present":
-            summary["present_kept_by_ocr"] += 1
+            outcomes["present_kept_by_ocr"] += 1
 
         if original == "present" and verified == "absent":
-            summary["changed_present_to_absent"] += 1
+            changed["changed_present_to_absent"] += 1
 
     total = len(rows)
-    summary_rows = [
+    outcome_rows = [
         {"model": model, "category": key, "count": count, "rate": safe_div(count, total)}
-        for key, count in sorted(summary.items())
+        for key, count in sorted(outcomes.items())
+    ]
+    reason_total = outcomes["present_rejected_by_ocr"]
+    reason_rows = [
+        {
+            "model": model,
+            "reason": key,
+            "count": count,
+            "rate_within_present_rejected": safe_div(count, reason_total),
+        }
+        for key, count in sorted(present_rejection_reasons.items())
+    ]
+    changed_rows = [
+        {"model": model, "category": key, "count": count, "rate": safe_div(count, total)}
+        for key, count in sorted(changed.items())
     ]
     bucket_rows = [
         {"model": model, "gold_status": gold, "score_bucket": bucket, "count": count}
         for (gold, bucket), count in sorted(score_buckets.items())
     ]
-    return summary_rows, bucket_rows, examples
+    return outcome_rows, reason_rows, changed_rows, bucket_rows, examples
 
 
 def summarize_ocr_leaks(path):
@@ -192,13 +208,30 @@ def write_md(path, report):
         lines.extend([
             f"## {model}",
             "",
-            "OCR-only categories:",
+            "OCR-only outcomes:",
             "",
             "| Category | Count | Rate |",
             "|---|---:|---:|",
         ])
-        for row in model_report["ocr_summary"]:
+        for row in model_report["ocr_outcomes"]:
             lines.append(f"| {row['category']} | {row['count']} | {row['rate']:.4f} |")
+        if model_report["present_rejection_reasons"]:
+            lines.extend([
+                "",
+                "Present rejection reasons:",
+                "",
+                "| Reason | Count | Rate within Present Rejected |",
+                "|---|---:|---:|",
+            ])
+            for row in model_report["present_rejection_reasons"]:
+                lines.append(
+                    f"| {row['reason']} | {row['count']} | "
+                    f"{row['rate_within_present_rejected']:.4f} |"
+                )
+        if model_report["ocr_changed"]:
+            lines.extend(["", "OCR-only status changes:", "", "| Category | Count | Rate |", "|---|---:|---:|"])
+            for row in model_report["ocr_changed"]:
+                lines.append(f"| {row['category']} | {row['count']} | {row['rate']:.4f} |")
         lines.extend(["", "OCR score buckets by gold status:", "", "| Gold Status | Score Bucket | Count |", "|---|---|---:|"])
         for row in model_report["score_buckets"]:
             lines.append(f"| {row['gold_status']} | {row['score_bucket']} | {row['count']} |")
@@ -225,24 +258,30 @@ def main():
     combined_by_model = {model_from_path(path): read_csv(path) for path in args.combined_detail}
     report = {"threshold": args.threshold, "models": {}}
     all_summary = []
+    all_reasons = []
+    all_changed = []
     all_buckets = []
     all_guard = []
 
     for path in args.ocr_detail:
         model = model_from_path(path)
         rows = read_csv(path)
-        summary_rows, bucket_rows, examples = diagnose_ocr_rows(model, rows, args.threshold)
+        outcome_rows, reason_rows, changed_rows, bucket_rows, examples = diagnose_ocr_rows(model, rows, args.threshold)
         guard_rows, guard_examples = compare_combined_guard(model, rows, combined_by_model.get(model, []))
         report["models"][model] = {
             "ocr_detail": path,
             "num_rows": len(rows),
-            "ocr_summary": summary_rows,
+            "ocr_outcomes": outcome_rows,
+            "present_rejection_reasons": reason_rows,
+            "ocr_changed": changed_rows,
             "score_buckets": bucket_rows,
             "combined_guard": guard_rows,
             "example_previews": {key: value for key, value in examples.items()},
             "combined_guard_previews": {key: value for key, value in guard_examples.items()},
         }
-        all_summary.extend(summary_rows)
+        all_summary.extend(outcome_rows)
+        all_reasons.extend(reason_rows)
+        all_changed.extend(changed_rows)
         all_buckets.extend(bucket_rows)
         all_guard.extend(guard_rows)
 
@@ -250,14 +289,16 @@ def main():
         report["ocr_leaks"] = summarize_ocr_leaks(Path(args.absent_ocr_leaks))
 
     write_json(out_dir / "ocr_verifier_diagnosis.json", report)
-    write_csv(out_dir / "ocr_verifier_diagnosis_summary.csv", all_summary)
+    write_csv(out_dir / "ocr_verifier_outcomes.csv", all_summary)
+    write_csv(out_dir / "ocr_present_rejection_reasons.csv", all_reasons)
+    write_csv(out_dir / "ocr_status_changes.csv", all_changed)
     write_csv(out_dir / "ocr_verifier_score_buckets.csv", all_buckets)
     write_csv(out_dir / "combined_guard_effects.csv", all_guard)
     write_md(out_dir / "ocr_verifier_diagnosis.md", report)
     print(json.dumps({
         "models": sorted(report["models"]),
         "summary_md": str(out_dir / "ocr_verifier_diagnosis.md"),
-        "summary_csv": str(out_dir / "ocr_verifier_diagnosis_summary.csv"),
+        "outcomes_csv": str(out_dir / "ocr_verifier_outcomes.csv"),
     }, indent=2))
 
 

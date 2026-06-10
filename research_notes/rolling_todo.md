@@ -15,9 +15,9 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Mine combined-verifier cases | completed | Contact-sheet exports are available for SeekUI and SeekUI-SFT combined best-F1 variants |
 | P0 | Synthetic absent benchmark sanity check | completed | Annotation conflicts are low; random split leaks images; use image split as cleaner held-out result |
 | P0 | Analyze combined contact sheets | pending | Inspect corrected absent false-present, new present false-absent, and kept absent false-present sheets for both models |
-| P0 | Export main result table | code ready | Run `sbatch scripts_utah/export_main_result_table.slurm` |
+| P0 | Export main result table | completed | Image split table is paper-ready and stored under `$SEEKUI_WORK/outputs/paper_tables` |
 | P0 | Refresh filtered sensitivity analysis | completed | SFT best-F1 adjusted output is included; combined AND remains strongest under filtering |
-| P1 | OCR verifier diagnosis | code ready | Run `sbatch scripts_utah/diagnose_ocr_verifier.slurm` |
+| P1 | OCR verifier diagnosis | completed | Optional rerun after pulling latest polish so OCR outcomes are non-overlapping |
 | P1 | Combined verifier error taxonomy | completed | Rerun after pulling latest fix so summary separates total cases from selected tagged rows |
 | P1 | Behavioral search metrics | completed | Optional rerun after pulling latest polish so zero-N target-distance rows display `n/a` |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
@@ -90,6 +90,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Added code for combined-verifier heuristic taxonomy and behavioral scanpath metrics.
 - Ran combined taxonomy and behavioral metrics; patched summaries to reduce ambiguity in selected-case counts and target-distance validity.
 - Added code for a paper-ready main result table and OCR verifier diagnosis.
+- Ran main result table and OCR diagnosis; main table is ready, OCR diagnosis supports OCR-as-guard interpretation.
 - Reran taxonomy/behavioral summaries; taxonomy now reports full mined counts and selected tagged rows, behavioral metrics now report target-distance valid N.
 
 ## Decision Log
