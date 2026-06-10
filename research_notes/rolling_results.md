@@ -338,7 +338,6 @@ Takeaways:
 
 - v3 semantic-query jobs.
 - Combined contact-sheet visual analysis.
-- Rerun taxonomy and behavioral summaries after pulling the latest formatting/validity-count fixes.
 
 ## Files To Check
 

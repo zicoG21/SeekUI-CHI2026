@@ -251,6 +251,11 @@ def summarize(rows):
 
 
 def write_md(path, summary_rows):
+    def fmt_target_distance(row):
+        if row["n_last_to_target_px"] == 0:
+            return "n/a"
+        return f"{row['mean_last_to_target_px']:.2f}"
+
     lines = [
         "# Behavioral Search Metrics",
         "",
@@ -266,7 +271,7 @@ def write_md(path, summary_rows):
             f"| {row['model']} | {row['group_field']} | {row['group_value']} | {row['count']} | "
             f"{row['mean_prediction_len']:.2f} | {row['mean_path_length_norm']:.4f} | "
             f"{row['mean_grid_coverage']:.4f} | {row['mean_revisit_rate']:.4f} | "
-            f"{row['mean_convergence_score']:.4f} | {row['mean_last_to_target_px']:.2f} | "
+            f"{row['mean_convergence_score']:.4f} | {fmt_target_distance(row)} | "
             f"{row['n_last_to_target_px']} |"
         )
     path.parent.mkdir(parents=True, exist_ok=True)
