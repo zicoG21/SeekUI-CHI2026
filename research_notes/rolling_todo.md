@@ -10,8 +10,8 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 |---:|---|---|---|
 | P0 | Finish v3 semantic-query jobs | running on CHPC | Check `squeue -u $USER`; when done, rerun summary and inspect semantic split tables |
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
-| P0 | Mine combined-verifier cases | pending | Create case sheets for corrected/new errors, especially SeekUI `and` at cognitive=0.20/OCR=0.60 |
-| P1 | Add dev/test validation for combined verifier | pending | Select thresholds on dev and report held-out deltas for combined `and` |
+| P0 | Add dev/test validation for combined verifier | code ready | Run `sbatch scripts_utah/evaluate_combined_devtest.slurm` |
+| P0 | Mine combined-verifier cases | code ready | Run `sbatch scripts_utah/mine_combined_cases.slurm` |
 | P1 | OCR verifier diagnosis | partial | Use details CSV to identify why present targets are missed by OCR |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
@@ -35,10 +35,11 @@ python scripts_research/summarize_research_outputs.py \
 cat "$SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv"
 ```
 
-Mine combined verifier cases once a case-mining script is added:
+Run combined verifier validation and case mining:
 
 ```bash
-# TODO: add script wrapper for combined verifier case mining.
+sbatch scripts_utah/evaluate_combined_devtest.slurm
+sbatch scripts_utah/mine_combined_cases.slurm
 ```
 
 ## Recently Completed

@@ -256,6 +256,18 @@ $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_combined_or_present_only_
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_combined_and_present_only_threshold_sweep.csv
 ```
 
+Run held-out dev/test validation for the combined `AND` verifier:
+
+```bash
+sbatch scripts_utah/evaluate_combined_devtest.slurm
+```
+
+Mine qualitative cases for the best-F1 combined `AND` settings:
+
+```bash
+sbatch scripts_utah/mine_combined_cases.slurm
+```
+
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 
 ```bash

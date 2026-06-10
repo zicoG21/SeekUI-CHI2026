@@ -87,6 +87,12 @@ def row_for(idx, original, adjusted, evidence, case_type):
         "path_best_similarity": evidence.get("path_best_similarity", ""),
         "path_best_distance_px": evidence.get("path_best_distance_px", ""),
         "threshold": adjusted.get("cognitive_stopping_threshold", ""),
+        "combined_verifier_rule": adjusted.get("combined_verifier_rule", ""),
+        "combined_cognitive_threshold": adjusted.get("combined_cognitive_threshold", ""),
+        "combined_ocr_threshold": adjusted.get("combined_ocr_threshold", ""),
+        "ocr_candidate_verifier_score": adjusted.get("ocr_candidate_verifier_score", ""),
+        "ocr_candidate_verifier_text": adjusted.get("ocr_candidate_verifier_text", ""),
+        "ocr_candidate_verifier_conf": adjusted.get("ocr_candidate_verifier_conf", ""),
     }
 
 
@@ -100,6 +106,9 @@ def add_case(case_rows, case_examples, idx, original, adjusted, evidence, case_t
         "path_best_candidate",
         "path_best_similarity",
         "path_best_distance_px",
+        "ocr_candidate_verifier_score",
+        "ocr_candidate_verifier_text",
+        "ocr_candidate_verifier_conf",
     ]:
         if key in row:
             example[key] = row[key]
