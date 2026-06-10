@@ -98,10 +98,42 @@ def write_rows(path, rows):
         writer.writerows(rows)
 
 
+def absent_variant(name):
+    if name.endswith("_cognitive_stop_present_only"):
+        return name.removesuffix("_cognitive_stop_present_only"), "cognitive_stop_present_only"
+    if name.endswith("_cognitive_stop"):
+        return name.removesuffix("_cognitive_stop"), "cognitive_stop_override"
+    return name, "prompt_only"
+
+
+def absent_status_core_rows(absent_status):
+    rows = []
+    for name, metrics in absent_status.items():
+        model, variant = absent_variant(name)
+        rows.append({
+            "model": model,
+            "variant": variant,
+            "accuracy": metrics.get("accuracy", ""),
+            "absent_precision": metrics.get("absent_precision", ""),
+            "absent_recall": metrics.get("absent_recall", ""),
+            "absent_f1": metrics.get("absent_f1", ""),
+            "present_to_absent": metrics.get("confusion", {}).get("present->absent", ""),
+            "absent_to_present": metrics.get("confusion", {}).get("absent->present", ""),
+            "changed_predictions": metrics.get("changed_predictions", 0 if variant == "prompt_only" else ""),
+            "threshold": metrics.get("threshold", ""),
+            "mode": metrics.get("mode", ""),
+        })
+    order = {"SeekUI": 0, "SeekUI_sft": 1}
+    variant_order = {"prompt_only": 0, "cognitive_stop_override": 1, "cognitive_stop_present_only": 2}
+    rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
+    return rows
+
+
 def export_tables(report, out_dir):
     prediction_health = [{"name": name, **metrics} for name, metrics in report.get("prediction_health", {}).items()]
     overall_metrics = [{"name": name, **metrics} for name, metrics in report.get("evaluation_metrics", {}).items()]
     absent_status = [{"name": name, **metrics} for name, metrics in report.get("absent_status", {}).items()]
+    absent_status_core = absent_status_core_rows(report.get("absent_status", {}))
     semantic_query = []
     for model, groups in report.get("semantic_query", {}).items():
         for query_type, metrics in groups.items():
@@ -138,6 +170,7 @@ def export_tables(report, out_dir):
     write_rows(out_dir / "prediction_health.csv", prediction_health)
     write_rows(out_dir / "overall_metrics.csv", overall_metrics)
     write_rows(out_dir / "absent_status.csv", absent_status)
+    write_rows(out_dir / "absent_status_core.csv", absent_status_core)
     write_rows(out_dir / "semantic_query_summary.csv", semantic_query)
     write_rows(out_dir / "split_metrics.csv", split_metrics)
     write_rows(out_dir / "manual_review_fields.csv", manual_review_fields)
