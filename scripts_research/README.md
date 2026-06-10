@@ -205,6 +205,20 @@ SeekUI-SFT present-only:  0.05
 
 The default batch job writes both an aggressive `override` variant and a conservative `present_only` variant. The conservative variant only changes low-evidence `present` predictions to `absent`; it does not turn original `absent` predictions back into `present`.
 
+Run held-out dev/test threshold selection and bootstrap confidence intervals:
+
+```bash
+sbatch scripts_utah/evaluate_stopping_devtest.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/devtest_stopping/devtest_stopping_present_only.md
+$SEEKUI_WORK/outputs/devtest_stopping/devtest_stopping_present_only.csv
+$SEEKUI_WORK/outputs/devtest_stopping/devtest_stopping_present_only.json
+```
+
 ## 6. Build Image-Cue Target-Crop Benchmark
 
 This creates target crops from existing target bounding boxes. It is a multimodal prototype, not proof that current data has non-text targets.

@@ -143,6 +143,8 @@ Interpretation:
 3. A simple path-evidence stopping rule substantially improves absent F1 for SeekUI, from 0.7300 prompt-only to 0.8380 with aggressive override and 0.8522 with the conservative present-only safety layer at a lower threshold.
 4. SeekUI-SFT remains weaker because its paths are too short and visit fewer useful candidates.
 
+The threshold numbers above are selected from a full sweep on the current benchmark, so they should be treated as pilot/post-hoc tuned results. The next stricter check is implemented in `scripts_research/evaluate_stopping_devtest.py`: it splits the present/absent benchmark into dev/test, selects the stopping threshold on dev, evaluates on held-out test, and reports bootstrap confidence intervals for the improvement over prompt-only prediction.
+
 ## Image-Cue Benchmark
 
 The image-cue benchmark uses target crops as visual cue proxies. It tests whether the model can follow a visual target cue instead of only a text cue.
