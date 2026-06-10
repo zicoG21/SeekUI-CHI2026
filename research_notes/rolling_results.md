@@ -291,7 +291,9 @@ $SEEKUI_WORK/outputs/combined_cases/SeekUI_sft_and_present_only_best_f1_contact_
 ## Pending Results
 
 - v3 semantic-query jobs.
-- Combined contact-sheet analysis and error taxonomy.
+- Combined contact-sheet analysis.
+- Combined heuristic error taxonomy via `scripts_utah/summarize_combined_error_taxonomy.slurm`.
+- Behavioral scanpath metrics via `scripts_utah/summarize_behavioral_metrics.slurm`.
 
 ## Files To Check
 
@@ -300,5 +302,7 @@ $SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv
 $SEEKUI_WORK/outputs/devtest_combined/combined_devtest_random.md
 $SEEKUI_WORK/outputs/devtest_combined/combined_devtest_image.md
 $SEEKUI_WORK/outputs/combined_cases/
+$SEEKUI_WORK/outputs/combined_error_taxonomy/combined_error_taxonomy_summary.md
+$SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_summary.md
 $SEEKUI_WORK/outputs/absent_sanity/absent_benchmark_sanity.md
 ```

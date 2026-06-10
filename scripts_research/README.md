@@ -275,6 +275,34 @@ Mine qualitative cases for the best-F1 combined `AND` settings:
 sbatch scripts_utah/mine_combined_cases.slurm
 ```
 
+Summarize heuristic tags for the combined verifier cases:
+
+```bash
+sbatch scripts_utah/summarize_combined_error_taxonomy.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/combined_error_taxonomy/combined_error_taxonomy_summary.md
+$SEEKUI_WORK/outputs/combined_error_taxonomy/combined_error_taxonomy_rows.csv
+```
+
+Compute behavioral scanpath metrics for prompt-only, cognitive stopping, and
+combined verifier predictions:
+
+```bash
+sbatch scripts_utah/summarize_behavioral_metrics.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_summary.md
+$SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_summary.csv
+$SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_rows.csv
+```
+
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 
 ```bash

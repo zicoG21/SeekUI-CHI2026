@@ -17,8 +17,8 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Analyze combined contact sheets | pending | Inspect corrected absent false-present, new present false-absent, and kept absent false-present sheets for both models |
 | P0 | Refresh filtered sensitivity analysis | completed | SFT best-F1 adjusted output is included; combined AND remains strongest under filtering |
 | P1 | OCR verifier diagnosis | partial | Use details CSV to identify why present targets are missed by OCR |
-| P1 | Combined verifier error taxonomy | pending | Categorize corrected absent, new false-absent, kept false-present, OCR failures, small/edge targets, and strong distractors |
-| P1 | Behavioral search metrics | pending | Compute fixation count, coverage, revisit rate, convergence score, and stopping-confidence curves |
+| P1 | Combined verifier error taxonomy | code ready | Run `sbatch scripts_utah/summarize_combined_error_taxonomy.slurm` |
+| P1 | Behavioral search metrics | code ready | Run `sbatch scripts_utah/summarize_behavioral_metrics.slurm` |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
 | P1 | Simple VLM/OCR verifier baselines | pending | Compare against OCR exact/fuzzy match and generic VLM yes/no target-presence verifier |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
@@ -51,6 +51,13 @@ tail -n 120 $(ls -t seekui-combo-cases-*.out | head -1)
 find "$SEEKUI_WORK/outputs/combined_cases" \( -name '*contact_sheet.jpg' -o -name '*contact_sheets.tgz' \) -print
 ```
 
+Run non-semantic analysis jobs:
+
+```bash
+sbatch scripts_utah/summarize_combined_error_taxonomy.slurm
+sbatch scripts_utah/summarize_behavioral_metrics.slurm
+```
+
 Download combined contact sheets locally:
 
 ```bash
@@ -77,6 +84,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Ran filtered sensitivity analysis; combined AND remains strongest after excluding annotation-conflict and OCR-leak absent examples.
 - Ran combined-verifier case mining for SeekUI and SeekUI-SFT; contact-sheet exports are packaged on CHPC.
 - Refreshed filtered sensitivity after combined case mining; SFT best-F1 adjusted output is now included.
+- Added code for combined-verifier heuristic taxonomy and behavioral scanpath metrics.
 
 ## Decision Log
 
