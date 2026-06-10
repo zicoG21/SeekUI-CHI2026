@@ -96,12 +96,26 @@ This turns stopping into a diagnostic question:
 
 The script `scripts_research/analyze_prediction_stopping_evidence.py` implements this diagnostic for completed present/absent prediction JSONs and writes per-example evidence, per-step evidence, and threshold sweeps.
 
-The first completed prediction-path evidence run supports the stopping hypothesis:
+The first completed prediction-path evidence run supports the stopping hypothesis. There are two useful variants:
 
-| Model | Prompt-Only Absent F1 | Best Path-Evidence Absent F1 | Best Threshold | Low-Evidence Share of Absent False-Present |
+- `override`: fully re-decide present/absent from path evidence.
+- `present_only`: conservative safety layer that only turns low-evidence `present` predictions into `absent`.
+
+| Model / Variant | Absent F1 | Absent Recall | Accuracy | Threshold |
 |---|---:|---:|---:|---:|
-| SeekUI | 0.7300 | 0.8380 | 0.20 | 489 / 509 = 96.1% |
-| SeekUI-SFT | 0.6878 | 0.7394 | 0.10 | 578 / 591 = 97.8% |
+| SeekUI prompt-only | 0.7300 | 0.6263 | 0.7684 | n/a |
+| SeekUI + stopping, override | 0.8380 | 0.9626 | 0.8139 | 0.20 |
+| SeekUI + stopping, present-only | 0.8317 | 0.9853 | 0.8007 | 0.20 |
+| SeekUI-SFT prompt-only | 0.6878 | 0.5661 | 0.7430 | n/a |
+| SeekUI-SFT + stopping, override | 0.7394 | 0.9332 | 0.6711 | 0.10 |
+| SeekUI-SFT + stopping, present-only | 0.7529 | 0.9721 | 0.6810 | 0.10 |
+
+Low-evidence false-present errors dominate:
+
+```text
+SeekUI:     489 / 509 absent false-present errors = 96.1%
+SeekUI-SFT: 578 / 591 absent false-present errors = 97.8%
+```
 
 For SeekUI, correct-present examples have much higher path evidence than absent false-present examples:
 
