@@ -15,7 +15,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Mine combined-verifier cases | completed | Contact-sheet exports are available for SeekUI and SeekUI-SFT combined best-F1 variants |
 | P0 | Synthetic absent benchmark sanity check | completed | Annotation conflicts are low; random split leaks images; use image split as cleaner held-out result |
 | P0 | Analyze combined contact sheets | pending | Inspect corrected absent false-present, new present false-absent, and kept absent false-present sheets for both models |
-| P0 | Refresh filtered sensitivity analysis | pending | Rerun after combined case mining so SFT best-F1 adjusted output is included |
+| P0 | Refresh filtered sensitivity analysis | completed | SFT best-F1 adjusted output is included; combined AND remains strongest under filtering |
 | P1 | OCR verifier diagnosis | partial | Use details CSV to identify why present targets are missed by OCR |
 | P1 | Combined verifier error taxonomy | pending | Categorize corrected absent, new false-absent, kept false-present, OCR failures, small/edge targets, and strong distractors |
 | P1 | Behavioral search metrics | pending | Compute fixation count, coverage, revisit rate, convergence score, and stopping-confidence curves |
@@ -76,6 +76,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Ran synthetic absent sanity audit; random split leaks images, image split is cleaner, OCR leak rate is 16.5%.
 - Ran filtered sensitivity analysis; combined AND remains strongest after excluding annotation-conflict and OCR-leak absent examples.
 - Ran combined-verifier case mining for SeekUI and SeekUI-SFT; contact-sheet exports are packaged on CHPC.
+- Refreshed filtered sensitivity after combined case mining; SFT best-F1 adjusted output is now included.
 
 ## Decision Log
 

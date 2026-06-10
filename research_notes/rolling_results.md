@@ -159,8 +159,9 @@ Filtered status results:
 | SeekUI-SFT | cognitive stop | 0.7213 | 0.6298 | 0.9383 | 0.7537 | 626 | 70 |
 | SeekUI-SFT | OCR-only | 0.6800 | 0.5869 | 1.0000 | 0.7397 | 799 | 0 |
 | SeekUI-SFT | combined AND default | 0.8370 | 0.8127 | 0.8335 | 0.8230 | 218 | 189 |
+| SeekUI-SFT | combined AND best-F1 | 0.8370 | 0.7600 | 0.9374 | 0.8394 | 336 | 71 |
 
-Takeaway: filtering out suspicious absent rows does not remove the main effect. For SeekUI, combined AND best-F1 remains strongest (`F1=0.8760`, `accuracy=0.8726`) and still beats cognitive stopping (`F1=0.8405`, `accuracy=0.8402`). For SFT, combined default also remains stronger than prompt/cognitive/OCR, though the best-F1 SFT adjusted file still needs to be regenerated after the case-mining fix.
+Takeaway: filtering out suspicious absent rows does not remove the main effect. For SeekUI, combined AND best-F1 remains strongest (`F1=0.8760`, `accuracy=0.8726`) and still beats cognitive stopping (`F1=0.8405`, `accuracy=0.8402`). For SFT, combined AND best-F1 is also strongest by absent F1 (`0.8394`) and combined default ties it on accuracy (`0.8370`) with higher precision.
 
 ## Dev/Test Validation
 
@@ -291,7 +292,6 @@ $SEEKUI_WORK/outputs/combined_cases/SeekUI_sft_and_present_only_best_f1_contact_
 
 - v3 semantic-query jobs.
 - Combined contact-sheet analysis and error taxonomy.
-- Filtered sensitivity table after regenerating all combined best-F1 adjusted outputs.
 
 ## Files To Check
 
