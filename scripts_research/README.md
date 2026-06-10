@@ -237,6 +237,14 @@ This also writes contact sheets under:
 $SEEKUI_WORK/outputs/stopping_cases/SeekUI_present_only/visualizations/*_contact_sheet.jpg
 ```
 
+The SLURM job also writes model-prefixed contact sheets and a small download
+package, which are safer to copy into a shared local folder:
+
+```text
+$SEEKUI_WORK/outputs/stopping_cases/SeekUI_present_only/visualizations/SeekUI_*_contact_sheet.jpg
+$SEEKUI_WORK/outputs/stopping_cases/SeekUI_present_only_contact_sheets.tgz
+```
+
 For SeekUI-SFT:
 
 ```bash

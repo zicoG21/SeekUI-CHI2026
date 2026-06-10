@@ -49,7 +49,18 @@ for case_type in \
       --output "$OUT_DIR/visualizations/${case_type}_contact_sheet.jpg" \
       --limit "$CASE_LIMIT" \
       --cols "${CONTACT_SHEET_COLS:-5}"
+
+    cp "$OUT_DIR/visualizations/${case_type}_contact_sheet.jpg" \
+      "$OUT_DIR/visualizations/${MODEL_NAME}_${case_type}_contact_sheet.jpg"
   fi
 done
 
+PACKAGE="$OUTPUT_DIR/stopping_cases/${MODEL_NAME}_present_only_contact_sheets.tgz"
+tar -C "$OUT_DIR" -czf "$PACKAGE" \
+  stopping_cases_summary.md \
+  stopping_cases_index.csv \
+  visualizations/*_contact_sheet.jpg
+
 echo "Stopping case summary: $OUT_DIR/stopping_cases_summary.md"
+echo "Prefixed contact sheets: $OUT_DIR/visualizations/${MODEL_NAME}_*_contact_sheet.jpg"
+echo "Download package: $PACKAGE"
