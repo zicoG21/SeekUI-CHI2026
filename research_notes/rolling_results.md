@@ -117,6 +117,8 @@ Takeaway:
 
 ## Dev/Test Validation
 
+### Cognitive Stopping
+
 Random split, threshold selected on dev:
 
 | Model | Test Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 |
@@ -141,6 +143,42 @@ Delta F1 95% CI: [0.0935, 0.1487]
 Delta accuracy 95% CI: [0.0500, 0.0977]
 ```
 
+### Combined Cognitive + OCR Verifier
+
+Random split, thresholds selected on dev:
+
+| Model | Test Variant | Cog Thresh | OCR Thresh | Accuracy | Absent Precision | Absent Recall | Absent F1 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| SeekUI | prompt-only |  |  | 0.7805 | 0.8882 | 0.6417 | 0.7451 |
+| SeekUI | combined AND | 0.15 | 0.60 | 0.8634 | 0.8121 | 0.9457 | 0.8738 |
+| SeekUI-SFT | prompt-only |  |  | 0.7452 | 0.8866 | 0.5624 | 0.6882 |
+| SeekUI-SFT | combined AND | 0.05 | 0.60 | 0.8209 | 0.7755 | 0.9031 | 0.8345 |
+
+Random split bootstrap 95% CI:
+
+| Model | Delta Absent F1 | 95% CI | Delta Accuracy | 95% CI |
+|---|---:|---|---:|---|
+| SeekUI | +0.1285 | [0.1001, 0.1573] | +0.0830 | [0.0580, 0.1087] |
+| SeekUI-SFT | +0.1453 | [0.1143, 0.1770] | +0.0750 | [0.0462, 0.1035] |
+
+Image split, thresholds selected on dev:
+
+| Model | Test Variant | Cog Thresh | OCR Thresh | Accuracy | Absent Precision | Absent Recall | Absent F1 |
+|---|---|---:|---:|---:|---:|---:|---:|
+| SeekUI | prompt-only |  |  | 0.7708 | 0.8745 | 0.6334 | 0.7347 |
+| SeekUI | combined AND | 0.25 | 0.55 | 0.8692 | 0.8127 | 0.9604 | 0.8804 |
+| SeekUI-SFT | prompt-only |  |  | 0.7325 | 0.8647 | 0.5528 | 0.6744 |
+| SeekUI-SFT | combined AND | 0.05 | 0.55 | 0.8148 | 0.7749 | 0.8886 | 0.8279 |
+
+Image split bootstrap 95% CI:
+
+| Model | Delta Absent F1 | 95% CI | Delta Accuracy | 95% CI |
+|---|---:|---|---:|---|
+| SeekUI | +0.1459 | [0.1167, 0.1739] | +0.0984 | [0.0720, 0.1220] |
+| SeekUI-SFT | +0.1535 | [0.1232, 0.1834] | +0.0820 | [0.0558, 0.1080] |
+
+Takeaway: combined AND holds up under held-out threshold selection. It improves both absent F1 and accuracy with positive bootstrap CIs on random and image splits. This is now the strongest non-oracle result.
+
 ## Qualitative Case Mining
 
 Cognitive stopping case counts:
@@ -160,7 +198,8 @@ Observed patterns:
 
 - Combined cognitive + OCR verifier:
   - completed on full benchmark
-  - needs dev/test validation
+- Combined verifier dev/test validation:
+  - completed for random and image splits
 - v3 semantic-query jobs.
 - Combined-verifier case mining if it improves over cognitive stopping.
 
