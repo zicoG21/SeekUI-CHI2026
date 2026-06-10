@@ -205,6 +205,22 @@ SeekUI-SFT present-only:  0.05
 
 The default batch job writes both an aggressive `override` variant and a conservative `present_only` variant. The conservative variant only changes low-evidence `present` predictions to `absent`; it does not turn original `absent` predictions back into `present`.
 
+Apply a candidate-inventory verifier. This is a diagnostic baseline for the
+failure pattern where the scanpath converges to a distractor even though no
+same-screen target candidate matches the query:
+
+```bash
+sbatch scripts_utah/apply_candidate_verifier.slurm
+SCORE_FIELD=hybrid THRESHOLD=0.50 sbatch scripts_utah/apply_candidate_verifier.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_candidate_verifier_*_status_eval.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_candidate_verifier_*_status_eval.json
+```
+
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 
 ```bash

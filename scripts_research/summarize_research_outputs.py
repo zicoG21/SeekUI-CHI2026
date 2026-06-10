@@ -99,6 +99,10 @@ def write_rows(path, rows):
 
 
 def absent_variant(name):
+    marker = "_candidate_verifier_"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"candidate_verifier_{variant}"
     if name.endswith("_cognitive_stop_present_only"):
         return name.removesuffix("_cognitive_stop_present_only"), "cognitive_stop_present_only"
     if name.endswith("_cognitive_stop"):
@@ -124,7 +128,14 @@ def absent_status_core_rows(absent_status):
             "mode": metrics.get("mode", ""),
         })
     order = {"SeekUI": 0, "SeekUI_sft": 1}
-    variant_order = {"prompt_only": 0, "cognitive_stop_override": 1, "cognitive_stop_present_only": 2}
+    variant_order = {
+        "prompt_only": 0,
+        "cognitive_stop_override": 1,
+        "cognitive_stop_present_only": 2,
+        "candidate_verifier_candidate_similarity_present_only": 3,
+        "candidate_verifier_hybrid_present_only": 4,
+        "candidate_verifier_path_best_evidence_present_only": 5,
+    }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
 
@@ -252,6 +263,13 @@ def main():
             report["absent_status"][f"{model}_cognitive_stop_present_only"] = read_json(
                 cognitive_stop_present_only_eval_path
             )
+        for verifier_eval_path in sorted(
+            outputs.glob(f"present_absent_predictions_{model}_candidate_verifier_*_status_eval.json")
+        ):
+            prefix = f"present_absent_predictions_{model}_"
+            suffix = "_status_eval"
+            variant = verifier_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            report["absent_status"][f"{model}_{variant}"] = read_json(verifier_eval_path)
         if semantic_summary_path.exists():
             report.setdefault("semantic_query", {})[model] = read_json(semantic_summary_path)
 

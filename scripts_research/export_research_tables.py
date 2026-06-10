@@ -24,6 +24,10 @@ def flatten_metrics(name, metrics):
 
 
 def absent_variant(name):
+    marker = "_candidate_verifier_"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"candidate_verifier_{variant}"
     if name.endswith("_cognitive_stop_present_only"):
         return name.removesuffix("_cognitive_stop_present_only"), "cognitive_stop_present_only"
     if name.endswith("_cognitive_stop"):
@@ -49,7 +53,14 @@ def absent_status_core_rows(absent_status):
             "mode": metrics.get("mode", ""),
         })
     order = {"SeekUI": 0, "SeekUI_sft": 1}
-    variant_order = {"prompt_only": 0, "cognitive_stop_override": 1, "cognitive_stop_present_only": 2}
+    variant_order = {
+        "prompt_only": 0,
+        "cognitive_stop_override": 1,
+        "cognitive_stop_present_only": 2,
+        "candidate_verifier_candidate_similarity_present_only": 3,
+        "candidate_verifier_hybrid_present_only": 4,
+        "candidate_verifier_path_best_evidence_present_only": 5,
+    }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
 
