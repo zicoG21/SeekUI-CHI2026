@@ -187,6 +187,8 @@ $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop.json
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop_status_eval.json
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_cognitive_stop.json
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_cognitive_stop_status_eval.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop_present_only.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop_present_only_status_eval.json
 ```
 
 Default thresholds come from the completed evidence sweep:
@@ -195,6 +197,8 @@ Default thresholds come from the completed evidence sweep:
 SeekUI:     0.20
 SeekUI-SFT: 0.10
 ```
+
+The default batch job writes both an aggressive `override` variant and a conservative `present_only` variant. The conservative variant only changes low-evidence `present` predictions to `absent`; it does not turn original `absent` predictions back into `present`.
 
 ## 6. Build Image-Cue Target-Crop Benchmark
 
