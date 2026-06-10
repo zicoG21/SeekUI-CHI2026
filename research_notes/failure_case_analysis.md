@@ -68,6 +68,8 @@ Status: absent
 
 The screenshot visibly contains a `Search GymShark` search field. This is not a clean absent example, even if the exact source target ID was absent by annotation. This matches the manual review finding that the synthetic absent benchmark is useful but not fully clean without visual validation.
 
+The annotation-assisted validator later confirmed this pattern at benchmark scale: 8/1362 synthetic absent examples were flagged as likely text conflicts, mostly generic search-related targets such as `Search`, `Search for anything`, and `search github`.
+
 Interpretation:
 
 ```text
@@ -213,4 +215,3 @@ rather than always producing a forced grounding.
 4. Treat image-cue as a proxy, not a final non-text benchmark.
 
 The image-cue failures are useful, but the cue is derived from ground-truth crops. A stronger non-text experiment would need native icon/image cue trials or curated external cue images.
-

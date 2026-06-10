@@ -188,6 +188,33 @@ For semantic-query audit:
 
 The manual review supports using the current benchmark as a pilot, while also making the main caveat explicit: the synthetic absent dataset is useful but requires more visual validation before being treated as a fully reliable benchmark.
 
+## Annotation-Assisted Absent Validation
+
+We added an annotation-assisted text-conflict validator to check whether synthetic absent targets appear in destination screenshots under another target annotation.
+
+The refined validation found:
+
+```text
+Absent examples: 1362
+Likely text conflicts: 8
+Clean absent examples: 1354
+Suspicious rate: 0.59%
+```
+
+The suspicious cases are mostly generic search targets:
+
+```text
+Search -> search gymshark
+Search for anything -> Search
+search local12.com -> SEARCH
+Search -> Enter keywords to search
+search github -> Search
+Search -> [Search]
+Search -> Search software...
+```
+
+This strengthens the absent benchmark caveat without undermining the benchmark. The synthetic absent set is mostly clean by available annotations, but generic UI functions such as search require extra validation because a destination screen may contain a semantically equivalent search field under a different annotation.
+
 ## Main Findings
 
 1. The released VSGUI/SeekUI subset is text-target only.
@@ -246,7 +273,7 @@ Focus on:
 
 2. Improve absent validation.
 
-Run OCR or visual review on more synthetic absent examples. The current 20-example visual audit found 1 invalid and 2 ambiguous samples.
+Run OCR or visual review on more synthetic absent examples. The current 20-example visual audit found 1 invalid and 2 ambiguous samples. Annotation-assisted text validation found 8 likely text conflicts out of 1362 absent examples, mostly search-related.
 
 3. Run stronger associative v3 benchmark.
 
@@ -269,4 +296,3 @@ Possible stopping signals:
 - inhibition of return,
 - movement cost,
 - uncertainty threshold.
-

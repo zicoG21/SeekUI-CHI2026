@@ -386,6 +386,22 @@ SPLIT_NAME=semantic_query_SeekUI_query_type \
 sbatch scripts_utah/evaluate_prediction_splits.slurm
 ```
 
+After the v3 association-first predictions finish, evaluate them by `query_type`:
+
+```bash
+PREDICTION_FILE="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_1362_v3_assocfirst.json" \
+SPLIT_FIELD=query_type \
+SPLIT_NAME=semantic_query_SeekUI_v3_assocfirst_query_type \
+sbatch scripts_utah/evaluate_prediction_splits.slurm
+```
+
+```bash
+PREDICTION_FILE="$SEEKUI_WORK/outputs/semantic_query_predictions_SeekUI_sft_1362_v3_assocfirst.json" \
+SPLIT_FIELD=query_type \
+SPLIT_NAME=semantic_query_SeekUI_sft_v3_assocfirst_query_type \
+sbatch scripts_utah/evaluate_prediction_splits.slurm
+```
+
 Compare SeekUI and SFT outputs on matched examples:
 
 ```bash
