@@ -5,7 +5,7 @@ These scripts mirror the Utah helpers but use University of Michigan Great Lakes
 Default GPU settings:
 
 ```text
-account:   jaabell0
+account:   engin1
 partition: spgpu
 gres:      gpu:a40:1
 ```
@@ -30,16 +30,20 @@ find "$SEEKUI_WORK/data/vsgui10k-images" -maxdepth 1 -type f -name '*.png' | wc 
 Create the environment on a login node:
 
 ```bash
-module avail miniconda
 module avail python
 
-module load miniconda3
+module load python3.10-anaconda/2023.03
 conda create -n seekui python=3.10.12 -y
+source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate seekui
-bash scripts_utah/install_inference_deps.sh
+bash scripts_greatlakes/setup_env.sh
 ```
 
-If the `miniconda3` module name differs, load the local Great Lakes module and then run the same conda commands.
+If `conda activate` fails, the important line is:
+
+```bash
+source "$(conda info --base)/etc/profile.d/conda.sh"
+```
 
 Download models:
 
@@ -48,10 +52,28 @@ conda activate seekui
 bash scripts_utah/download_models.sh
 ```
 
+Build offline follow-up datasets:
+
+```bash
+sbatch scripts_greatlakes/offline_research_prep.slurm
+```
+
 Run a smoke test:
 
 ```bash
 sbatch scripts_greatlakes/inference_demo.slurm
+```
+
+Run a reviewer-risk VLM yes/no baseline pilot:
+
+```bash
+VLM_LIMIT=200 sbatch scripts_greatlakes/vlm_presence_baseline.slurm
+```
+
+Run the full VLM yes/no baseline:
+
+```bash
+sbatch scripts_greatlakes/vlm_presence_baseline.slurm
 ```
 
 Run the semantic v3 association-first jobs:
@@ -77,3 +99,6 @@ You can override account/partition/GPU at submission time:
 ```bash
 sbatch --account=jaabell0 --partition=gpu_mig40 --gres=gpu:nvidia_a100_80gb_pcie_3g.40gb:1 scripts_greatlakes/inference_demo.slurm
 ```
+
+Use `jaabell0` only when you intentionally want to spend that allocation; the
+checked-in defaults use `engin1`.

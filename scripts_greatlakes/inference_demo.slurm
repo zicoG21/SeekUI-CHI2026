@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=seekui-demo
-#SBATCH --account=jaabell0
+#SBATCH --account=engin1
 #SBATCH --partition=spgpu
 #SBATCH --gres=gpu:a40:1
 #SBATCH --cpus-per-task=8
@@ -21,7 +21,7 @@ export PYTHONUNBUFFERED=1
 if [[ -n "${CONDA_MODULE:-}" ]]; then
   module load "$CONDA_MODULE"
 else
-  module load miniconda3
+  module load python3.10-anaconda/2023.03
 fi
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate "${CONDA_ENV:-seekui}"

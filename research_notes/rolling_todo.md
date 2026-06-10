@@ -24,7 +24,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
 | P1 | Simple VLM/OCR verifier baselines | code ready | Run `VLM_LIMIT=200 sbatch scripts_utah/vlm_presence_baseline.slurm` for pilot, then full if useful |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
-| P2 | Great Lakes backup setup | paused | Only resume if CHPC queue blocks GPU jobs |
+| P1 | Great Lakes setup | code ready | Use `scripts_greatlakes/setup_env.sh`, `prepare_data.sh`, and GL Slurm wrappers; defaults use `engin1` |
 
 ## Commands To Run Next
 
@@ -69,6 +69,17 @@ Run VLM yes/no baseline:
 VLM_LIMIT=200 sbatch scripts_utah/vlm_presence_baseline.slurm
 ```
 
+Great Lakes setup path:
+
+```bash
+export SEEKUI_WORK=/scratch/engin_root/engin1/$USER/seekui
+mkdir -p "$SEEKUI_WORK"/{data,models,outputs,hf_cache}
+bash scripts_greatlakes/setup_env.sh
+bash scripts_greatlakes/prepare_data.sh
+bash scripts_utah/download_models.sh
+VLM_LIMIT=200 sbatch scripts_greatlakes/vlm_presence_baseline.slurm
+```
+
 Download combined contact sheets locally:
 
 ```bash
@@ -100,6 +111,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Added code for a paper-ready main result table and OCR verifier diagnosis.
 - Ran main result table and OCR diagnosis; main table is ready, OCR diagnosis supports OCR-as-guard interpretation.
 - Added code for VLM yes/no presence baseline and contact-sheet visual review artifacts.
+- Added Great Lakes setup/data-prep/VLM scripts with `engin1` defaults.
 - Reran taxonomy/behavioral summaries; taxonomy now reports full mined counts and selected tagged rows, behavioral metrics now report target-distance valid N.
 
 ## Decision Log
