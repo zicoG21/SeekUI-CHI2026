@@ -128,6 +128,8 @@ present_false_absent mean evidence:  0.3381
 
 This suggests that many false-present errors are not cases where the model found strong misleading evidence. They are low-evidence forced-choice guesses. That distinction matters for the paper framing: the contribution can be a stopping/calibration layer over scanpath generation, not necessarily a new end-to-end generator.
 
+The dev/test validation supports that this is not only a post-hoc threshold artifact. With a balanced 50/50 dev/test split and threshold selected on dev, SeekUI improves on held-out test from absent F1 0.7451 to 0.8532. The bootstrap 95% confidence interval for the F1 improvement is [0.0798, 0.1353], and the accuracy improvement is +0.0616 with CI [0.0374, 0.0852]. SeekUI-SFT also improves absent F1 on test, from 0.6882 to 0.7784, but its accuracy change is not reliably positive.
+
 A richer later version can use:
 
 - OCR boxes as candidate regions

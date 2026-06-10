@@ -143,7 +143,25 @@ Interpretation:
 3. A simple path-evidence stopping rule substantially improves absent F1 for SeekUI, from 0.7300 prompt-only to 0.8380 with aggressive override and 0.8522 with the conservative present-only safety layer at a lower threshold.
 4. SeekUI-SFT remains weaker because its paths are too short and visit fewer useful candidates.
 
-The threshold numbers above are selected from a full sweep on the current benchmark, so they should be treated as pilot/post-hoc tuned results. The next stricter check is implemented in `scripts_research/evaluate_stopping_devtest.py`: it splits the present/absent benchmark into dev/test, selects the stopping threshold on dev, evaluates on held-out test, and reports bootstrap confidence intervals for the improvement over prompt-only prediction.
+The threshold numbers above are selected from a full sweep on the current benchmark, so we also ran a stricter dev/test check with `scripts_research/evaluate_stopping_devtest.py`. It splits the present/absent benchmark into balanced dev/test halves, selects the stopping threshold on dev, evaluates on held-out test, and reports bootstrap confidence intervals for the improvement over prompt-only prediction.
+
+Held-out dev/test result for the conservative `present_only` stopping layer:
+
+| Model | Split | Variant | Threshold | Accuracy | Absent Precision | Absent Recall | Absent F1 | Changed |
+|---|---|---|---:|---:|---:|---:|---:|---:|
+| SeekUI | test | prompt-only | n/a | 0.7805 | 0.8882 | 0.6417 | 0.7451 | 0 |
+| SeekUI | test | present-only stopping | 0.05 | 0.8421 | 0.7972 | 0.9178 | 0.8532 | 292 |
+| SeekUI-SFT | test | prompt-only | n/a | 0.7452 | 0.8866 | 0.5624 | 0.6882 | 0 |
+| SeekUI-SFT | test | present-only stopping | 0.05 | 0.7349 | 0.6688 | 0.9310 | 0.7784 | 516 |
+
+Bootstrap 95% confidence intervals on the held-out test split:
+
+| Model | Delta Absent F1 | 95% CI | Delta Accuracy | 95% CI |
+|---|---:|---|---:|---|
+| SeekUI | +0.1079 | [0.0798, 0.1353] | +0.0616 | [0.0374, 0.0852] |
+| SeekUI-SFT | +0.0893 | [0.0547, 0.1224] | -0.0109 | [-0.0441, 0.0228] |
+
+This held-out result supports the stopping-layer claim for SeekUI: the F1 and accuracy improvements remain positive, and both bootstrap confidence intervals are above zero. For SeekUI-SFT, absent F1 improves but accuracy does not, again suggesting that SFT scanpaths are too short or weakly grounded for reliable evidence accumulation.
 
 ## Image-Cue Benchmark
 
