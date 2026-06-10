@@ -55,11 +55,16 @@ for case_type in \
   fi
 done
 
+EXPORT_DIR="$OUT_DIR/contact_sheet_export"
+rm -rf "$EXPORT_DIR"
+mkdir -p "$EXPORT_DIR"
+find "$OUT_DIR/visualizations" -maxdepth 1 -type f -name '*contact_sheet.jpg' -exec cp {} "$EXPORT_DIR/" \;
+
 PACKAGE="$OUTPUT_DIR/stopping_cases/${MODEL_NAME}_present_only_contact_sheets.tgz"
 tar -C "$OUT_DIR" -czf "$PACKAGE" \
   stopping_cases_summary.md \
   stopping_cases_index.csv \
-  visualizations/*_contact_sheet.jpg
+  contact_sheet_export
 
 echo "Stopping case summary: $OUT_DIR/stopping_cases_summary.md"
 echo "Prefixed contact sheets: $OUT_DIR/visualizations/${MODEL_NAME}_*_contact_sheet.jpg"
