@@ -174,6 +174,28 @@ $SEEKUI_WORK/outputs/stopping_evidence/SeekUI_sft_stopping_evidence.csv
 $SEEKUI_WORK/outputs/stopping_evidence/SeekUI_sft_stopping_evidence_threshold_sweep.csv
 ```
 
+Apply the resulting post-hoc cognitive stopping layer:
+
+```bash
+sbatch scripts_utah/apply_cognitive_stopping.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_cognitive_stop_status_eval.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_cognitive_stop.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_cognitive_stop_status_eval.json
+```
+
+Default thresholds come from the completed evidence sweep:
+
+```text
+SeekUI:     0.20
+SeekUI-SFT: 0.10
+```
+
 ## 6. Build Image-Cue Target-Crop Benchmark
 
 This creates target crops from existing target bounding boxes. It is a multimodal prototype, not proof that current data has non-text targets.

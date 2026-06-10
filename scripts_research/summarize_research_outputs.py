@@ -179,12 +179,17 @@ def main():
         semantic_summary_path = outputs / f"semantic_query_predictions_{model}_1362_v2_summary.json"
         absent_path = outputs / f"present_absent_predictions_{model}.json"
         absent_eval_path = outputs / f"present_absent_predictions_{model}_status_eval.json"
+        cognitive_stop_path = outputs / f"present_absent_predictions_{model}_cognitive_stop.json"
+        cognitive_stop_eval_path = outputs / f"present_absent_predictions_{model}_cognitive_stop_status_eval.json"
 
         report["files"][f"{model}_predictions"] = str(pred_path) if pred_path.exists() else None
         report["files"][f"{model}_eval"] = str(eval_path) if eval_path.exists() else None
         report["files"][f"{model}_image_cue_predictions"] = str(image_cue_path) if image_cue_path.exists() else None
         report["files"][f"{model}_semantic_query_predictions"] = str(semantic_path) if semantic_path.exists() else None
         report["files"][f"{model}_present_absent_predictions"] = str(absent_path) if absent_path.exists() else None
+        report["files"][f"{model}_cognitive_stop_predictions"] = (
+            str(cognitive_stop_path) if cognitive_stop_path.exists() else None
+        )
 
         health = prediction_health(pred_path)
         if health:
@@ -201,6 +206,8 @@ def main():
             report["evaluation_metrics"][model] = metrics
         if absent_eval_path.exists():
             report["absent_status"][model] = read_json(absent_eval_path)
+        if cognitive_stop_eval_path.exists():
+            report["absent_status"][f"{model}_cognitive_stop"] = read_json(cognitive_stop_eval_path)
         if semantic_summary_path.exists():
             report.setdefault("semantic_query", {})[model] = read_json(semantic_summary_path)
 
