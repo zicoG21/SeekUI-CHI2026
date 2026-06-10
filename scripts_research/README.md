@@ -197,8 +197,10 @@ $SEEKUI_WORK/outputs/cognitive_stopping_threshold_summary.csv
 Default thresholds come from the completed evidence sweep:
 
 ```text
-SeekUI:     0.20
-SeekUI-SFT: 0.10
+SeekUI override:          0.20
+SeekUI-SFT override:      0.10
+SeekUI present-only:      0.05
+SeekUI-SFT present-only:  0.05
 ```
 
 The default batch job writes both an aggressive `override` variant and a conservative `present_only` variant. The conservative variant only changes low-evidence `present` predictions to `absent`; it does not turn original `absent` predictions back into `present`.

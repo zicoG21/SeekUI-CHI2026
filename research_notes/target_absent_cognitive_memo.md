@@ -105,10 +105,10 @@ The first completed prediction-path evidence run supports the stopping hypothesi
 |---|---:|---:|---:|---:|
 | SeekUI prompt-only | 0.7300 | 0.6263 | 0.7684 | n/a |
 | SeekUI + stopping, override | 0.8380 | 0.9626 | 0.8139 | 0.20 |
-| SeekUI + stopping, present-only | 0.8317 | 0.9853 | 0.8007 | 0.20 |
+| SeekUI + stopping, present-only | 0.8522 | 0.9141 | 0.8414 | 0.05 |
 | SeekUI-SFT prompt-only | 0.6878 | 0.5661 | 0.7430 | n/a |
 | SeekUI-SFT + stopping, override | 0.7394 | 0.9332 | 0.6711 | 0.10 |
-| SeekUI-SFT + stopping, present-only | 0.7529 | 0.9721 | 0.6810 | 0.10 |
+| SeekUI-SFT + stopping, present-only | 0.7807 | 0.9347 | 0.7375 | 0.05 |
 
 Low-evidence false-present errors dominate:
 

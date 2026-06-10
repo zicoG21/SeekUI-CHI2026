@@ -18,6 +18,8 @@ STOP_DIR="$OUTPUT_DIR/stopping_evidence"
 
 SEEKUI_THRESHOLD="${SEEKUI_THRESHOLD:-0.20}"
 SEEKUI_SFT_THRESHOLD="${SEEKUI_SFT_THRESHOLD:-0.10}"
+SEEKUI_PRESENT_ONLY_THRESHOLD="${SEEKUI_PRESENT_ONLY_THRESHOLD:-0.05}"
+SEEKUI_SFT_PRESENT_ONLY_THRESHOLD="${SEEKUI_SFT_PRESENT_ONLY_THRESHOLD:-0.05}"
 STOPPING_MODE="${STOPPING_MODE:-override}"
 RUN_PRESENT_ONLY="${RUN_PRESENT_ONLY:-1}"
 
@@ -51,7 +53,7 @@ if [[ "$RUN_PRESENT_ONLY" == "1" ]]; then
   python scripts_research/apply_cognitive_stopping.py \
     --predictions "$OUTPUT_DIR/present_absent_predictions_SeekUI.json" \
     --evidence "$STOP_DIR/SeekUI_stopping_evidence.csv" \
-    --threshold "$SEEKUI_THRESHOLD" \
+    --threshold "$SEEKUI_PRESENT_ONLY_THRESHOLD" \
     --mode present_only \
     --output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only.json" \
     --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_cognitive_stop_present_only_status_eval.json" \
@@ -60,7 +62,7 @@ if [[ "$RUN_PRESENT_ONLY" == "1" ]]; then
   python scripts_research/apply_cognitive_stopping.py \
     --predictions "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft.json" \
     --evidence "$STOP_DIR/SeekUI_sft_stopping_evidence.csv" \
-    --threshold "$SEEKUI_SFT_THRESHOLD" \
+    --threshold "$SEEKUI_SFT_PRESENT_ONLY_THRESHOLD" \
     --mode present_only \
     --output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only.json" \
     --metrics-output "$OUTPUT_DIR/present_absent_predictions_SeekUI_sft_cognitive_stop_present_only_status_eval.json" \

@@ -113,10 +113,10 @@ Post-hoc cognitive stopping gives a large improvement over prompt-only status pr
 |---|---:|---:|---:|---:|---:|
 | SeekUI prompt-only | 0.7684 | 0.8749 | 0.6263 | 0.7300 | 0 |
 | SeekUI + cognitive stop, override | 0.8139 | 0.7419 | 0.9626 | 0.8380 | 988 |
-| SeekUI + cognitive stop, present-only | 0.8007 | 0.7196 | 0.9853 | 0.8317 | 890 |
+| SeekUI + cognitive stop, present-only | 0.8414 | 0.7981 | 0.9141 | 0.8522 | 585 |
 | SeekUI-SFT prompt-only | 0.7430 | 0.8761 | 0.5661 | 0.6878 | 0 |
 | SeekUI-SFT + cognitive stop, override | 0.6711 | 0.6122 | 0.9332 | 0.7394 | 1354 |
-| SeekUI-SFT + cognitive stop, present-only | 0.6810 | 0.6144 | 0.9721 | 0.7529 | 1275 |
+| SeekUI-SFT + cognitive stop, present-only | 0.7375 | 0.6704 | 0.9347 | 0.7807 | 1019 |
 
 Group means show a clean separation for SeekUI:
 
@@ -140,7 +140,7 @@ Interpretation:
 
 1. The prompt-only present/absent output is not well calibrated to search evidence.
 2. False-present predictions are usually not caused by the model finding strong but misleading evidence; they are mostly low-evidence forced-choice guesses.
-3. A simple path-evidence stopping rule substantially improves absent F1 for SeekUI, from 0.7300 prompt-only to 0.8380 with aggressive override and 0.8317 with the conservative present-only safety layer.
+3. A simple path-evidence stopping rule substantially improves absent F1 for SeekUI, from 0.7300 prompt-only to 0.8380 with aggressive override and 0.8522 with the conservative present-only safety layer at a lower threshold.
 4. SeekUI-SFT remains weaker because its paths are too short and visit fewer useful candidates.
 
 ## Image-Cue Benchmark
