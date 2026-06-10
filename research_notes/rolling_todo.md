@@ -9,6 +9,8 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | Priority | Item | Status | Next action |
 |---:|---|---|---|
 | P0 | Finish v3 semantic-query jobs | running on CHPC | Check `squeue -u $USER`; when done, rerun summary and inspect semantic split tables |
+| P0 | GL VLM prompt ablation | running/pending on Great Lakes | Keep only one full job each for `conservative`, `ocr_aware`, and `search_behavior`; compare against CHPC direct VLM and combined AND |
+| P0 | VLM direct presence baseline | completed on CHPC | Direct VLM full: absent F1 0.8386, accuracy 0.8510; filtered F1 0.8494, accuracy 0.8706 |
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
 | P0 | Add dev/test validation for combined verifier | completed | Random and image splits both show positive held-out F1/accuracy deltas |
 | P0 | Analyze combined dev/test results | completed | Combined AND is now strongest non-oracle result; keep random/image CI tables in `rolling_results.md` |
@@ -18,13 +20,17 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Contact-sheet visual review sheet | code ready | Run `sbatch scripts_utah/export_contact_sheet_review.slurm`; fill CSV, then `sbatch scripts_utah/summarize_contact_sheet_review.slurm` |
 | P0 | Export main result table | completed | Image split table is paper-ready and stored under `$SEEKUI_WORK/outputs/paper_tables` |
 | P0 | Refresh filtered sensitivity analysis | completed | SFT best-F1 adjusted output is included; combined AND remains strongest under filtering |
+| P0 | Paper table cleanup | pending | Hide pilot-only `vlm_presence_n200` from main table; keep it only as smoke-test provenance |
 | P1 | OCR verifier diagnosis | completed | Optional rerun after pulling latest polish so OCR outcomes are non-overlapping |
 | P1 | Combined verifier error taxonomy | completed | Rerun after pulling latest fix so summary separates total cases from selected tagged rows |
 | P1 | Behavioral search metrics | completed | Optional rerun after pulling latest polish so zero-N target-distance rows display `n/a` |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
-| P1 | Simple VLM/OCR verifier baselines | code ready | Run `VLM_LIMIT=200 sbatch scripts_utah/vlm_presence_baseline.slurm` for pilot, then full if useful |
+| P1 | Simple VLM/OCR verifier baselines | in progress | CHPC direct VLM is done; GL is running prompt ablations for conservative/OCR-aware/search-behavior prompts |
+| P1 | VLM hard-case analysis | pending | After GL ablations finish, run VLM only on combined kept false-present and new false-absent cases if full prompts expose useful differences |
+| P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
-| P1 | Great Lakes setup | code ready | Use `scripts_greatlakes/setup_env.sh`, `prepare_data.sh`, and GL Slurm wrappers; defaults use `engin1` |
+| P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
+| P2 | Multi-sample scanpath uncertainty | pending | Sample K scanpaths per target to measure endpoint variance and agreement if extra A40 capacity remains |
 
 ## Commands To Run Next
 
@@ -69,6 +75,17 @@ Run VLM yes/no baseline:
 VLM_LIMIT=200 sbatch scripts_utah/vlm_presence_baseline.slurm
 ```
 
+Current CHPC direct VLM full baseline is complete. Re-summarize after pulling latest code:
+
+```bash
+python scripts_research/summarize_research_outputs.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output "$SEEKUI_WORK/outputs/research_summary.md" \
+  --tables-dir "$SEEKUI_WORK/outputs/research_summary_tables"
+
+cat "$SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv"
+```
+
 Great Lakes setup path:
 
 ```bash
@@ -78,6 +95,30 @@ bash scripts_greatlakes/setup_env.sh
 bash scripts_greatlakes/prepare_data.sh
 bash scripts_utah/download_models.sh
 VLM_LIMIT=200 sbatch scripts_greatlakes/vlm_presence_baseline.slurm
+```
+
+Great Lakes VLM prompt ablation, using `jaabell0` A40:
+
+```bash
+SBATCH_ACCOUNT=jaabell0 \
+SBATCH_PARTITION=spgpu \
+SBATCH_GRES=gpu:a40:1 \
+VLM_PROMPT_VARIANTS="conservative ocr_aware search_behavior" \
+bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
+```
+
+Queue view with account:
+
+```bash
+squeue -u $USER -o "%.18i %.18a %.14P %.28j %.8T %.10M %.12l %.20b %.30R"
+```
+
+After GL jobs finish:
+
+```bash
+find "$SEEKUI_WORK/outputs" -maxdepth 1 \
+  -name 'vlm_presence_predictions_SeekUI_vlm_presence_*_status_eval.json' \
+  -print -exec cat {} \;
 ```
 
 Download combined contact sheets locally:
@@ -113,6 +154,9 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Added code for VLM yes/no presence baseline and contact-sheet visual review artifacts.
 - Added Great Lakes setup/data-prep/VLM scripts with `engin1` defaults.
 - Reran taxonomy/behavioral summaries; taxonomy now reports full mined counts and selected tagged rows, behavioral metrics now report target-distance valid N.
+- Ran CHPC direct VLM yes/no full baseline: absent F1 0.8386, accuracy 0.8510; filtered F1 0.8494, accuracy 0.8706.
+- Added VLM prompt variants (`direct`, `conservative`, `ocr_aware`, `search_behavior`) and Great Lakes submission helper.
+- Added summary support for VLM presence baselines so `absent_status_core.csv` includes full VLM results.
 
 ## Decision Log
 
@@ -124,3 +168,4 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Image split should be the main held-out evaluation because random split shares many images and image-target pairs.
 - Filtered sensitivity supports the main combined-AND conclusion.
 - Next practical question: what error taxonomy emerges from the combined-AND contact sheets?
+- Direct VLM yes/no is a strong reviewer-risk baseline but does not close the gap to combined AND; GL prompt ablations test whether this is prompt-sensitive.
