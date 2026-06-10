@@ -338,6 +338,40 @@ $SEEKUI_WORK/outputs/ocr_diagnosis/ocr_present_rejection_reasons.csv
 $SEEKUI_WORK/outputs/ocr_diagnosis/combined_guard_effects.csv
 ```
 
+Run a reviewer-risk VLM yes/no baseline. This asks the model only whether the
+target is visible, with no scanpath generation:
+
+```bash
+VLM_LIMIT=200 sbatch scripts_utah/vlm_presence_baseline.slurm  # pilot
+sbatch scripts_utah/vlm_presence_baseline.slurm                # full benchmark
+```
+
+To use a generic base VLM instead of the SeekUI checkpoint, set `MODEL_PATH` and
+`MODEL_LABEL`:
+
+```bash
+MODEL_PATH=/path/to/Qwen2.5-VL-base MODEL_LABEL=Qwen25VL_base sbatch scripts_utah/vlm_presence_baseline.slurm
+```
+
+Create a visual review sheet for combined contact-sheet taxonomy:
+
+```bash
+sbatch scripts_utah/export_contact_sheet_review.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/contact_sheet_review/combined_contact_sheet_review.csv
+$SEEKUI_WORK/outputs/contact_sheet_review/combined_contact_sheet_review.md
+```
+
+After filling the CSV, summarize the visual taxonomy:
+
+```bash
+sbatch scripts_utah/summarize_contact_sheet_review.slurm
+```
+
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 
 ```bash
