@@ -48,3 +48,7 @@ python scripts_research/evaluate_absent_status_filtered.py \
 
 echo "Filtered status CSV: $OUT_DIR/filtered_absent_status.csv"
 cat "$OUT_DIR/filtered_absent_status.csv"
+
+echo
+echo "If SeekUI_sft_combined_best_f1 is missing, rerun:"
+echo "  sbatch scripts_utah/mine_combined_cases.slurm"

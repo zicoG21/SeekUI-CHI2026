@@ -135,6 +135,33 @@ Takeaway:
   - SeekUI-SFT accuracy: `0.7375 -> 0.8278/0.8286`
 - Interpretation: cognitive stopping catches low scanpath evidence; OCR acts as a guard against over-rejecting present targets when visible text evidence exists. Requiring both to be low gives a better precision/recall tradeoff.
 
+## Filtered Sensitivity Check
+
+Filtered benchmark removes:
+
+```text
+4 annotation-conflict absent examples
+225 OCR-leak absent examples
+227 total excluded examples
+2497 examples kept
+```
+
+Filtered status results:
+
+| Model | Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present |
+|---|---|---:|---:|---:|---:|---:|---:|
+| SeekUI | prompt-only | 0.7853 | 0.8553 | 0.6352 | 0.7290 | 122 | 414 |
+| SeekUI | cognitive stop | 0.8402 | 0.7694 | 0.9260 | 0.8405 | 315 | 84 |
+| SeekUI | OCR-only | 0.6860 | 0.5915 | 1.0000 | 0.7433 | 784 | 0 |
+| SeekUI | combined AND default | 0.8606 | 0.8498 | 0.8423 | 0.8460 | 169 | 179 |
+| SeekUI | combined AND best-F1 | 0.8726 | 0.7859 | 0.9894 | 0.8760 | 306 | 12 |
+| SeekUI-SFT | prompt-only | 0.7661 | 0.8583 | 0.5815 | 0.6933 | 109 | 475 |
+| SeekUI-SFT | cognitive stop | 0.7213 | 0.6298 | 0.9383 | 0.7537 | 626 | 70 |
+| SeekUI-SFT | OCR-only | 0.6800 | 0.5869 | 1.0000 | 0.7397 | 799 | 0 |
+| SeekUI-SFT | combined AND default | 0.8370 | 0.8127 | 0.8335 | 0.8230 | 218 | 189 |
+
+Takeaway: filtering out suspicious absent rows does not remove the main effect. For SeekUI, combined AND best-F1 remains strongest (`F1=0.8760`, `accuracy=0.8726`) and still beats cognitive stopping (`F1=0.8405`, `accuracy=0.8402`). For SFT, combined default also remains stronger than prompt/cognitive/OCR, though the best-F1 SFT adjusted file still needs to be regenerated after the case-mining fix.
+
 ## Dev/Test Validation
 
 ### Cognitive Stopping
