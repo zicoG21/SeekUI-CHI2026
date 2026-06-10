@@ -221,6 +221,27 @@ $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_candidate_verifier_*_stat
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_candidate_verifier_*_status_eval.json
 ```
 
+Build and apply a non-oracle OCR verifier. This replaces the ground-truth target
+inventory with text candidates detected from screenshots:
+
+```bash
+sbatch scripts_utah/build_ocr_candidates.slurm
+sbatch scripts_utah/apply_ocr_candidate_verifier.slurm
+```
+
+If `tesseract` is not available on the compute node, install it into the conda
+environment first:
+
+```bash
+conda install -y -c conda-forge tesseract
+```
+
+For a quick smoke test:
+
+```bash
+OCR_LIMIT=20 sbatch scripts_utah/build_ocr_candidates.slurm
+```
+
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 
 ```bash
