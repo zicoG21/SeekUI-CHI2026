@@ -99,6 +99,10 @@ def write_rows(path, rows):
 
 
 def absent_variant(name):
+    marker = "_vlm_presence"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"vlm_presence{variant}"
     marker = "_combined_"
     if marker in name:
         model, variant = name.split(marker, 1)
@@ -146,6 +150,8 @@ def absent_status_core_rows(absent_status):
         "ocr_candidate_verifier_present_only": 6,
         "combined_or_present_only": 7,
         "combined_and_present_only": 8,
+        "combined_and_present_only_best_f1": 9,
+        "vlm_presence": 10,
     }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
@@ -295,6 +301,13 @@ def main():
             suffix = "_status_eval"
             variant = combined_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
             report["absent_status"][f"{model}_{variant}"] = read_json(combined_eval_path)
+        for vlm_eval_path in sorted(outputs.glob(f"vlm_presence_predictions_{model}_vlm_presence*_status_eval.json")):
+            if vlm_eval_path.name.endswith("_filtered_status_eval.json"):
+                continue
+            prefix = f"vlm_presence_predictions_{model}_"
+            suffix = "_status_eval"
+            variant = vlm_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            report["absent_status"][f"{model}_{variant}"] = read_json(vlm_eval_path)
         if semantic_summary_path.exists():
             report.setdefault("semantic_query", {})[model] = read_json(semantic_summary_path)
 
