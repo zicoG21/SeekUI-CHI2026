@@ -1,0 +1,157 @@
+{
+  "allow": [
+    "grant permission",
+    "approve access",
+    "accept permission request"
+  ],
+  "back": [
+    "return to the previous screen",
+    "go back",
+    "previous page"
+  ],
+  "buy it now": [
+    "purchase immediately",
+    "complete the purchase",
+    "buy this item"
+  ],
+  "camera": [
+    "take a photo",
+    "open the camera",
+    "capture an image"
+  ],
+  "cart": [
+    "shopping basket",
+    "saved shopping items",
+    "checkout items"
+  ],
+  "categories": [
+    "browse sections",
+    "view item groups",
+    "choose a section"
+  ],
+  "checkout": [
+    "pay for the order",
+    "finish the purchase",
+    "complete shopping"
+  ],
+  "close": [
+    "dismiss this view",
+    "exit this panel",
+    "hide this window"
+  ],
+  "delete": [
+    "remove",
+    "trash",
+    "discard"
+  ],
+  "done": [
+    "finish",
+    "confirm completion",
+    "complete this step"
+  ],
+  "edit": [
+    "modify",
+    "change this item",
+    "revise the content"
+  ],
+  "explore": [
+    "discover more",
+    "browse recommendations",
+    "look around"
+  ],
+  "feedback": [
+    "send a comment",
+    "report an opinion",
+    "tell us what you think"
+  ],
+  "help": [
+    "get support",
+    "open assistance",
+    "find instructions"
+  ],
+  "home": [
+    "main page",
+    "start page",
+    "go to the homepage"
+  ],
+  "language": [
+    "change language",
+    "choose a locale",
+    "select translation options"
+  ],
+  "learn more": [
+    "read more details",
+    "open more information",
+    "see additional information"
+  ],
+  "log in": [
+    "sign in",
+    "access my account",
+    "enter the account"
+  ],
+  "login": [
+    "sign in",
+    "access my account",
+    "enter the account"
+  ],
+  "next": [
+    "continue",
+    "go forward",
+    "advance"
+  ],
+  "profile": [
+    "account page",
+    "user information",
+    "personal account"
+  ],
+  "rate us": [
+    "leave a rating",
+    "review this app",
+    "give feedback score"
+  ],
+  "refresh": [
+    "reload",
+    "update the page",
+    "get the latest content"
+  ],
+  "search": [
+    "look for something",
+    "type a query",
+    "find the search field"
+  ],
+  "select folder": [
+    "choose output directory",
+    "pick a folder",
+    "browse for a directory"
+  ],
+  "settings": [
+    "preferences",
+    "configuration",
+    "change options"
+  ],
+  "sign up": [
+    "create an account",
+    "register",
+    "join now"
+  ],
+  "subscribe": [
+    "follow updates",
+    "join the mailing list",
+    "get notifications"
+  ],
+  "undo": [
+    "reverse last action",
+    "go back one edit",
+    "revert the change"
+  ],
+  "video": [
+    "watch media",
+    "play a clip",
+    "open moving content"
+  ],
+  "view mode": [
+    "change display layout",
+    "switch how items are shown",
+    "choose viewing style"
+  ]
+}

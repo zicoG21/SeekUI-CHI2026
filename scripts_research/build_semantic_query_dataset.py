@@ -74,6 +74,33 @@ def build_queries(target, mapping):
     return deduped
 
 
+def select_queries(queries, variants_per_example, rng, selection_policy):
+    exact = [query for query in queries if query["query_type"] == "exact"]
+    non_exact = [query for query in queries if query["query_type"] != "exact"]
+    budget = max(0, variants_per_example - len(exact))
+    if budget <= 0:
+        return exact[:variants_per_example]
+
+    if selection_policy == "association_first":
+        priority = {
+            "association_mapping": 0,
+            "functional_template": 1,
+            "case_variant": 2,
+        }
+        non_exact = sorted(
+            non_exact,
+            key=lambda query: (
+                priority.get(query["query_type"], 99),
+                len(query["query_text"]),
+                normalize_key(query["query_text"]),
+            ),
+        )
+    else:
+        rng.shuffle(non_exact)
+
+    return exact + non_exact[:budget]
+
+
 def main():
     parser = argparse.ArgumentParser(description="Build semantic/query-variant VSGUI benchmark.")
     parser.add_argument("--scanpath", required=True)
@@ -81,6 +108,12 @@ def main():
     parser.add_argument("--output", required=True)
     parser.add_argument("--mapping", default="", help="Optional JSON mapping from normalized target text to query variants.")
     parser.add_argument("--variants-per-example", type=int, default=2)
+    parser.add_argument(
+        "--selection-policy",
+        default="shuffle",
+        choices=["shuffle", "association_first"],
+        help="How to choose non-exact variants when there are more candidates than slots.",
+    )
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--seed", type=int, default=42)
     args = parser.parse_args()
@@ -99,10 +132,7 @@ def main():
     for example in source_examples:
         target = get_target_text(example, target2text)
         queries = build_queries(target, mapping)
-        exact = [query for query in queries if query["query_type"] == "exact"]
-        non_exact = [query for query in queries if query["query_type"] != "exact"]
-        rng.shuffle(non_exact)
-        selected = exact + non_exact[: max(0, args.variants_per_example - len(exact))]
+        selected = select_queries(queries, args.variants_per_example, rng, args.selection_policy)
 
         for variant_index, query in enumerate(selected):
             result = dict(example)

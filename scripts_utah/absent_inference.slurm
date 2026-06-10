@@ -5,7 +5,7 @@
 #SBATCH --gres=gpu:a40:1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
-#SBATCH --time=04:00:00
+#SBATCH --time=08:00:00
 #SBATCH --output=seekui-absent-%j.out
 
 set -euo pipefail

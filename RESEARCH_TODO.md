@@ -213,6 +213,28 @@ python scripts_research/cognitive_stopping_baseline.py \
 
 This first version uses annotated target texts as candidate regions. It is not a final cognitive model, but it gives us a thresholded stopping baseline and a concrete result table.
 
+## Task 6: Stronger Associative Query Benchmark
+
+Goal: separate shallow semantic paraphrases from stronger associative or functional target descriptions.
+
+The current `semantic_queries_1362_v2.json` is useful as a robustness stress test, but many examples are low semantic-distance templates such as `Search -> find the UI element for Search`. For a stronger associative pilot, build a v3 semantic benchmark that prefers handwritten association mappings when available.
+
+Run after the current v2 GPU jobs finish:
+
+```bash
+python scripts_research/build_semantic_query_dataset.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --mapping scripts_research/associative_query_mapping.json \
+  --output "$SEEKUI_WORK/data/semantic_queries_1362_v3_assocfirst.json" \
+  --variants-per-example 2 \
+  --selection-policy association_first \
+  --limit 1362 \
+  --seed 42
+```
+
+This should be reported as a controlled proxy benchmark, not as a native associative-search dataset. The released VSGUI subset still contains text targets only, so the v3 benchmark asks whether the existing model can follow stronger semantic/function cues derived from those text targets.
+
 ## Task 4.5: Visualization for Discussion
 
 Create examples for slides and debugging:
