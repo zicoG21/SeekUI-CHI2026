@@ -269,6 +269,19 @@ Run held-out dev/test validation for the combined `AND` verifier:
 sbatch scripts_utah/evaluate_combined_devtest.slurm
 ```
 
+Export a paper-ready main result table from the combined dev/test outputs:
+
+```bash
+sbatch scripts_utah/export_main_result_table.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/paper_tables/main_result_table.md
+$SEEKUI_WORK/outputs/paper_tables/main_result_table.csv
+```
+
 Mine qualitative cases for the best-F1 combined `AND` settings:
 
 ```bash
@@ -308,6 +321,21 @@ $SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_rows.csv
 ```
 
 Target-distance metrics are reported only for gold-present examples.
+
+Diagnose OCR verifier behavior and how the combined `AND` rule guards against
+OCR-only mistakes:
+
+```bash
+sbatch scripts_utah/diagnose_ocr_verifier.slurm
+```
+
+This writes:
+
+```text
+$SEEKUI_WORK/outputs/ocr_diagnosis/ocr_verifier_diagnosis.md
+$SEEKUI_WORK/outputs/ocr_diagnosis/ocr_verifier_diagnosis_summary.csv
+$SEEKUI_WORK/outputs/ocr_diagnosis/combined_guard_effects.csv
+```
 
 Run held-out dev/test threshold selection and bootstrap confidence intervals:
 

@@ -338,6 +338,8 @@ Takeaways:
 
 - v3 semantic-query jobs.
 - Combined contact-sheet visual analysis.
+- Paper-ready main result table via `scripts_utah/export_main_result_table.slurm`.
+- OCR verifier diagnosis via `scripts_utah/diagnose_ocr_verifier.slurm`.
 
 ## Files To Check
 
@@ -348,5 +350,7 @@ $SEEKUI_WORK/outputs/devtest_combined/combined_devtest_image.md
 $SEEKUI_WORK/outputs/combined_cases/
 $SEEKUI_WORK/outputs/combined_error_taxonomy/combined_error_taxonomy_summary.md
 $SEEKUI_WORK/outputs/behavioral_metrics/behavioral_metrics_summary.md
+$SEEKUI_WORK/outputs/paper_tables/main_result_table.md
+$SEEKUI_WORK/outputs/ocr_diagnosis/ocr_verifier_diagnosis.md
 $SEEKUI_WORK/outputs/absent_sanity/absent_benchmark_sanity.md
 ```
