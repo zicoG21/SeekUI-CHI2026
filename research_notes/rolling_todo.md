@@ -11,9 +11,14 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Finish v3 semantic-query jobs | running on CHPC | Check `squeue -u $USER`; when done, rerun summary and inspect semantic split tables |
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
 | P0 | Add dev/test validation for combined verifier | code ready | Run `sbatch scripts_utah/evaluate_combined_devtest.slurm` |
+| P0 | Analyze combined dev/test results | pending | Compare combined-AND against prompt-only, cognitive-only, and OCR-only; report held-out deltas and bootstrap CI |
 | P0 | Mine combined-verifier cases | code ready | Run `sbatch scripts_utah/mine_combined_cases.slurm` |
+| P0 | Synthetic absent benchmark sanity check | code ready | Run `sbatch scripts_utah/audit_absent_benchmark.slurm`; check image balance, target sampling, OCR artifacts, target leakage, and split leakage |
 | P1 | OCR verifier diagnosis | partial | Use details CSV to identify why present targets are missed by OCR |
+| P1 | Combined verifier error taxonomy | pending | Categorize corrected absent, new false-absent, kept false-present, OCR failures, small/edge targets, and strong distractors |
+| P1 | Behavioral search metrics | pending | Compute fixation count, coverage, revisit rate, convergence score, and stopping-confidence curves |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
+| P1 | Simple VLM/OCR verifier baselines | pending | Compare against OCR exact/fuzzy match and generic VLM yes/no target-presence verifier |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Great Lakes backup setup | paused | Only resume if CHPC queue blocks GPU jobs |
 
@@ -40,6 +45,7 @@ Run combined verifier validation and case mining:
 ```bash
 sbatch scripts_utah/evaluate_combined_devtest.slurm
 sbatch scripts_utah/mine_combined_cases.slurm
+sbatch scripts_utah/audit_absent_benchmark.slurm
 ```
 
 ## Recently Completed

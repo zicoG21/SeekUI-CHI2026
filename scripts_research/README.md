@@ -94,6 +94,13 @@ python scripts_research/validate_absent_dataset.py \
   --fail-on-conflict
 ```
 
+Run a broader sanity audit for image balance, target sampling, annotation
+conflicts, OCR artifacts, and split leakage:
+
+```bash
+sbatch scripts_utah/audit_absent_benchmark.slurm
+```
+
 ## 3. Visualize Examples
 
 ```bash
