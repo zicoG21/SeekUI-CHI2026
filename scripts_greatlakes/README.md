@@ -76,6 +76,15 @@ Run the full VLM yes/no baseline:
 sbatch scripts_greatlakes/vlm_presence_baseline.slurm
 ```
 
+Run VLM prompt ablations in parallel:
+
+```bash
+VLM_LIMIT=200 bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
+
+# Full run after the pilot looks sane:
+bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
+```
+
 Run the semantic v3 association-first jobs:
 
 ```bash

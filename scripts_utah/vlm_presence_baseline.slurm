@@ -28,6 +28,7 @@ MODEL_PATH="${MODEL_PATH:-$SEEKUI_WORK/models/$MODEL_NAME}"
 MODEL_LABEL="${MODEL_LABEL:-${MODEL_NAME}_vlm_presence}"
 INPUT_JSON="${INPUT_JSON:-$DATA_DIR/present_absent_synthetic_2724.json}"
 VLM_LIMIT="${VLM_LIMIT:-0}"
+VLM_PROMPT_VARIANT="${VLM_PROMPT_VARIANT:-direct}"
 
 limit_suffix=""
 limit_args=()
@@ -45,6 +46,7 @@ python inference/vlm_presence_baseline.py \
   --target2text "$DATA_DIR/target2text.json" \
   --image_root "$DATA_DIR" \
   --output "$OUTPUT_PATH" \
+  --prompt_variant "$VLM_PROMPT_VARIANT" \
   --max_new_tokens "${MAX_NEW_TOKENS:-32}" \
   --save_every "${SAVE_EVERY:-25}" \
   --resume \

@@ -33,6 +33,12 @@ def parse_args():
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--attn_implementation", default="auto", choices=["auto", "flash_attention_2", "sdpa"])
+    parser.add_argument(
+        "--prompt_variant",
+        default="direct",
+        choices=["direct", "conservative", "ocr_aware", "search_behavior"],
+        help="Presence-check prompt framing to use for VLM baseline ablations.",
+    )
     return parser.parse_args()
 
 
@@ -91,6 +97,40 @@ def get_target_text(example, target2text):
     return str(target2text.get(target_key(example), example.get("target_id", "")))
 
 
+def build_prompt(variant, target, width, height):
+    common = (
+        f"The screenshot width is {width} and height is {height}. "
+        f'Target cue: "{target}".\n'
+    )
+    output_rule = (
+        "Answer only in this format: <answer>status: present</answer> or "
+        "<answer>status: absent</answer>. Do not provide coordinates."
+    )
+    if variant == "direct":
+        instruction = "You are checking whether a UI target is visible in a screenshot. "
+    elif variant == "conservative":
+        instruction = (
+            "You are a conservative UI target-presence verifier. "
+            "Only answer present if the target is clearly visible in the screenshot; "
+            "if it is missing, ambiguous, hidden, or only weakly related, answer absent. "
+        )
+    elif variant == "ocr_aware":
+        instruction = (
+            "You are checking UI text and close visual matches in a screenshot. "
+            "Look for exact text, near text variants, or an obvious visual match to the target cue. "
+            "If no such visible match appears, answer absent. "
+        )
+    elif variant == "search_behavior":
+        instruction = (
+            "Imagine a user searching this UI screenshot for the target. "
+            "Answer present only if the user would likely be able to find the requested target on this screen. "
+            "If the user would not find it on this screen, answer absent. "
+        )
+    else:
+        raise ValueError(f"Unknown prompt variant: {variant}")
+    return instruction + common + output_rule
+
+
 def parse_status(content):
     answer = content.strip()
     match = re.search(r"<answer>(.*?)</answer>", content, flags=re.S | re.I)
@@ -136,13 +176,7 @@ def main():
         width, height = int(example.get("width", 0)), int(example.get("height", 0))
         target = get_target_text(example, target2text)
         image_path = os.path.join(args.image_root, example["image"])
-        prompt = (
-            f"You are checking whether a UI target is visible in a screenshot. "
-            f"The screenshot width is {width} and height is {height}. "
-            f'Target cue: "{target}".\n'
-            "Answer only in this format: <answer>status: present</answer> or "
-            "<answer>status: absent</answer>. Do not provide coordinates."
-        )
+        prompt = build_prompt(args.prompt_variant, target, width, height)
         messages = [
             {
                 "role": "user",
@@ -175,6 +209,7 @@ def main():
         result = dict(example)
         result["prediction"] = []
         result["predicted_status"] = status
+        result["prompt_variant"] = args.prompt_variant
         result["vlm_presence_answer"] = answer
         result["raw_output"] = content
         results.append(result)
