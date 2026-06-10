@@ -359,6 +359,45 @@ python scripts_research/compare_predictions.py \
   --out-csv "$SEEKUI_WORK/outputs/comparisons/base_SeekUI_vs_SeekUI_sft_1362.csv"
 ```
 
+## Task 7: Failure Case Mining
+
+Goal: move from aggregate metrics to qualitative examples that explain the failure modes.
+
+Mine high-value failure cases from completed follow-up predictions:
+
+```bash
+python scripts_research/mine_failure_cases.py \
+  --work-dir "$SEEKUI_WORK" \
+  --limit 1362 \
+  --variants-per-example 2 \
+  --case-limit 30
+```
+
+This writes grouped JSON/CSV files under:
+
+```text
+$SEEKUI_WORK/outputs/failure_cases
+```
+
+Failure groups include:
+
+- absent examples predicted as present,
+- present examples predicted as absent,
+- image-cue predictions far from the target,
+- association queries predicted as absent,
+- association queries that land far from the target,
+- one-fixation present predictions.
+
+Visualize one mined bundle:
+
+```bash
+python scripts_research/visualize_scanpaths.py \
+  --json "$SEEKUI_WORK/outputs/failure_cases/SeekUI_present_absent_absent_false_present.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/failure_cases/visualizations/SeekUI_absent_false_present" \
+  --limit 30
+```
+
 ## Near-Term Checklist
 
 - [ ] Run data audit and save outputs.
@@ -380,6 +419,7 @@ python scripts_research/compare_predictions.py \
 - [ ] Export CSV tables from summary.
 - [ ] Sample qualitative review cases for semantic and absent failures.
 - [ ] Generate prediction edge-case review artifacts with `generate_review_artifacts.py`.
+- [ ] Mine high-value failure cases with `mine_failure_cases.py`.
 - [x] Draft one-page research memo: "SeekUI as forced-choice visual search; target-absent as stopping decision."
 - [ ] Export manual review sheets for synthetic absent labels and semantic query validity. Automated in `run_offline_research_prep.sh`.
 - [ ] Fill manual review sheets and summarize label/query validity with `summarize_manual_review.py`.
