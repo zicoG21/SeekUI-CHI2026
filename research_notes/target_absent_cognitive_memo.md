@@ -77,6 +77,25 @@ score(region) =
 
 At each step, the model visits the highest-scoring unvisited candidate. It then stops as absent when accumulated target-match evidence remains below threshold after the simulated search budget. This does not require training, but it gives us interpretable per-step traces and makes the stopping decision closer to a search process.
 
+However, the process baseline is still an upper-bound because it can inspect annotated candidate regions. The next analysis should use the model's actual predicted fixation path instead of a simulated path. For each predicted fixation, we align it to nearby annotated text/target candidates and compute local evidence:
+
+```text
+path_evidence(step) =
+  text_similarity(query, nearest_or_best_candidate)
+  * exp(-distance_to_candidate / radius)
+
+path_best_evidence = max_step path_evidence(step)
+```
+
+This turns stopping into a diagnostic question:
+
+- Absent false-present with low path evidence suggests forced-choice hallucination.
+- Present false-absent with high path evidence suggests premature stopping or parsing failure.
+- Correct absent with low evidence suggests a plausible reject decision.
+- Correct present with high evidence suggests the scanpath actually reached relevant evidence.
+
+The script `scripts_research/analyze_prediction_stopping_evidence.py` implements this diagnostic for completed present/absent prediction JSONs and writes per-example evidence, per-step evidence, and threshold sweeps.
+
 A richer later version can use:
 
 - OCR boxes as candidate regions
@@ -102,6 +121,7 @@ A richer later version can use:
 - Prompt-only absent predictions for SeekUI and SeekUI-SFT.
 - Status evaluation table.
 - Cognitive stopping threshold sweep.
+- Prediction-path stopping evidence analysis.
 - Visualization examples of present, absent, and failure cases.
 - Target-crop image-cue benchmark as a multimodal prototype.
 - Semantic-query variant benchmark as an associative-search scaffold.

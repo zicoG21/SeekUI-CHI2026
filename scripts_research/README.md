@@ -135,6 +135,45 @@ python scripts_research/cognitive_stopping_baseline.py \
   --out-dir "$SEEKUI_WORK/outputs/cognitive_stopping"
 ```
 
+Run the process-style upper-bound baseline:
+
+```bash
+python scripts_research/cognitive_stopping_process.py \
+  --reference "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --eval "$SEEKUI_WORK/data/present_absent_synthetic_2724.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/cognitive_process_stopping"
+```
+
+Analyze whether actual model predictions show enough evidence to justify present/absent stopping decisions:
+
+```bash
+python scripts_research/analyze_prediction_stopping_evidence.py \
+  --reference "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --image-root "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/stopping_evidence" \
+  --prediction SeekUI="$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI.json" \
+  --prediction SeekUI_sft="$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft.json"
+```
+
+Or submit it as a CPU batch job:
+
+```bash
+sbatch scripts_utah/analyze_stopping_evidence.slurm
+```
+
+Key outputs:
+
+```text
+$SEEKUI_WORK/outputs/stopping_evidence/stopping_evidence_summary.md
+$SEEKUI_WORK/outputs/stopping_evidence/SeekUI_stopping_evidence.csv
+$SEEKUI_WORK/outputs/stopping_evidence/SeekUI_stopping_evidence_threshold_sweep.csv
+$SEEKUI_WORK/outputs/stopping_evidence/SeekUI_sft_stopping_evidence.csv
+$SEEKUI_WORK/outputs/stopping_evidence/SeekUI_sft_stopping_evidence_threshold_sweep.csv
+```
+
 ## 6. Build Image-Cue Target-Crop Benchmark
 
 This creates target crops from existing target bounding boxes. It is a multimodal prototype, not proof that current data has non-text targets.
