@@ -12,9 +12,10 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
 | P0 | Add dev/test validation for combined verifier | completed | Random and image splits both show positive held-out F1/accuracy deltas |
 | P0 | Analyze combined dev/test results | completed | Combined AND is now strongest non-oracle result; keep random/image CI tables in `rolling_results.md` |
-| P0 | Mine combined-verifier cases | needs rerun | Pull `05fc287` or newer and rerun `sbatch scripts_utah/mine_combined_cases.slurm`; previous run stopped on an empty case set |
+| P0 | Mine combined-verifier cases | completed | Contact-sheet exports are available for SeekUI and SeekUI-SFT combined best-F1 variants |
 | P0 | Synthetic absent benchmark sanity check | completed | Annotation conflicts are low; random split leaks images; use image split as cleaner held-out result |
-| P0 | Absent benchmark sensitivity analysis | completed | Combined AND remains strongest after excluding 227 suspicious rows; regenerate SFT best-F1 file after fixed case mining |
+| P0 | Analyze combined contact sheets | pending | Inspect corrected absent false-present, new present false-absent, and kept absent false-present sheets for both models |
+| P0 | Refresh filtered sensitivity analysis | pending | Rerun after combined case mining so SFT best-F1 adjusted output is included |
 | P1 | OCR verifier diagnosis | partial | Use details CSV to identify why present targets are missed by OCR |
 | P1 | Combined verifier error taxonomy | pending | Categorize corrected absent, new false-absent, kept false-present, OCR failures, small/edge targets, and strong distractors |
 | P1 | Behavioral search metrics | pending | Compute fixation count, coverage, revisit rate, convergence score, and stopping-confidence curves |
@@ -41,14 +42,21 @@ python scripts_research/summarize_research_outputs.py \
 cat "$SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv"
 ```
 
-Run remaining validation and case mining:
+Refresh validation outputs after new jobs finish:
 
 ```bash
 sbatch scripts_utah/audit_absent_benchmark.slurm
 sbatch scripts_utah/evaluate_filtered_absent_status.slurm
-sbatch scripts_utah/mine_combined_cases.slurm
 tail -n 120 $(ls -t seekui-combo-cases-*.out | head -1)
 find "$SEEKUI_WORK/outputs/combined_cases" \( -name '*contact_sheet.jpg' -o -name '*contact_sheets.tgz' \) -print
+```
+
+Download combined contact sheets locally:
+
+```bash
+mkdir -p ~/HCI_Research/seekui_combined_cases
+scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outputs/combined_cases/*_best_f1_contact_sheets.tgz' \
+  ~/HCI_Research/seekui_combined_cases/
 ```
 
 ## Recently Completed
@@ -67,6 +75,7 @@ find "$SEEKUI_WORK/outputs/combined_cases" \( -name '*contact_sheet.jpg' -o -nam
 - Ran combined dev/test validation; `AND` improves held-out absent F1 and accuracy on random and image splits.
 - Ran synthetic absent sanity audit; random split leaks images, image split is cleaner, OCR leak rate is 16.5%.
 - Ran filtered sensitivity analysis; combined AND remains strongest after excluding annotation-conflict and OCR-leak absent examples.
+- Ran combined-verifier case mining for SeekUI and SeekUI-SFT; contact-sheet exports are packaged on CHPC.
 
 ## Decision Log
 
@@ -77,4 +86,4 @@ find "$SEEKUI_WORK/outputs/combined_cases" \( -name '*contact_sheet.jpg' -o -nam
 - Combined `AND` holds up under dev/test threshold selection.
 - Image split should be the main held-out evaluation because random split shares many images and image-target pairs.
 - Filtered sensitivity supports the main combined-AND conclusion.
-- Next practical question: are combined-AND case-mined errors interpretable enough to support the method story?
+- Next practical question: what error taxonomy emerges from the combined-AND contact sheets?

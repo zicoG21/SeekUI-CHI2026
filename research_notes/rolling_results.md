@@ -260,6 +260,7 @@ ocr_threshold = 0.60
 | Model | Corrected absent false-present | New present false-absent | Corrected present false-absent | Kept absent false-present |
 |---|---:|---:|---:|---:|
 | SeekUI + combined AND | 464 | 184 | 0 | 45 |
+| SeekUI-SFT + combined AND | 458 | 227 | 0 | 133 |
 
 Compared with cognitive stopping alone for SeekUI:
 
@@ -269,22 +270,35 @@ new present false-absent:       193 -> 184
 kept absent false-present:      117 -> 45
 ```
 
-Takeaway: combined AND improves the qualitative error profile: it fixes more absent hallucinations, creates slightly fewer present false-absent errors, and leaves far fewer absent false-present failures.
+Compared with cognitive stopping alone for SeekUI-SFT:
+
+```text
+corrected absent false-present: 502 -> 458
+new present false-absent:       517 -> 227
+kept absent false-present:       89 -> 133
+```
+
+Takeaway: combined AND improves the qualitative error profile for SeekUI: it fixes more absent hallucinations, creates slightly fewer present false-absent errors, and leaves far fewer absent false-present failures. For SeekUI-SFT the tradeoff is different: combined AND fixes fewer absent hallucinations than cognitive-only, but it greatly reduces new false-absent errors, which matches the stronger overall F1/accuracy tradeoff.
+
+Contact-sheet packages:
+
+```text
+$SEEKUI_WORK/outputs/combined_cases/SeekUI_and_present_only_best_f1_contact_sheets.tgz
+$SEEKUI_WORK/outputs/combined_cases/SeekUI_sft_and_present_only_best_f1_contact_sheets.tgz
+```
 
 ## Pending Results
 
-- Combined cognitive + OCR verifier:
-  - completed on full benchmark
-- Combined verifier dev/test validation:
-  - completed for random and image splits
 - v3 semantic-query jobs.
-- Combined-verifier case mining if it improves over cognitive stopping.
+- Combined contact-sheet analysis and error taxonomy.
+- Filtered sensitivity table after regenerating all combined best-F1 adjusted outputs.
 
 ## Files To Check
 
 ```text
 $SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv
-$SEEKUI_WORK/outputs/devtest_stopping/devtest_stopping_present_only_random.md
-$SEEKUI_WORK/outputs/devtest_stopping/devtest_stopping_present_only_image.md
-$SEEKUI_WORK/outputs/stopping_cases/
+$SEEKUI_WORK/outputs/devtest_combined/combined_devtest_random.md
+$SEEKUI_WORK/outputs/devtest_combined/combined_devtest_image.md
+$SEEKUI_WORK/outputs/combined_cases/
+$SEEKUI_WORK/outputs/absent_sanity/absent_benchmark_sanity.md
 ```
