@@ -2,6 +2,7 @@
 import argparse
 import csv
 import json
+import re
 from pathlib import Path
 
 
@@ -24,6 +25,10 @@ def flatten_metrics(name, metrics):
 
 
 def absent_variant(name):
+    marker = "_vlm_presence"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"vlm_presence{variant}"
     marker = "_combined_"
     if marker in name:
         model, variant = name.split(marker, 1)
@@ -71,6 +76,8 @@ def absent_status_core_rows(absent_status):
         "ocr_candidate_verifier_present_only": 6,
         "combined_or_present_only": 7,
         "combined_and_present_only": 8,
+        "combined_and_present_only_best_f1": 9,
+        "vlm_presence": 10,
     }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
@@ -80,6 +87,7 @@ def main():
     parser = argparse.ArgumentParser(description="Export research_summary.json into CSV tables.")
     parser.add_argument("--summary-json", required=True)
     parser.add_argument("--out-dir", required=True)
+    parser.add_argument("--include-pilots", action="store_true", help="Include pilot-only outputs such as *_n200 runs.")
     args = parser.parse_args()
 
     summary = json.load(open(args.summary_json, "r", encoding="utf-8"))
@@ -97,8 +105,14 @@ def main():
     absent_status = [
         flatten_metrics(model, metrics)
         for model, metrics in summary.get("absent_status", {}).items()
+        if args.include_pilots or not re.search(r"_n\d+$", model)
     ]
-    absent_status_core = absent_status_core_rows(summary.get("absent_status", {}))
+    absent_status_source = {
+        model: metrics
+        for model, metrics in summary.get("absent_status", {}).items()
+        if args.include_pilots or not re.search(r"_n\d+$", model)
+    }
+    absent_status_core = absent_status_core_rows(absent_status_source)
     semantic_query = []
     for model, groups in summary.get("semantic_query", {}).items():
         for query_type, metrics in groups.items():

@@ -211,6 +211,7 @@ def main():
     parser.add_argument("--work-dir", default=os.environ.get("SEEKUI_WORK", ""))
     parser.add_argument("--output", default="")
     parser.add_argument("--tables-dir", default="", help="Optional CSV table output directory. Defaults to <output stem>_tables.")
+    parser.add_argument("--include-pilots", action="store_true", help="Include pilot-only outputs such as *_n200 runs.")
     args = parser.parse_args()
 
     work_dir = Path(args.work_dir) if args.work_dir else Path(".scratch/seekui")
@@ -307,6 +308,8 @@ def main():
             prefix = f"vlm_presence_predictions_{model}_"
             suffix = "_status_eval"
             variant = vlm_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            if not args.include_pilots and re.search(r"_n\d+$", variant):
+                continue
             report["absent_status"][f"{model}_{variant}"] = read_json(vlm_eval_path)
         if semantic_summary_path.exists():
             report.setdefault("semantic_query", {})[model] = read_json(semantic_summary_path)
