@@ -9,8 +9,28 @@ Figure~\ref{fig:method} summarizes the post-hoc verifier. Given a GUI screenshot
   \label{fig:method}
 \end{figure}
 
-\paragraph{Synthetic present/absent benchmark.}
-We construct synthetic absent examples by pairing GUI screenshots with plausible target cues that are absent from the screen, while preserving the original present examples.
+\subsection{Prompt-Only Baseline}
 
-\paragraph{Realistic absent validation.}
-We additionally create a 100-example manually reviewed validation set with 50 present and 50 realistic absent queries. The absent queries are plausible user targets for the screen but manually verified to be absent.
+The first baseline uses SeekUI's prompt-only output. If the model emits an absent status, we evaluate it as absent; otherwise, we treat the prediction as present. This baseline represents the behavior of a target-present visual-search model when it is asked to handle target absence without additional evidence checks.
+
+\subsection{Cognitive Path Evidence}
+
+The cognitive stopping layer measures whether the predicted scanpath provides evidence for a target-like candidate. Intuitively, a present target should eventually attract the path toward a stable region, while an absent target often yields weak, diffuse, or unsupported evidence. The path score is not a new scanpath generator; it is a post-hoc signal derived from the generated path.
+
+We use this score to convert some present predictions into absent predictions. A low path-evidence score increases the likelihood that the model is making a forced-choice commitment rather than finding a real target.
+
+\subsection{OCR Candidate Verification}
+
+Because the released subset is text-target dominated, OCR provides an interpretable UI evidence source. We extract OCR candidates from the screenshot and compare their text to the target cue using fuzzy matching. OCR evidence is useful when the target is textual and visibly rendered, but it is brittle for small, stylized, low-contrast, cropped, or non-text targets.
+
+The OCR verifier therefore should not be treated as a complete GUI understanding model. Its role is narrower: it checks whether visible text supports the target cue.
+
+\subsection{Combined AND Verifier}
+
+The combined verifier rejects a target only when both path evidence and OCR evidence are weak. This AND rule is intentionally conservative: it tries to reduce absent false-present errors while avoiding unnecessary rejection of visible targets. Thresholds are selected on development examples and evaluated on held-out examples. The image-disjoint split is the primary evaluation because it avoids shared screenshots across development and test sets.
+
+\subsection{VLM Baselines and Evidence-Aware VLM}
+
+We also evaluate generic VLM yes/no target-presence prompts. These baselines answer a reviewer-risk question: could we simply ask a VLM whether the target is visible? We test direct, conservative, OCR-aware, and search-behavior prompts.
+
+Finally, we evaluate an evidence-aware VLM verifier. This verifier sees the screenshot as primary evidence and also receives structured path/OCR evidence from the post-hoc pipeline. The evidence-aware VLM is a promising full-benchmark comparison, but this draft does not use it as the primary headline until matched split validation is complete.

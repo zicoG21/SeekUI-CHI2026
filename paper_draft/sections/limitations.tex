@@ -7,3 +7,5 @@ The OCR component is brittle for small, stylized, low-contrast, and non-text UI 
 Evidence-aware VLM verification is promising, but the real-absent evidence-aware variant still needs a direct validation run with per-example evidence and predictions.
 
 The headline result should therefore remain the split-controlled combined AND evaluation. Full-benchmark evidence-aware VLM results are useful for understanding verifier design, but they need matched split validation before becoming the main claim.
+
+Finally, the current approach is post-hoc. It changes the present/absent decision after SeekUI has generated a scanpath; it does not train a model to produce better target-absent search behavior. A stronger future model should jointly generate search behavior, uncertainty, and stopping decisions.

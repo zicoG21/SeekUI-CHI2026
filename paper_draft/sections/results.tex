@@ -4,13 +4,13 @@ We separate the results into two layers. The primary held-out result evaluates t
 
 \subsection{Primary Held-Out Result}
 
-Table~\ref{tab:heldout_image_split} reports the cleaner held-out image split. Combined path+OCR verification improves absent F1 for both SeekUI and SeekUI-SFT, with bootstrap confidence intervals above zero. This is the main validation result because it avoids shared images across development and test examples.
+Table~\ref{tab:heldout_image_split} reports the cleaner held-out image split. Combined path+OCR verification improves absent F1 for both SeekUI and SeekUI-SFT, with bootstrap confidence intervals above zero. For SeekUI, absent F1 improves from 0.7347 to 0.8804 and accuracy improves from 0.7708 to 0.8692. For SeekUI-SFT, absent F1 improves from 0.6744 to 0.8279 and accuracy improves from 0.7325 to 0.8148. This is the main validation result because it avoids shared images across development and test examples.
 
 \input{../paper_assets/tables/heldout_image_split.tex}
 
 \subsection{Full-Benchmark Verifier Comparison}
 
-Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981. These rows should be read as verifier comparisons rather than the primary held-out claim: the evidence-aware VLM result shows that screenshot reasoning and scanpath/OCR evidence can be complementary, but the primary split-controlled result remains the combined AND image-split evaluation.
+Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1, with 509 absent false-present errors. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981. These rows should be read as verifier comparisons rather than the primary held-out claim: the evidence-aware VLM result shows that screenshot reasoning and scanpath/OCR evidence can be complementary, but the primary split-controlled result remains the combined AND image-split evaluation.
 
 \input{../paper_assets/tables/main_results.tex}
 
@@ -23,3 +23,7 @@ Table~\ref{tab:realistic_absent_validation} reports the manually reviewed valida
 Table~\ref{tab:method_strength_summary} gives the current narrative summary of each method's role.
 
 \input{../paper_assets/tables/method_strength_summary.tex}
+
+\subsection{Sanity and Filtered Sensitivity}
+
+The synthetic absent benchmark is useful only if the absent labels are not trivially contradicted by known annotations or OCR artifacts. Our audit found few annotation conflicts, but a meaningful number of OCR-leak cases. We therefore ran filtered sensitivity analyses that exclude annotation-conflict and OCR-leak absent rows. The combined verifier remains stronger than prompt-only under this filtering, and the evidence-aware VLM retains a high filtered F1 on the kept examples. This supports the claim that the main effect is not solely an OCR leakage artifact, while still motivating a larger realistic absent benchmark.

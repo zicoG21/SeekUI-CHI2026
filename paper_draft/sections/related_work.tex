@@ -1,0 +1,13 @@
+\section{Background and Related Work}
+
+\paragraph{GUI visual search and scanpath prediction.}
+GUI search models aim to predict how users look for interface targets such as buttons, links, controls, or text regions. SeekUI follows this target-present framing: given a screenshot and a target cue, the model predicts a scanpath or target-related output for an element that is assumed to exist. This framing is useful for comparing predicted scanpaths with human fixations, but it leaves open what the model should do when the target is absent. In human visual search, absence is not a degenerate case; it requires continued search, uncertainty accumulation, and a stopping decision.
+
+\paragraph{GUI grounding and forced-choice evaluation.}
+Many GUI grounding and agent benchmarks evaluate whether a model can identify an element matching a command or textual target. These evaluations often behave like forced-choice tasks: the model must choose an element even if the command is underspecified, semantically broad, or absent from the screen. Our work studies the failure that appears when this forced-choice assumption is applied to visual search. The key failure is not simply low localization accuracy, but overconfident present predictions on absent trials.
+
+\paragraph{Cognitive stopping and target absence.}
+Classical visual search includes both target-present and target-absent decisions. Target-absent trials often involve longer search, reduced confidence, and a criterion for stopping. We use this cognitive framing as a lightweight post-hoc layer: if the generated scanpath does not accumulate evidence for a target-like candidate, and visible UI text also does not support the query, the system should be allowed to answer absent.
+
+\paragraph{OCR and VLM verification.}
+Modern GUI screenshots contain a mixture of text, icons, layout structure, and visual affordances. OCR provides an interpretable but brittle signal for text targets; VLMs provide broader visual reasoning but can be prompt-sensitive. We therefore evaluate both simple VLM yes/no baselines and evidence-aware VLM verification. The VLM results are treated as verifier comparisons rather than the primary held-out claim until matched split validation is complete.
