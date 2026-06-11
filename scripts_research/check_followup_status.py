@@ -283,6 +283,22 @@ def build_items(limit, variants):
             ],
             "command": "bash scripts_utah/submit_real_absent_vlm_baselines.sh",
         },
+        {
+            "id": "real_absent_seekui_baseline",
+            "title": "Realistic absent validation SeekUI baseline",
+            "required": [
+                "{outputs}/present_absent_predictions_SeekUI_real_absent.json",
+                "{outputs}/present_absent_predictions_SeekUI_real_absent_status_eval.json",
+                "{outputs}/real_absent_validation/real_absent_results.md",
+            ],
+            "optional": [
+                "{outputs}/present_absent_predictions_SeekUI_real_absent_combined_and_present_only_status_eval.json",
+                "{outputs}/present_absent_predictions_SeekUI_real_absent_combined_and_present_only_best_f1_status_eval.json",
+                "{outputs}/real_absent_validation/stopping_evidence/SeekUI_real_absent_stopping_evidence.csv",
+                "{outputs}/real_absent_validation/ocr_candidates_tesseract.json",
+            ],
+            "command": "bash scripts_utah/submit_real_absent_seekui.sh",
+        },
     ]
 
 

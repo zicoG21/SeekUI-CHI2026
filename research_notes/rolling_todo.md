@@ -236,6 +236,19 @@ SUMMARY_PARTITION=standard \
 bash scripts_greatlakes/submit_real_absent_vlm_baselines.sh
 ```
 
+Then run SeekUI itself on the same 100-row validation set and postprocess the combined evidence if OCR is available:
+
+```bash
+SBATCH_ACCOUNT=jaabell0 \
+SBATCH_PARTITION=spgpu \
+SBATCH_GRES=gpu:a40:1 \
+SBATCH_CPUS_PER_TASK=4 \
+SBATCH_MEM=40G \
+POST_ACCOUNT=jaabell0 \
+POST_PARTITION=standard \
+bash scripts_greatlakes/submit_real_absent_seekui.sh
+```
+
 Run the same evidence-aware VLM ablation on Great Lakes with `jaabell0`:
 
 ```bash

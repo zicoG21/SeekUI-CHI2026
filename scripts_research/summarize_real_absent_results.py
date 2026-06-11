@@ -9,6 +9,9 @@ from pathlib import Path
 STATUS_RE = re.compile(
     r"^(?P<family>vlm_presence|vlm_evidence)_predictions_(?P<label>.+)_status_eval\.json$"
 )
+SEEKUI_STATUS_RE = re.compile(
+    r"^present_absent_predictions_(?P<label>.+_real_absent(?:_combined_.+)?)_status_eval\.json$"
+)
 
 
 def read_json(path):
@@ -80,6 +83,40 @@ def row_from_eval(path):
     }
 
 
+def row_from_seekui_eval(path):
+    match = SEEKUI_STATUS_RE.match(path.name)
+    if not match:
+        return None
+    metrics = read_json(path)
+    if not metrics:
+        return None
+    confusion = metrics.get("confusion", {})
+    label = match.group("label")
+    model, variant = model_and_variant(label)
+    if variant == "real_absent":
+        family = "seekui_prompt"
+        variant = "prompt_only_real_absent"
+    elif variant.startswith("real_absent_combined_"):
+        family = "combined"
+        variant = variant.replace("real_absent_", "", 1)
+    else:
+        family = "seekui"
+    return {
+        "model": model,
+        "family": family,
+        "variant": variant,
+        "label": label,
+        "num_examples": metrics.get("num_examples", ""),
+        "accuracy": metrics.get("accuracy", ""),
+        "absent_precision": metrics.get("absent_precision", ""),
+        "absent_recall": metrics.get("absent_recall", ""),
+        "absent_f1": metrics.get("absent_f1", ""),
+        "present_absent": confusion.get("present->absent", ""),
+        "absent_present": confusion.get("absent->present", ""),
+        "source": str(path),
+    }
+
+
 def as_float(value, default=-1.0):
     try:
         return float(value)
@@ -95,7 +132,7 @@ def fmt(value):
 
 
 def sort_rows(rows):
-    family_order = {"vlm_presence": 0, "vlm_evidence": 1}
+    family_order = {"seekui_prompt": 0, "combined": 1, "vlm_presence": 2, "vlm_evidence": 3}
     return sorted(
         rows,
         key=lambda row: (
@@ -191,11 +228,15 @@ def main():
     outputs = work_dir / "outputs"
     rows = []
     for pattern in [
+        "present_absent_predictions_*real_absent*_status_eval.json",
         "vlm_presence_predictions_*real_absent*_status_eval.json",
         "vlm_evidence_predictions_*real_absent*_status_eval.json",
     ]:
         for path in outputs.glob(pattern):
-            row = row_from_eval(path)
+            if path.name.startswith("present_absent_predictions_"):
+                row = row_from_seekui_eval(path)
+            else:
+                row = row_from_eval(path)
             if row:
                 rows.append(row)
     rows = sort_rows(rows)
