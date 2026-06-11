@@ -2,6 +2,26 @@
 
 Last updated: 2026-06-11
 
+Generated local assets:
+
+```text
+paper_assets/manifest/paper_assets_manifest.md
+paper_assets/tables/main_results.md
+paper_assets/tables/heldout_image_split.md
+paper_assets/tables/realistic_absent_validation.md
+paper_assets/tables/error_taxonomy_counts.md
+paper_assets/figures/method_diagram.png
+paper_assets/figures/case_taxonomy_compact.jpg
+paper_assets/figures/case_taxonomy_contact_sheet.jpg
+paper_assets/figures/error_taxonomy.png
+```
+
+Regenerate with:
+
+```bash
+python scripts_research/export_paper_assets.py --out-dir paper_assets
+```
+
 ## Figure 1: Problem Setup
 
 Purpose:

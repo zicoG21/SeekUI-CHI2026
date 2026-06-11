@@ -1,0 +1,19 @@
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{lllrrrrrrr}
+\toprule
+Model & Family & Variant & N & Acc & Precision & Recall & F1 & Present->Absent & Absent->Present \\
+\midrule
+SeekUI & seekui\_prompt & prompt\_only & 2724 & 0.7684 & 0.8749 & 0.6263 & 0.7300 & 122 & 509 \\
+SeekUI & cognitive & cognitive\_stop\_present\_only & 2724 & 0.8414 & 0.7981 & 0.9141 & 0.8522 & 315 & 117 \\
+SeekUI & combined & combined\_and\_present\_only\_best\_f1 & 2724 & 0.8711 & 0.8115 & 0.9670 & 0.8824 & 306 & 45 \\
+SeekUI & vlm\_presence & vlm\_presence\_direct & 2724 & 0.8510 & 0.9142 & 0.7746 & 0.8386 & 99 & 307 \\
+SeekUI & vlm\_evidence & vlm\_evidence\_evidence\_aware & 2724 & 0.8891 & 0.8308 & 0.9772 & 0.8981 & 271 & 31 \\
+SeekUI\_sft & seekui\_prompt & prompt\_only & 2724 & 0.7430 & 0.8761 & 0.5661 & 0.6878 & 109 & 591 \\
+SeekUI\_sft & combined & combined\_and\_present\_only\_best\_f1 & 2724 & 0.8278 & 0.7853 & 0.9023 & 0.8398 & 336 & 133 \\
+\bottomrule
+\end{tabular}
+\caption{Main Present/Absent Results}
+\label{tab:main_results}
+\end{table}

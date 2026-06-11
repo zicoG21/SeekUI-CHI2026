@@ -1,0 +1,8 @@
+model,family,variant,n,accuracy,absent_precision,absent_recall,absent_f1,present_to_absent,absent_to_present
+SeekUI,seekui_prompt,prompt_only,2724,0.7684,0.8749,0.6263,0.73,122,509
+SeekUI,cognitive,cognitive_stop_present_only,2724,0.8414,0.7981,0.9141,0.8522,315,117
+SeekUI,combined,combined_and_present_only_best_f1,2724,0.8711,0.8115,0.967,0.8824,306,45
+SeekUI,vlm_presence,vlm_presence_direct,2724,0.851,0.9142,0.7746,0.8386,99,307
+SeekUI,vlm_evidence,vlm_evidence_evidence_aware,2724,0.8891,0.8308,0.9772,0.8981,271,31
+SeekUI_sft,seekui_prompt,prompt_only,2724,0.743,0.8761,0.5661,0.6878,109,591
+SeekUI_sft,combined,combined_and_present_only_best_f1,2724,0.8278,0.7853,0.9023,0.8398,336,133

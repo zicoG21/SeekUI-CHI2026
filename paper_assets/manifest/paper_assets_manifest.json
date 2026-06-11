@@ -1,0 +1,31 @@
+{
+  "source_note": "CHPC paper checkpoint and research notes, 2026-06-11",
+  "assets": [
+    "figures/case_sources/SeekUI_and_corrected_absent_false_present_contact_sheet.jpg",
+    "figures/case_sources/SeekUI_and_kept_absent_false_present_contact_sheet.jpg",
+    "figures/case_sources/SeekUI_and_new_present_false_absent_contact_sheet.jpg",
+    "figures/case_taxonomy_caption.md",
+    "figures/case_taxonomy_compact.jpg",
+    "figures/case_taxonomy_compact.png",
+    "figures/case_taxonomy_contact_sheet.jpg",
+    "figures/case_taxonomy_contact_sheet.png",
+    "figures/error_taxonomy.png",
+    "figures/error_taxonomy.svg",
+    "figures/error_taxonomy_caption.md",
+    "figures/method_diagram.png",
+    "figures/method_diagram.svg",
+    "figures/method_diagram_caption.md",
+    "tables/error_taxonomy_counts.csv",
+    "tables/error_taxonomy_counts.md",
+    "tables/error_taxonomy_counts.tex",
+    "tables/heldout_image_split.csv",
+    "tables/heldout_image_split.md",
+    "tables/heldout_image_split.tex",
+    "tables/main_results.csv",
+    "tables/main_results.md",
+    "tables/main_results.tex",
+    "tables/realistic_absent_validation.csv",
+    "tables/realistic_absent_validation.md",
+    "tables/realistic_absent_validation.tex"
+  ]
+}
