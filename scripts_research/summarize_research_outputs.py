@@ -130,6 +130,10 @@ def absent_variant(name):
     return name, "prompt_only"
 
 
+def is_real_absent_status_name(name):
+    return "real_absent" in name
+
+
 def absent_status_core_rows(absent_status):
     rows = []
     for name, metrics in absent_status.items():
@@ -176,8 +180,13 @@ def absent_status_core_rows(absent_status):
 def export_tables(report, out_dir):
     prediction_health = [{"name": name, **metrics} for name, metrics in report.get("prediction_health", {}).items()]
     overall_metrics = [{"name": name, **metrics} for name, metrics in report.get("evaluation_metrics", {}).items()]
-    absent_status = [{"name": name, **metrics} for name, metrics in report.get("absent_status", {}).items()]
-    absent_status_core = absent_status_core_rows(report.get("absent_status", {}))
+    synthetic_absent_status = {
+        name: metrics
+        for name, metrics in report.get("absent_status", {}).items()
+        if not is_real_absent_status_name(name)
+    }
+    absent_status = [{"name": name, **metrics} for name, metrics in synthetic_absent_status.items()]
+    absent_status_core = absent_status_core_rows(synthetic_absent_status)
     semantic_query = []
     for model, groups in report.get("semantic_query", {}).items():
         for query_type, metrics in groups.items():
@@ -331,6 +340,8 @@ def main():
             prefix = f"vlm_presence_predictions_{model}_"
             suffix = "_status_eval"
             variant = vlm_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            if "real_absent" in variant:
+                continue
             if not args.include_pilots and re.search(r"_n\d+$", variant):
                 continue
             report["absent_status"][f"{model}_{variant}"] = read_json(vlm_eval_path)
@@ -340,6 +351,8 @@ def main():
             prefix = f"vlm_evidence_predictions_{model}_"
             suffix = "_status_eval"
             variant = vlm_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            if "real_absent" in variant:
+                continue
             if not args.include_pilots and re.search(r"_n\d+$", variant):
                 continue
             report["absent_status"][f"{model}_{variant}"] = read_json(vlm_eval_path)

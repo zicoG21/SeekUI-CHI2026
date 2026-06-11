@@ -56,6 +56,10 @@ def absent_variant(name):
     return name, "prompt_only"
 
 
+def is_real_absent_status_name(name):
+    return "real_absent" in name
+
+
 def absent_status_core_rows(absent_status):
     rows = []
     for name, metrics in absent_status.items():
@@ -121,12 +125,14 @@ def main():
     absent_status = [
         flatten_metrics(model, metrics)
         for model, metrics in summary.get("absent_status", {}).items()
-        if args.include_pilots or not re.search(r"_n\d+$", model)
+        if not is_real_absent_status_name(model)
+        and (args.include_pilots or not re.search(r"_n\d+$", model))
     ]
     absent_status_source = {
         model: metrics
         for model, metrics in summary.get("absent_status", {}).items()
-        if args.include_pilots or not re.search(r"_n\d+$", model)
+        if not is_real_absent_status_name(model)
+        and (args.include_pilots or not re.search(r"_n\d+$", model))
     }
     absent_status_core = absent_status_core_rows(absent_status_source)
     semantic_query = []

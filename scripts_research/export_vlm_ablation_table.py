@@ -135,6 +135,8 @@ def collect_paths(outputs_dir, include_pilots):
         for path in sorted(outputs_dir.glob(pattern)):
             if path.name.endswith("_filtered_status_eval.json"):
                 continue
+            if "real_absent" in path.name:
+                continue
             if not include_pilots and re.search(r"_n\d+_status_eval\.json$", path.name):
                 continue
             paths.append(path)

@@ -234,6 +234,25 @@ def build_items(limit, variants):
             "command": "MODEL_NAME=SeekUI_sft VLM_EVIDENCE_PROMPT_VARIANTS=\"evidence_aware\" bash scripts_utah/submit_vlm_evidence_ablation.sh",
         },
         {
+            "id": "annotation_free_stopping_evidence",
+            "title": "Annotation-free OCR candidate stopping evidence",
+            "required": [
+                "{outputs}/annotation_free_stopping_evidence/SeekUI_annotation_free_stopping_evidence.csv",
+                "{outputs}/annotation_free_stopping_evidence/SeekUI_sft_annotation_free_stopping_evidence.csv",
+                "{outputs}/annotation_free_stopping_evidence/annotation_free_stopping_evidence_summary.md",
+            ],
+            "command": "sbatch scripts_utah/analyze_annotation_free_stopping_evidence.slurm",
+        },
+        {
+            "id": "annotation_free_combined",
+            "title": "Annotation-free combined verifier",
+            "required": [
+                "{outputs}/present_absent_predictions_SeekUI_annotation_free_combined_and_present_only_best_f1_status_eval.json",
+                "{outputs}/present_absent_predictions_SeekUI_sft_annotation_free_combined_and_present_only_best_f1_status_eval.json",
+            ],
+            "command": "sbatch scripts_utah/apply_annotation_free_combined_verifier.slurm",
+        },
+        {
             "id": "vlm_ablation_table",
             "title": "VLM/evidence ablation table",
             "required": [
