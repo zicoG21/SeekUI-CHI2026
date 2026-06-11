@@ -66,6 +66,12 @@ python scripts_research/check_followup_status.py \
 cat "$SEEKUI_WORK/outputs/followup_status.md"
 ```
 
+Run post-evidence CPU analysis bundle:
+
+```bash
+bash scripts_utah/submit_post_evidence_analysis.sh
+```
+
 Refresh validation outputs after new jobs finish:
 
 ```bash
