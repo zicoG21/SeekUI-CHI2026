@@ -120,3 +120,37 @@ python scripts_research/export_real_absent_validation_sheet.py \
 ```
 
 The absent rows are intentionally placeholders. Fill `query_text`, `target_visible`, `query_realistic`, `ambiguity_level`, and `notes` before using them for evaluation.
+
+## Prepare Filled Sheet For Evaluation
+
+After filling the starter CSV:
+
+```bash
+sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm
+```
+
+Direct command:
+
+```bash
+python scripts_research/prepare_real_absent_validation_dataset.py \
+  --sheet "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.csv" \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --output-json "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_eval.json" \
+  --excluded-csv "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_excluded.csv" \
+  --summary-md "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prep.md"
+```
+
+The prep step only includes rows that are internally consistent:
+
+- present rows require `target_visible=yes` and `query_realistic=yes`;
+- absent rows require `target_visible=no` and `query_realistic=yes`;
+- `ambiguity_level=high` is excluded by default.
+
+The resulting JSON can be passed to VLM presence inference:
+
+```bash
+INPUT_JSON="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_eval.json" \
+MODEL_LABEL=SeekUI_vlm_presence_real_absent \
+VLM_PROMPT_VARIANT=ocr_aware \
+sbatch scripts_utah/vlm_presence_baseline.slurm
+```

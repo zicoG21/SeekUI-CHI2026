@@ -35,7 +35,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
 | P2 | Multi-sample scanpath uncertainty | pending | Sample K scanpaths per target to measure endpoint variance and agreement if extra A40 capacity remains |
-| P2 | Small real/manual absent validation | starter sheet code ready | Run `sbatch scripts_utah/export_real_absent_validation_sheet.slurm`; then fill realistic absent queries manually |
+| P2 | Small real/manual absent validation | starter + prep code ready | Generate starter CSV, fill it, then run `sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm` |
 
 ## Commands To Run Next
 
@@ -159,6 +159,22 @@ Generate a starter CSV for small realistic absent validation:
 ```bash
 sbatch scripts_utah/export_real_absent_validation_sheet.slurm
 cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.md"
+```
+
+After filling the starter CSV, prepare model/eval JSON:
+
+```bash
+sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm
+cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prep.md"
+```
+
+Then run OCR-aware VLM on the filled realistic validation set:
+
+```bash
+INPUT_JSON="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_eval.json" \
+MODEL_LABEL=SeekUI_vlm_presence_real_absent_ocr_aware \
+VLM_PROMPT_VARIANT=ocr_aware \
+sbatch scripts_utah/vlm_presence_baseline.slurm
 ```
 
 Run the same evidence-aware VLM ablation on Great Lakes with `jaabell0`:
