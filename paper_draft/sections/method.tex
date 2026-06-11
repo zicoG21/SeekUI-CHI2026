@@ -81,6 +81,13 @@ We also evaluate generic VLM yes/no target-presence prompts. These baselines ans
 
 Finally, we evaluate an evidence-aware VLM verifier. This verifier sees the screenshot as primary evidence and also receives structured path/OCR evidence from the post-hoc pipeline. We report it both on the full benchmark and on the matched image split. In the current framing, combined AND is the main interpretable verifier and evidence-aware VLM is the strongest validated verifier.
 
+The prompt is intentionally constrained so the result is not an unconstrained chat completion. A compact excerpt is:
+
+\begin{quote}
+\small
+You are checking whether the target is visible in the UI screenshot. Use the screenshot as primary evidence. Scanpath/OCR evidence is diagnostic but may be wrong. Answer only: \texttt{status: present} or \texttt{status: absent}.
+\end{quote}
+
 \begin{figure}[t]
 \small
 \fbox{\begin{minipage}{0.94\linewidth}

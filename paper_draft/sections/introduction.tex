@@ -2,7 +2,7 @@
 
 GUI visual search is not only a localization problem. In real interfaces, users often search for controls, settings, links, or actions that may not be present on the current screen. A user may look for a submit button before completing a required field, search for a privacy setting inside the wrong menu, or expect a familiar action that the current screen does not expose. In these situations, a system that is forced to always return a target can hallucinate plausible UI elements and create unsafe or misleading interaction traces.
 
-This draft studies that gap through the SeekUI pipeline. SeekUI-style models predict visual search behavior under the assumption that the requested target exists in the screenshot. That assumption is reasonable for target-present scanpath benchmarks, but it hides a practical failure mode: when the target is absent, the model may still behave as a forced-choice grounding system and commit to a semantically or visually plausible distractor.
+This paper studies that gap through the SeekUI pipeline. SeekUI-style models predict visual search behavior under the assumption that the requested target exists in the screenshot. That assumption is reasonable for target-present scanpath benchmarks, but it hides a practical failure mode: when the target is absent, the model may still behave as a forced-choice grounding system and commit to a semantically or visually plausible distractor.
 
 The central question is therefore whether scanpath and UI evidence can help a target-present model make a stopping decision. Rather than asking only where the model looks, we ask whether the model has enough evidence to say that the target is present at all.
 
@@ -14,9 +14,9 @@ Can scanpath and UI evidence help GUI visual search models decide when to stop a
 
 The core claim is simple: target-absent GUI search benefits from explicit evidence accumulation. We test three forms of evidence: scanpath-based cognitive stopping, OCR candidate matching, and a VLM verifier that sees the screenshot together with path/OCR evidence.
 
-The current draft assets support three empirical points. First, prompt-only SeekUI shows a forced-choice failure mode on target-absent trials. Second, a combined path+OCR verifier substantially reduces absent false-present errors on a held-out image split. Third, full-benchmark VLM comparisons suggest that screenshot reasoning and scanpath/OCR evidence are complementary, with the same combined-verifier trend appearing in a small realistic absent validation set.
+The current results support three empirical points. First, prompt-only SeekUI shows a forced-choice failure mode on target-absent trials. Second, a combined path+OCR verifier substantially reduces absent false-present errors on a held-out image split. Third, full-benchmark VLM comparisons suggest that screenshot reasoning and scanpath/OCR evidence are complementary, with the same combined-verifier trend appearing in a small realistic absent validation set.
 
-This v0 draft makes four contributions:
+This paper makes four contributions:
 
 \begin{enumerate}
   \item We formulate target-absent GUI visual search as an uncertainty-aware extension of target-present scanpath prediction.

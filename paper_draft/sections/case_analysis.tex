@@ -2,13 +2,6 @@
 
 The quantitative results show the size of the improvement, but the case analysis explains what kind of behavior changes. The real-absent case analysis shows where the verifier helps and where it fails. On the 100-example validation set, combined AND corrects 15 prompt-only mistakes, introduces 6 new present false-absent errors, and leaves 1 absent false-present error.
 
-\begin{figure}[t]
-  \centering
-  \includegraphics[width=\linewidth,height=0.78\textheight,keepaspectratio]{absent_false_present_corrected_contact_sheet.jpg}
-  \caption{Realistic absent cases where prompt-only SeekUI predicted present but combined AND correctly rejected the target as absent.}
-  \label{fig:real_absent_corrected}
-\end{figure}
-
 The broader mined taxonomy in Figure~\ref{fig:error_taxonomy} suggests the same tradeoff: the verifier removes many weak-evidence forced-choice errors, but present false-absent errors concentrate on small, peripheral, low-contrast, or cluttered targets.
 
 \begin{figure}[t]
