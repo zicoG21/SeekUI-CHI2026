@@ -263,6 +263,28 @@ $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_combined_or_present_only_
 $SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_combined_and_present_only_threshold_sweep.csv
 ```
 
+Run an annotation-free candidate inventory check. This version computes path
+evidence against OCR-detected boxes rather than the annotation-backed target
+inventory, then applies the same combined verifier:
+
+```bash
+sbatch scripts_utah/analyze_annotation_free_stopping_evidence.slurm
+sbatch scripts_utah/apply_annotation_free_combined_verifier.slurm
+```
+
+Key outputs:
+
+```text
+$SEEKUI_WORK/outputs/annotation_free_stopping_evidence/SeekUI_annotation_free_stopping_evidence.csv
+$SEEKUI_WORK/outputs/annotation_free_stopping_evidence/SeekUI_sft_annotation_free_stopping_evidence.csv
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_annotation_free_combined_and_present_only_best_f1_status_eval.json
+$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_sft_annotation_free_combined_and_present_only_best_f1_status_eval.json
+```
+
+Use this as the deployability check for the annotation-backed path-evidence
+analysis. If its F1 remains close to the annotation-backed combined verifier,
+the stopping evidence is less vulnerable to an oracle-candidate critique.
+
 Run held-out dev/test validation for the combined `AND` verifier:
 
 ```bash

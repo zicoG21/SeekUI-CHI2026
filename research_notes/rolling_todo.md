@@ -11,6 +11,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | Finish v3 semantic-query jobs | completed | v3 association-first summaries are in `rolling_results.md`; run split eval if scanpath metrics are needed |
 | P0 | GL VLM prompt ablation | completed | OCR-aware VLM is a strong full-benchmark classifier; hard-case overlap with combined AND is done |
 | P0 | Evidence-aware VLM verifier | completed for SeekUI | Evidence-aware VLM is now matched image-split validated: test F1 0.8962, accuracy 0.8861, delta F1 CI [0.1299, 0.1925] |
+| P0 | Annotation-free candidate inventory | code ready | Run `sbatch scripts_utah/analyze_annotation_free_stopping_evidence.slurm`, then `sbatch scripts_utah/apply_annotation_free_combined_verifier.slurm`; compare OCR-candidate evidence against annotation-backed combined AND |
 | P0 | VLM/evidence ablation table | completed | Evidence-aware VLM ranks first in `$SEEKUI_WORK/outputs/paper_tables/vlm_ablation_table.md` |
 | P0 | Evidence-aware hard-case comparison | completed | Evidence-aware VLM vs combined AND summary is recorded in `rolling_results.md` and paper checkpoint assets |
 | P0 | Paper checkpoint summary | completed | Local paper assets and `paper_draft/` are generated from the checkpoint results |
@@ -172,6 +173,24 @@ Run matched random/image split validation for evidence-aware VLM:
 ```bash
 sbatch scripts_utah/evaluate_status_devtest.slurm
 cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_image.md"
+```
+
+Run the annotation-free candidate inventory check. This replaces the
+annotation-backed candidate inventory with OCR boxes, then applies the same
+combined verifier and best-F1 threshold selection:
+
+```bash
+sbatch scripts_utah/analyze_annotation_free_stopping_evidence.slurm
+
+# After the evidence job finishes:
+sbatch scripts_utah/apply_annotation_free_combined_verifier.slurm
+
+python scripts_research/summarize_research_outputs.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output "$SEEKUI_WORK/outputs/research_summary.md" \
+  --tables-dir "$SEEKUI_WORK/outputs/research_summary_tables"
+
+cat "$SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv"
 ```
 
 Run evidence-aware VLM for SFT as a secondary-model GPU check:
