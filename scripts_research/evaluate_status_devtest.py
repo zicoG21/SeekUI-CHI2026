@@ -256,6 +256,30 @@ def split_image_target_indices(records, dev_fraction, seed):
     return sorted(dev), sorted(test)
 
 
+def image_target_component_count(records):
+    uf = UnionFind()
+    for idx, record in enumerate(records):
+        node = f"example:{idx}"
+        uf.union(node, f"image:{record['image']}")
+        uf.union(node, f"target:{record['target_text']}")
+    return len({uf.find(f"example:{idx}") for idx in range(len(records))})
+
+
+def split_diagnostics(records, split_by):
+    if split_by == "random":
+        return {"split_units": len(records), "split_unit_type": "example"}
+    if split_by == "image":
+        return {"split_units": len({record["image"] for record in records}), "split_unit_type": "image"}
+    if split_by == "target":
+        return {"split_units": len({record["target_text"] for record in records}), "split_unit_type": "target"}
+    if split_by == "image_target":
+        return {
+            "split_units": image_target_component_count(records),
+            "split_unit_type": "image_target_connected_component",
+        }
+    return {"split_units": "", "split_unit_type": ""}
+
+
 def split_indices(records, dev_fraction, seed, split_by):
     if split_by == "image":
         return split_image_indices(records, dev_fraction, seed)
@@ -350,6 +374,25 @@ def compact_row(name, split, metrics, baseline_name="", ci=None):
 
 
 def write_markdown(path, summary):
+    if summary.get("status") == "infeasible":
+        lines = [
+            "# Dev/Test Status Prediction Evaluation",
+            "",
+            f"- Split by: {summary['split_by']}",
+            "- Status: infeasible",
+            f"- Reason: {summary['reason']}",
+            f"- Examples: {summary['num_examples']}",
+            f"- Images: {summary['num_images']}",
+            f"- Targets: {summary['num_targets']}",
+            f"- Split units: {summary['split_units']} ({summary['split_unit_type']})",
+            "",
+            "No dev/test metrics are reported for this split.",
+            "",
+        ]
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("\n".join(lines), encoding="utf-8")
+        return
+
     lines = [
         "# Dev/Test Status Prediction Evaluation",
         "",
@@ -422,6 +465,44 @@ def main():
     target2text = load_json(Path(args.target2text)) if args.target2text else {}
     records = split_records_from_examples(load_json(split_source_path), target2text)
     dev_indices, test_indices = split_indices(records, args.dev_fraction, args.seed, args.split_by)
+    diagnostics = split_diagnostics(records, args.split_by)
+
+    if not dev_indices or not test_indices:
+        reason = (
+            "The requested split produced an empty dev or test set. For image_target, this usually means "
+            "the synthetic benchmark forms too few image-target connected components because absent-target "
+            "swaps connect many screenshots and target texts."
+        )
+        summary = {
+            "status": "infeasible",
+            "reason": reason,
+            "split_by": args.split_by,
+            "seed": args.seed,
+            "dev_fraction": args.dev_fraction,
+            "num_examples": len(records),
+            "num_images": len({record["image"] for record in records}),
+            "num_targets": len({record["target_text"] for record in records}),
+            **diagnostics,
+        }
+        write_json(Path(args.output_json), summary)
+        write_csv(Path(args.output_csv), [{
+            "status": "infeasible",
+            "split_by": args.split_by,
+            "reason": reason,
+            "num_examples": len(records),
+            "num_images": summary["num_images"],
+            "num_targets": summary["num_targets"],
+            "split_units": summary["split_units"],
+            "split_unit_type": summary["split_unit_type"],
+        }])
+        write_markdown(Path(args.output_md), summary)
+        print(json.dumps({
+            "status": "infeasible",
+            "split_by": args.split_by,
+            "reason": reason,
+            "output_md": args.output_md,
+        }, indent=2))
+        return
 
     predictions = {name: prediction_map(load_json(path)) for name, path in specs}
     baseline_name = args.baseline_name or specs[0][0]
@@ -454,6 +535,7 @@ def main():
         "num_test_images": len({records[idx]["image"] for idx in test_indices}),
         "num_dev_targets": len({records[idx]["target_text"] for idx in dev_indices}),
         "num_test_targets": len({records[idx]["target_text"] for idx in test_indices}),
+        **diagnostics,
         "prediction_files": {name: str(path) for name, path in specs},
         "rows": rows,
         "metrics": detailed,

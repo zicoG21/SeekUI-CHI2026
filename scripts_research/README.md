@@ -617,7 +617,14 @@ whether gains persist when target text does not overlap between dev/test splits:
 sbatch scripts_utah/evaluate_target_disjoint_status.slurm
 cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_target.md"
 cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_image_target.md"
+cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_sft_target.md"
+cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_sft_image_target.md"
 ```
+
+If `image_target` reports `Status: infeasible`, treat that as a split-feasibility
+finding: the synthetic absent construction has connected too many screenshots
+and target texts to support a strict image+target-disjoint split. Use the
+target-disjoint split as the stricter usable check.
 
 Create a larger realistic-absent review package. By default this exports 100
 present and 100 absent rows under
