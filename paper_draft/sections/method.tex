@@ -33,4 +33,4 @@ The combined verifier rejects a target only when both path evidence and OCR evid
 
 We also evaluate generic VLM yes/no target-presence prompts. These baselines answer a reviewer-risk question: could we simply ask a VLM whether the target is visible? We test direct, conservative, OCR-aware, and search-behavior prompts.
 
-Finally, we evaluate an evidence-aware VLM verifier. This verifier sees the screenshot as primary evidence and also receives structured path/OCR evidence from the post-hoc pipeline. The evidence-aware VLM is a promising full-benchmark comparison, but this draft does not use it as the primary headline until matched split validation is complete.
+Finally, we evaluate an evidence-aware VLM verifier. This verifier sees the screenshot as primary evidence and also receives structured path/OCR evidence from the post-hoc pipeline. We report it both on the full benchmark and on the matched image split. In the current framing, combined AND is the main interpretable verifier and evidence-aware VLM is the strongest validated verifier.

@@ -1,0 +1,2 @@
+model,split,baseline,verifier,baseline_f1,verifier_f1,delta_f1_ci,baseline_accuracy,verifier_accuracy,delta_accuracy_ci,present_to_absent,absent_to_present
+SeekUI,image,prompt_only,evidence-aware VLM,0.7347,0.8962,"[0.1299, 0.1925]",0.7708,0.8861,"[0.0867, 0.1433]",142,13

@@ -10,7 +10,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 |---:|---|---|---|
 | P0 | Finish v3 semantic-query jobs | completed | v3 association-first summaries are in `rolling_results.md`; run split eval if scanpath metrics are needed |
 | P0 | GL VLM prompt ablation | completed | OCR-aware VLM is a strong full-benchmark classifier; hard-case overlap with combined AND is done |
-| P0 | Evidence-aware VLM verifier | completed for SeekUI | Evidence-aware VLM is the strongest full-benchmark verifier comparison result; do not use as primary headline until matched split validation exists |
+| P0 | Evidence-aware VLM verifier | completed for SeekUI | Evidence-aware VLM is now matched image-split validated: test F1 0.8962, accuracy 0.8861, delta F1 CI [0.1299, 0.1925] |
 | P0 | VLM/evidence ablation table | completed | Evidence-aware VLM ranks first in `$SEEKUI_WORK/outputs/paper_tables/vlm_ablation_table.md` |
 | P0 | Evidence-aware hard-case comparison | completed | Evidence-aware VLM vs combined AND summary is recorded in `rolling_results.md` and paper checkpoint assets |
 | P0 | Paper checkpoint summary | completed | Local paper assets and `paper_draft/` are generated from the checkpoint results |
@@ -32,7 +32,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
 | P1 | VLM hard-case analysis | completed | Direct and OCR-aware VLM hard-case overlap summaries are recorded in `rolling_results.md` |
 | P1 | Evidence-aware filtered sensitivity | completed for SeekUI | Filtered evidence-aware result is recorded in paper checkpoint: F1 0.8881, accuracy 0.8867 on 2497 kept examples |
-| P1 | Evidence-aware matched split validation | code ready | Run `sbatch scripts_utah/evaluate_status_devtest.slurm`; inspect `$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_image.md` |
+| P1 | Evidence-aware matched split validation | completed for SeekUI | Image split improves prompt F1 0.7347 -> 0.8962 and accuracy 0.7708 -> 0.8861; next run SFT matched check |
 | P1 | Evidence-aware VLM for SFT | pending GPU | Run `MODEL_NAME=SeekUI_sft VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware" bash scripts_utah/submit_vlm_evidence_ablation.sh`, then `MODEL_NAME=SeekUI_sft sbatch scripts_utah/evaluate_status_devtest.slurm` |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |

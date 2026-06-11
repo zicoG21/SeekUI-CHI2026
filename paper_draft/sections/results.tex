@@ -1,16 +1,22 @@
 \section{Results}
 
-We separate the results into two layers. The primary held-out result evaluates the interpretable combined AND verifier with thresholds selected on development examples and tested on image-disjoint examples. The full-benchmark verifier comparison then asks how generic and evidence-aware VLM judging compare when evaluated on all synthetic present/absent examples.
+We separate the results into three layers. First, we evaluate the interpretable combined AND verifier with thresholds selected on development examples and tested on image-disjoint examples. Second, we evaluate the evidence-aware VLM verifier on the matched image split. Third, we compare generic and evidence-aware VLM judging on the full synthetic present/absent benchmark.
 
-\subsection{Primary Held-Out Result}
+\subsection{Primary Interpretable Held-Out Result}
 
 Table~\ref{tab:heldout_image_split} reports the cleaner held-out image split. Combined path+OCR verification improves absent F1 for both SeekUI and SeekUI-SFT, with bootstrap confidence intervals above zero. For SeekUI, absent F1 improves from 0.7347 to 0.8804 and accuracy improves from 0.7708 to 0.8692. For SeekUI-SFT, absent F1 improves from 0.6744 to 0.8279 and accuracy improves from 0.7325 to 0.8148. This is the main validation result because it avoids shared images across development and test examples.
 
 \input{../paper_assets/tables/heldout_image_split.tex}
 
+\subsection{Evidence-Aware VLM Matched Split}
+
+Table~\ref{tab:evidence_heldout_image_split} reports the matched image-split validation for evidence-aware VLM judging. On the same image-disjoint split, evidence-aware VLM improves SeekUI absent F1 from 0.7347 to 0.8962 and accuracy from 0.7708 to 0.8861. The bootstrap confidence intervals remain positive. This lets us frame evidence-aware VLM as the strongest validated verifier, while combined AND remains the main interpretable path+OCR method.
+
+\input{../paper_assets/tables/evidence_heldout_image_split.tex}
+
 \subsection{Full-Benchmark Verifier Comparison}
 
-Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1, with 509 absent false-present errors. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981. These rows should be read as verifier comparisons rather than the primary held-out claim: the evidence-aware VLM result shows that screenshot reasoning and scanpath/OCR evidence can be complementary, but the primary split-controlled result remains the combined AND image-split evaluation.
+Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1, with 509 absent false-present errors. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981. Together with the matched split result, this shows that screenshot reasoning and scanpath/OCR evidence are complementary.
 
 \input{../paper_assets/tables/main_results.tex}
 

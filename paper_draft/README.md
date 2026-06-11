@@ -5,8 +5,8 @@ This directory is a lightweight LaTeX v0 draft for turning the generated paper a
 Current framing:
 
 - Primary claim: target-present GUI visual-search models show forced-choice grounding under target absence.
-- Main held-out result: combined path+OCR verification improves SeekUI on the image-disjoint split.
-- Secondary verifier comparison: evidence-aware VLM is promising, but should not become the headline until matched split validation is complete.
+- Main interpretable held-out result: combined path+OCR verification improves SeekUI on the image-disjoint split.
+- Strongest validated verifier: evidence-aware VLM also improves SeekUI on the matched image-disjoint split.
 - External-validity check: the 100-row realistic absent validation is included as an initial, not final, real-absent result.
 
 Compile from this directory:

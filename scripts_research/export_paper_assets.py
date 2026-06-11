@@ -213,6 +213,24 @@ HELDOUT_ROWS = [
 ]
 
 
+EVIDENCE_HELDOUT_ROWS = [
+    {
+        "model": "SeekUI",
+        "split": "image",
+        "baseline": "prompt_only",
+        "verifier": "evidence-aware VLM",
+        "baseline_f1": 0.7347,
+        "verifier_f1": 0.8962,
+        "delta_f1_ci": "[0.1299, 0.1925]",
+        "baseline_accuracy": 0.7708,
+        "verifier_accuracy": 0.8861,
+        "delta_accuracy_ci": "[0.0867, 0.1433]",
+        "present_to_absent": 142,
+        "absent_to_present": 13,
+    },
+]
+
+
 TAXONOMY_ROWS = [
     {
         "model": "SeekUI + combined AND",
@@ -303,9 +321,9 @@ METHOD_STRENGTH_ROWS = [
         "family": "screenshot + evidence VLM",
         "synthetic_f1": 0.8981,
         "realistic_f1": "",
-        "main_strength": "Best full-benchmark verifier comparison result.",
-        "main_weakness": "Needs matched split and real-absent validation before headline.",
-        "recommended_role": "Promising next-stage verifier, not primary headline yet.",
+        "main_strength": "Best matched image-split verifier; high absent recall with few absent false-present errors.",
+        "main_weakness": "Still needs SFT and real-absent evidence-aware validation.",
+        "recommended_role": "Strongest validated verifier; use alongside interpretable combined AND.",
     },
 ]
 
@@ -362,6 +380,8 @@ def write_md_table(path, title, rows, columns, note=None):
         "case_type",
         "patterns",
         "method",
+        "baseline",
+        "verifier",
         "main_strength",
         "main_weakness",
         "recommended_role",
@@ -468,6 +488,26 @@ def export_tables(out_dir):
                 ("delta_accuracy_ci", "Delta Acc 95% CI"),
             ],
             "Image split is the cleaner headline because it avoids shared images across dev/test.",
+        ),
+        (
+            "evidence_heldout_image_split",
+            "Evidence-Aware VLM Image Split Result",
+            EVIDENCE_HELDOUT_ROWS,
+            [
+                ("model", "Model"),
+                ("split", "Split"),
+                ("baseline", "Baseline"),
+                ("verifier", "Verifier"),
+                ("baseline_f1", "Baseline F1"),
+                ("verifier_f1", "Verifier F1"),
+                ("delta_f1_ci", "Delta F1 95% CI"),
+                ("baseline_accuracy", "Baseline Acc"),
+                ("verifier_accuracy", "Verifier Acc"),
+                ("delta_accuracy_ci", "Delta Acc 95% CI"),
+                ("present_to_absent", "Present->Absent"),
+                ("absent_to_present", "Absent->Present"),
+            ],
+            "Matched image split evaluation for the evidence-aware VLM verifier.",
         ),
         (
             "error_taxonomy_counts",
@@ -738,6 +778,7 @@ def export_manifest(out_dir, generated):
         "",
         "- `tables/main_results.*`: full synthetic present/absent benchmark baselines and verifier variants.",
         "- `tables/heldout_image_split.*`: cleaner image-split headline result with bootstrap confidence intervals.",
+        "- `tables/evidence_heldout_image_split.*`: matched image-split validation for evidence-aware VLM.",
         "- `tables/realistic_absent_validation.*`: small manually reviewed external-validity check.",
         "- `tables/method_strength_summary.*`: compact story table comparing strengths, weaknesses, and paper role.",
         "- `figures/method_diagram.*`: method overview.",
@@ -748,8 +789,9 @@ def export_manifest(out_dir, generated):
         "## Caveat",
         "",
         "Candidate-verifier rows with F1 around 0.95 are diagnostic/oracle-like because they rely on candidate similarity evidence. "
-        "The primary paper headline should use the image-split combined AND result. Evidence-aware VLM rows should be framed as "
-        "full-benchmark verifier comparisons until matched split validation is available.",
+        "The primary interpretable-method headline should use the image-split combined AND result. Evidence-aware VLM now has "
+        "matched image-split validation and can be framed as the strongest validated verifier, while still needing SFT and "
+        "real-absent evidence-aware validation.",
         "",
     ])
     manifest = out_dir / "manifest" / "paper_assets_manifest.md"

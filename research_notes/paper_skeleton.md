@@ -52,9 +52,9 @@ The full benchmark shows that prompt design strongly affects generic VLM yes/no 
 | SeekUI combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 |
 | Evidence-aware VLM | 0.8891 | 0.8308 | 0.9772 | 0.8981 |
 
-The evidence-aware VLM is the strongest practical full-benchmark method so far. It improves over both direct VLM prompting and rule-based combined AND by letting the VLM inspect the screenshot while also seeing scanpath/OCR evidence. It keeps high absent recall (`0.9772`) while reducing absent false-present errors from 45 under combined AND to 31.
+The evidence-aware VLM is the strongest validated verifier so far. It improves over both direct VLM prompting and rule-based combined AND by letting the VLM inspect the screenshot while also seeing scanpath/OCR evidence. It keeps high absent recall (`0.9772`) on the full benchmark while reducing absent false-present errors from 45 under combined AND to 31.
 
-Important framing: this is a full-benchmark verifier comparison, not the primary held-out headline. The primary split-controlled claim should remain the combined AND image-split result unless evidence-aware VLM gets matched split validation.
+Matched image-split validation is now complete for SeekUI: evidence-aware VLM improves absent F1 from `0.7347` to `0.8962` and accuracy from `0.7708` to `0.8861`, with positive bootstrap CIs. Important framing: combined AND remains the primary interpretable method, while evidence-aware VLM is the strongest validated verifier.
 
 Hard-case overlap supports complementarity:
 
@@ -103,6 +103,6 @@ Qualitative taxonomy:
 
 ## Next Validation
 
-1. Run matched split validation for evidence-aware VLM if we want it to become a headline method.
-2. Run the evidence-aware VLM verifier for SeekUI-SFT as a secondary model check.
-3. Expand the 100-row realistic absent validation set and test evidence-aware VLM with per-example evidence.
+1. Run the evidence-aware VLM verifier for SeekUI-SFT as a secondary model check.
+2. Expand the 100-row realistic absent validation set and test evidence-aware VLM with per-example evidence.
+3. Decide whether the paper headline should say "interpretable verifier" or "strongest validated verifier" depending on audience.

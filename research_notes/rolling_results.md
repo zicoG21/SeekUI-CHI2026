@@ -463,7 +463,7 @@ Takeaways:
 
 ## Pending Results
 
-- Evidence-aware matched dev/test split validation is now code-ready via `scripts_research/evaluate_status_devtest.py`; run `sbatch scripts_utah/evaluate_status_devtest.slurm` and treat the image split as the key check.
+- Evidence-aware matched dev/test split validation is complete for SeekUI. On the image split, evidence-aware VLM improves absent F1 from 0.7347 to 0.8962 and accuracy from 0.7708 to 0.8861; bootstrap delta F1 CI is [0.1299, 0.1925] and delta accuracy CI is [0.0867, 0.1433].
 - Evidence-aware VLM verifier for SeekUI-SFT remains a secondary-model GPU check; after inference, run `MODEL_NAME=SeekUI_sft sbatch scripts_utah/evaluate_status_devtest.slurm`.
 - Real-absent evidence-aware VLM with per-example evidence and predictions is still pending; current real-absent evidence supports combined AND and VLM presence baselines.
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.

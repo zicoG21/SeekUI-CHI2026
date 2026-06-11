@@ -21,6 +21,9 @@ Source note: CHPC paper checkpoint and research notes, 2026-06-11
 - `tables/error_taxonomy_counts.csv`
 - `tables/error_taxonomy_counts.md`
 - `tables/error_taxonomy_counts.tex`
+- `tables/evidence_heldout_image_split.csv`
+- `tables/evidence_heldout_image_split.md`
+- `tables/evidence_heldout_image_split.tex`
 - `tables/heldout_image_split.csv`
 - `tables/heldout_image_split.md`
 - `tables/heldout_image_split.tex`
@@ -38,6 +41,7 @@ Source note: CHPC paper checkpoint and research notes, 2026-06-11
 
 - `tables/main_results.*`: full synthetic present/absent benchmark baselines and verifier variants.
 - `tables/heldout_image_split.*`: cleaner image-split headline result with bootstrap confidence intervals.
+- `tables/evidence_heldout_image_split.*`: matched image-split validation for evidence-aware VLM.
 - `tables/realistic_absent_validation.*`: small manually reviewed external-validity check.
 - `tables/method_strength_summary.*`: compact story table comparing strengths, weaknesses, and paper role.
 - `figures/method_diagram.*`: method overview.
@@ -47,4 +51,4 @@ Source note: CHPC paper checkpoint and research notes, 2026-06-11
 
 ## Caveat
 
-Candidate-verifier rows with F1 around 0.95 are diagnostic/oracle-like because they rely on candidate similarity evidence. The primary paper headline should use the image-split combined AND result. Evidence-aware VLM rows should be framed as full-benchmark verifier comparisons until matched split validation is available.
+Candidate-verifier rows with F1 around 0.95 are diagnostic/oracle-like because they rely on candidate similarity evidence. The primary interpretable-method headline should use the image-split combined AND result. Evidence-aware VLM now has matched image-split validation and can be framed as the strongest validated verifier, while still needing SFT and real-absent evidence-aware validation.
