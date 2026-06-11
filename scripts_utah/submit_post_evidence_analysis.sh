@@ -80,6 +80,10 @@ if [[ ${#terminal_jobs[@]} -gt 0 ]]; then
 fi
 summary_args+=(--export=ALL,SUBSET_LIMIT="$SUBSET_LIMIT",VARIANTS_PER_EXAMPLE="$VARIANTS_PER_EXAMPLE")
 summary_job="$(sbatch "${summary_args[@]}" scripts_utah/summarize_research_outputs.slurm)"
+checkpoint_job="$(sbatch --parsable \
+  --dependency="afterok:$summary_job" \
+  --job-name="seekui-paper-ckpt" \
+  scripts_utah/export_paper_checkpoint.slurm)"
 
 cat <<EOF
 Post-evidence CPU analysis submitted.
@@ -87,11 +91,13 @@ Post-evidence CPU analysis submitted.
   hard-case comparison   : ${hardcmp_job:-skipped}
   real absent starter    : ${realabs_job:-skipped}
   summary/status         : $summary_job
+  paper checkpoint       : $checkpoint_job
 
 Key outputs:
   $SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv
   $SEEKUI_WORK/outputs/vlm_hard_cases/vlm_hard_case_comparison.md
   $SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.md
+  $SEEKUI_WORK/outputs/paper_checkpoint/paper_checkpoint.md
   $SEEKUI_WORK/outputs/followup_status.md
   $SEEKUI_WORK/outputs/research_summary.md
 

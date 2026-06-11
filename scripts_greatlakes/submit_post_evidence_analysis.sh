@@ -64,16 +64,20 @@ if [[ "$SKIP_REAL_ABSENT_STARTER" != "1" ]]; then
   fi
 fi
 
+checkpoint_job="$(submit_job "seekui-paper-ckpt" scripts_greatlakes/export_paper_checkpoint.slurm)"
+
 cat <<EOF
 Great Lakes post-evidence CPU analysis submitted.
   evidence filtered eval : ${filtered_job:-skipped}
   hard-case comparison   : ${hardcmp_job:-skipped}
   real absent starter    : ${realabs_job:-skipped}
+  paper checkpoint       : $checkpoint_job
 
 Key outputs:
   $SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv
   $SEEKUI_WORK/outputs/vlm_hard_cases/vlm_hard_case_comparison.md
   $SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.md
+  $SEEKUI_WORK/outputs/paper_checkpoint/paper_checkpoint.md
 
 Use:
   squeue -u "$USER" -o "%.18i %.18a %.14P %.28j %.8T %.10M %.12l %.20b %.30R"

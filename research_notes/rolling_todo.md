@@ -12,7 +12,8 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P0 | GL VLM prompt ablation | completed | OCR-aware VLM is strongest full-benchmark classifier so far; run hard-case overlap with combined AND |
 | P0 | Evidence-aware VLM verifier | completed for SeekUI | Evidence-aware VLM is current strongest practical method; run SFT version as secondary check |
 | P0 | VLM/evidence ablation table | completed | Evidence-aware VLM ranks first in `$SEEKUI_WORK/outputs/paper_tables/vlm_ablation_table.md` |
-| P0 | Evidence-aware hard-case comparison | code ready | Run `sbatch scripts_utah/export_vlm_hard_case_comparison.slurm` after pulling latest code |
+| P0 | Evidence-aware hard-case comparison | completed | Evidence-aware VLM vs combined AND summary is recorded in `rolling_results.md`; export compact comparison table after pulling latest code |
+| P0 | Paper checkpoint summary | code ready | Run `sbatch scripts_utah/export_paper_checkpoint.slurm`, or use `bash scripts_utah/submit_post_evidence_analysis.sh` to refresh it after summary |
 | P0 | VLM direct presence baseline | completed on CHPC | Direct VLM full: absent F1 0.8386, accuracy 0.8510; filtered F1 0.8494, accuracy 0.8706 |
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
 | P0 | Add dev/test validation for combined verifier | completed | Random and image splits both show positive held-out F1/accuracy deltas |
@@ -148,6 +149,13 @@ Export direct/OCR-aware/evidence-aware hard-case comparison:
 ```bash
 sbatch scripts_utah/export_vlm_hard_case_comparison.slurm
 cat "$SEEKUI_WORK/outputs/vlm_hard_cases/vlm_hard_case_comparison.md"
+```
+
+Export a compact paper checkpoint:
+
+```bash
+sbatch scripts_utah/export_paper_checkpoint.slurm
+cat "$SEEKUI_WORK/outputs/paper_checkpoint/paper_checkpoint.md"
 ```
 
 Run filtered sensitivity for evidence-aware VLM:

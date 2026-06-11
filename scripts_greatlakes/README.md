@@ -110,6 +110,7 @@ Export VLM/evidence ablation and hard-case comparison tables:
 sbatch scripts_greatlakes/export_vlm_ablation_table.slurm
 sbatch scripts_greatlakes/evaluate_evidence_filtered_status.slurm
 sbatch scripts_greatlakes/export_vlm_hard_case_comparison.slurm
+sbatch scripts_greatlakes/export_paper_checkpoint.slurm
 
 # Or submit the CPU post-evidence bundle:
 SBATCH_ACCOUNT=jaabell0 SBATCH_PARTITION=standard bash scripts_greatlakes/submit_post_evidence_analysis.sh

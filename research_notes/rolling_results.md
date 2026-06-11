@@ -513,4 +513,7 @@ scripts_greatlakes/export_vlm_ablation_table.slurm
 scripts_research/export_vlm_hard_case_comparison.py
 scripts_utah/export_vlm_hard_case_comparison.slurm
 scripts_utah/evaluate_evidence_filtered_status.slurm
+scripts_research/export_paper_checkpoint.py
+scripts_utah/export_paper_checkpoint.slurm
+scripts_greatlakes/export_paper_checkpoint.slurm
 ```

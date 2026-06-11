@@ -242,6 +242,15 @@ def build_items(limit, variants):
             "command": "sbatch scripts_utah/export_vlm_hard_case_comparison.slurm",
         },
         {
+            "id": "paper_checkpoint",
+            "title": "Compact paper checkpoint summary",
+            "required": [
+                "{outputs}/paper_checkpoint/paper_checkpoint.json",
+                "{outputs}/paper_checkpoint/paper_checkpoint.md",
+            ],
+            "command": "sbatch scripts_utah/export_paper_checkpoint.slurm",
+        },
+        {
             "id": "real_absent_validation_starter",
             "title": "Realistic absent validation starter sheet",
             "required": [
