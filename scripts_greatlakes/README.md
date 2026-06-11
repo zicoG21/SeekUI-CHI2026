@@ -120,8 +120,10 @@ Prepare a small realistic absent validation sheet:
 
 ```bash
 sbatch scripts_greatlakes/export_real_absent_validation_sheet.slurm
+sbatch scripts_greatlakes/prefill_real_absent_validation_sheet.slurm
 
-# After filling the CSV:
+# After filling/reviewing the prefilled CSV:
+SHEET="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prefilled.csv" \
 sbatch scripts_greatlakes/prepare_real_absent_validation_dataset.slurm
 
 # Then run a VLM baseline on the filled eval JSON:

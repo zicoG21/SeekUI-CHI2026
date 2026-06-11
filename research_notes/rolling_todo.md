@@ -36,7 +36,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
 | P2 | Multi-sample scanpath uncertainty | pending | Sample K scanpaths per target to measure endpoint variance and agreement if extra A40 capacity remains |
-| P2 | Small real/manual absent validation | starter + prep code ready | Generate starter CSV, fill it, then run `sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm` |
+| P2 | Small real/manual absent validation | starter + safe-prefill code ready | Prefill present rows, fill/review absent rows, then run prepare with `SHEET=$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prefilled.csv` |
 
 ## Commands To Run Next
 
@@ -180,9 +180,17 @@ sbatch scripts_utah/export_real_absent_validation_sheet.slurm
 cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.md"
 ```
 
+Prefill safe fields before manual review:
+
+```bash
+sbatch scripts_utah/prefill_real_absent_validation_sheet.slurm
+cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prefilled.md"
+```
+
 After filling the starter CSV, prepare model/eval JSON:
 
 ```bash
+SHEET="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prefilled.csv" \
 sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm
 cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prep.md"
 ```
