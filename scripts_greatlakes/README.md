@@ -88,6 +88,45 @@ bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
 SBATCH_ACCOUNT=jaabell0 bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
 ```
 
+Run evidence-aware VLM ablations:
+
+```bash
+VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware evidence_conservative evidence_rescue_present" \
+bash scripts_greatlakes/submit_vlm_evidence_ablation.sh
+
+# Override account/partition when needed:
+SBATCH_ACCOUNT=jaabell0 \
+SBATCH_PARTITION=spgpu \
+SBATCH_GRES=gpu:a40:1 \
+SBATCH_CPUS_PER_TASK=4 \
+SBATCH_MEM=40G \
+VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware" \
+bash scripts_greatlakes/submit_vlm_evidence_ablation.sh
+```
+
+Export VLM/evidence ablation and hard-case comparison tables:
+
+```bash
+sbatch scripts_greatlakes/export_vlm_ablation_table.slurm
+sbatch scripts_greatlakes/evaluate_evidence_filtered_status.slurm
+sbatch scripts_greatlakes/export_vlm_hard_case_comparison.slurm
+```
+
+Prepare a small realistic absent validation sheet:
+
+```bash
+sbatch scripts_greatlakes/export_real_absent_validation_sheet.slurm
+
+# After filling the CSV:
+sbatch scripts_greatlakes/prepare_real_absent_validation_dataset.slurm
+
+# Then run a VLM baseline on the filled eval JSON:
+INPUT_JSON="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_eval.json" \
+MODEL_LABEL=SeekUI_vlm_presence_real_absent_ocr_aware \
+VLM_PROMPT_VARIANT=ocr_aware \
+sbatch scripts_greatlakes/vlm_presence_baseline.slurm
+```
+
 Run the semantic v3 association-first jobs:
 
 ```bash
