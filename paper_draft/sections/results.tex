@@ -6,6 +6,8 @@ We separate the results into three layers. First, we evaluate the interpretable 
 
 Table~\ref{tab:heldout_image_split} reports the cleaner held-out image split. Combined path+OCR verification improves absent F1 for both SeekUI and SeekUI-SFT, with bootstrap confidence intervals above zero. For SeekUI, absent F1 improves from 0.7347 to 0.8804 and accuracy improves from 0.7708 to 0.8692. For SeekUI-SFT, absent F1 improves from 0.6744 to 0.8279 and accuracy improves from 0.7325 to 0.8148. This is the main validation result because it avoids shared images across development and test examples.
 
+The improvement is a deliberate precision/recall tradeoff. The verifier rejects more visible targets than prompt-only SeekUI, but it greatly reduces absent false-present errors: it is designed to make unsupported target commitments harder, not to maximize localization permissiveness.
+
 \input{../paper_assets/tables/heldout_image_split.tex}
 
 \subsection{Evidence-Aware VLM Matched Split}
@@ -17,6 +19,8 @@ Table~\ref{tab:evidence_heldout_image_split} reports the matched image-split val
 \subsection{Full-Benchmark Verifier Comparison}
 
 Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1, with 509 absent false-present errors. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981. Together with the matched split result, this shows that screenshot reasoning and scanpath/OCR evidence are complementary.
+
+The error columns make the tradeoff explicit. Combined AND reduces absent-to-present errors from 509 to 45, but increases present-to-absent errors from 122 to 306. This is the expected cost of conservative stopping; the goal is not to hide this cost, but to measure whether the not-found safety gain is worth it under target absence.
 
 \input{../paper_assets/tables/main_results.tex}
 

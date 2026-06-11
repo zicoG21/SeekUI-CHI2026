@@ -2,7 +2,7 @@
 
 The quantitative results show the size of the improvement, but the case analysis explains what kind of behavior changes. The real-absent case analysis shows where the verifier helps and where it fails. On the 100-example validation set, combined AND corrects 15 prompt-only mistakes, introduces 6 new present false-absent errors, and leaves 1 absent false-present error.
 
-The broader mined taxonomy in Figure~\ref{fig:error_taxonomy} suggests the same tradeoff: the verifier removes many weak-evidence forced-choice errors, but present false-absent errors concentrate on small, peripheral, low-contrast, or cluttered targets.
+The broader mined taxonomy in Figure~\ref{fig:error_taxonomy} suggests the same tradeoff: the verifier removes many weak-evidence forced-choice errors, but present false-absent errors concentrate on small, peripheral, low-contrast, or cluttered targets. Three representative patterns make the tradeoff concrete. In a corrected absent false-present case, the query \texttt{search} is absent from an app-recommendation screen; prompt-only SeekUI predicts present, while combined AND rejects it because both path and OCR evidence are weak. In a new present false-absent case, the query \texttt{week} is visible but weakly supported by the generated path and OCR, so the conservative verifier over-rejects it. In the residual absent false-present case, the query \texttt{settings} is absent from a travel-search screen, but strong distractors leave enough evidence for the verifier to keep the prompt-only present decision.
 
 \begin{figure}[t]
   \centering
