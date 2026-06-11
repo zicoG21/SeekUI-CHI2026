@@ -303,9 +303,9 @@ METHOD_STRENGTH_ROWS = [
         "family": "screenshot + evidence VLM",
         "synthetic_f1": 0.8981,
         "realistic_f1": "",
-        "main_strength": "Best practical synthetic result; combines VLM with evidence.",
-        "main_weakness": "Needs real-absent evidence-aware validation before headline.",
-        "recommended_role": "Promising next-stage verifier.",
+        "main_strength": "Best full-benchmark verifier comparison result.",
+        "main_weakness": "Needs matched split and real-absent validation before headline.",
+        "recommended_role": "Promising next-stage verifier, not primary headline yet.",
     },
 ]
 
@@ -348,7 +348,7 @@ def write_csv(path, rows):
     path.parent.mkdir(parents=True, exist_ok=True)
     fieldnames = list(rows[0].keys()) if rows else []
     with path.open("w", encoding="utf-8", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
 
@@ -747,8 +747,9 @@ def export_manifest(out_dir, generated):
         "",
         "## Caveat",
         "",
-        "Candidate-verifier rows with F1 around 0.95 are diagnostic/oracle-like because they rely on candidate similarity evidence; "
-        "the practical paper headline should use combined AND and evidence-aware VLM rows unless the candidate evidence is fully justified.",
+        "Candidate-verifier rows with F1 around 0.95 are diagnostic/oracle-like because they rely on candidate similarity evidence. "
+        "The primary paper headline should use the image-split combined AND result. Evidence-aware VLM rows should be framed as "
+        "full-benchmark verifier comparisons until matched split validation is available.",
         "",
     ])
     manifest = out_dir / "manifest" / "paper_assets_manifest.md"

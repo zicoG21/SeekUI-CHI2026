@@ -12,7 +12,7 @@ SeekUI-style GUI visual search assumes the requested target is present. In reali
 
 ## Research Question
 
-Can GUI visual search models recognize when a requested target is absent, while preserving useful scanpath behavior when the target is present?
+Can scanpath and UI evidence help GUI visual search models decide when to stop and report target absence, instead of forcing every query to ground to a UI element?
 
 ## Method
 
@@ -31,7 +31,7 @@ We add a post-hoc stopping/verifier layer:
 3. A combined AND rule rejects a prediction only when both path evidence and OCR evidence are weak.
 4. An evidence-aware VLM verifier uses the screenshot plus scanpath/OCR evidence to make the final present/absent decision.
 
-## Headline Result
+## Primary Held-Out Result
 
 On the cleaner image split, where dev/test images do not overlap:
 
@@ -40,7 +40,9 @@ On the cleaner image split, where dev/test images do not overlap:
 | SeekUI | image | 0.7347 | 0.8804 | [0.1167, 0.1739] | 0.7708 | 0.8692 | [0.0720, 0.1220] |
 | SeekUI-SFT | image | 0.6744 | 0.8279 | [0.1232, 0.1834] | 0.7325 | 0.8148 | [0.0558, 0.1080] |
 
-The full benchmark shows that prompt design strongly affects generic VLM yes/no baselines:
+## Full-Benchmark Verifier Comparison
+
+The full benchmark shows that prompt design strongly affects generic VLM yes/no baselines and that screenshot reasoning is complementary with scanpath/OCR evidence:
 
 | Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 |
 |---|---:|---:|---:|---:|
@@ -51,6 +53,8 @@ The full benchmark shows that prompt design strongly affects generic VLM yes/no 
 | Evidence-aware VLM | 0.8891 | 0.8308 | 0.9772 | 0.8981 |
 
 The evidence-aware VLM is the strongest practical full-benchmark method so far. It improves over both direct VLM prompting and rule-based combined AND by letting the VLM inspect the screenshot while also seeing scanpath/OCR evidence. It keeps high absent recall (`0.9772`) while reducing absent false-present errors from 45 under combined AND to 31.
+
+Important framing: this is a full-benchmark verifier comparison, not the primary held-out headline. The primary split-controlled claim should remain the combined AND image-split result unless evidence-aware VLM gets matched split validation.
 
 Hard-case overlap supports complementarity:
 
@@ -92,13 +96,13 @@ Qualitative taxonomy:
 
 ## Current Limitations
 
-- The absent benchmark is synthetic; a small real/manual validation set would strengthen the claim.
+- The absent benchmark is synthetic; the 100-row realistic validation set strengthens external validity but is still small.
 - Released data are text-target only, so non-text/icon/associative search remains a proxy experiment unless new annotations are added.
 - OCR evidence is brittle for small, stylized, low-contrast, and edge-positioned targets.
-- The post-hoc layer does not improve the scanpath itself; it changes the present/absent decision.
+- The post-hoc layer does not improve the scanpath itself; it changes the present/absent decision. The research question should therefore be framed around stopping and absence decisions, not scanpath generation improvement.
 
 ## Next Validation
 
-1. Design a small manually verified realistic absent benchmark.
+1. Run matched split validation for evidence-aware VLM if we want it to become a headline method.
 2. Run the evidence-aware VLM verifier for SeekUI-SFT as a secondary model check.
-3. Test the hybrid on hard absent distractors and small/edge present targets.
+3. Expand the 100-row realistic absent validation set and test evidence-aware VLM with per-example evidence.

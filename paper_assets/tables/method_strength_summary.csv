@@ -4,4 +4,4 @@ Cognitive stopping,scanpath evidence,0.8522,,Large absent-recall gain from path 
 Combined AND best-F1,path + OCR rule,0.8824,0.9159,Best real-absent validation result; strong not-found safety.,Conservative threshold creates present false-absent errors.,Main interpretable practical method.
 VLM yes/no direct,generic VLM,0.8386,0.8542,Strong simple reviewer-risk baseline.,Still misses many absent cases on synthetic benchmark.,Simple baseline to rule out trivial prompting.
 VLM yes/no OCR-aware,generic VLM,0.8939,0.8824,Best generic prompt on synthetic benchmark.,Prompt-sensitive and not scanpath-grounded.,Strong VLM baseline.
-Evidence-aware VLM,screenshot + evidence VLM,0.8981,,Best practical synthetic result; combines VLM with evidence.,Needs real-absent evidence-aware validation before headline.,Promising next-stage verifier.
+Evidence-aware VLM,screenshot + evidence VLM,0.8981,,Best full-benchmark verifier comparison result.,Needs matched split and real-absent validation before headline.,"Promising next-stage verifier, not primary headline yet."

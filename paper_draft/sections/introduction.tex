@@ -2,8 +2,14 @@
 
 GUI visual search is not only a localization problem. In real interfaces, users often search for controls, settings, links, or actions that may not be present on the current screen. A model that is forced to always return a target can therefore hallucinate plausible UI elements and create unsafe or misleading interaction traces.
 
-This draft studies that gap through the SeekUI pipeline. The central question is whether a target-present scanpath model can be augmented with a stopping decision: after searching the interface, can the system decide that the target is absent?
+This draft studies that gap through the SeekUI pipeline. The central question is whether scanpath and UI evidence can help a target-present model make a stopping decision: can the system decide that the target is absent instead of grounding every query to some UI element?
+
+We therefore use the following research question:
+
+\begin{quote}
+Can scanpath and UI evidence help GUI visual search models decide when to stop and report target absence, instead of forcing every query to ground to a UI element?
+\end{quote}
 
 The core claim is simple: target-absent GUI search benefits from explicit evidence accumulation. We test three forms of evidence: scanpath-based cognitive stopping, OCR candidate matching, and a VLM verifier that sees the screenshot together with path/OCR evidence.
 
-The current draft assets support three empirical points. First, prompt-only SeekUI shows a forced-choice failure mode on target-absent trials. Second, a combined path+OCR verifier substantially reduces absent false-present errors. Third, a small realistic absent validation set shows the same trend outside the synthetic benchmark.
+The current draft assets support three empirical points. First, prompt-only SeekUI shows a forced-choice failure mode on target-absent trials. Second, a combined path+OCR verifier substantially reduces absent false-present errors on a held-out image split. Third, full-benchmark VLM comparisons suggest that screenshot reasoning and scanpath/OCR evidence are complementary, with the same combined-verifier trend appearing in a small realistic absent validation set.

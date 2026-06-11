@@ -1,14 +1,22 @@
 \section{Results}
 
-Table~\ref{tab:heldout_image_split} reports the cleaner held-out image split. Combined path+OCR verification improves absent F1 for both SeekUI and SeekUI-SFT, with bootstrap confidence intervals above zero.
+We separate the results into two layers. The primary held-out result evaluates the interpretable combined AND verifier with thresholds selected on development examples and tested on image-disjoint examples. The full-benchmark verifier comparison then asks how generic and evidence-aware VLM judging compare when evaluated on all synthetic present/absent examples.
+
+\subsection{Primary Held-Out Result}
+
+Table~\ref{tab:heldout_image_split} reports the cleaner held-out image split. Combined path+OCR verification improves absent F1 for both SeekUI and SeekUI-SFT, with bootstrap confidence intervals above zero. This is the main validation result because it avoids shared images across development and test examples.
 
 \input{../paper_assets/tables/heldout_image_split.tex}
 
-Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981.
+\subsection{Full-Benchmark Verifier Comparison}
+
+Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981. These rows should be read as verifier comparisons rather than the primary held-out claim: the evidence-aware VLM result shows that screenshot reasoning and scanpath/OCR evidence can be complementary, but the primary split-controlled result remains the combined AND image-split evaluation.
 
 \input{../paper_assets/tables/main_results.tex}
 
-Table~\ref{tab:realistic_absent_validation} reports the manually reviewed validation set. Combined AND best-F1 improves over prompt-only from 0.7907 to 0.9159 absent F1, reducing absent-to-present errors from 16 to 1.
+\subsection{Realistic Absent Validation}
+
+Table~\ref{tab:realistic_absent_validation} reports the manually reviewed validation set. Combined AND best-F1 improves over prompt-only from 0.7907 to 0.9159 absent F1, reducing absent-to-present errors from 16 to 1. This is a small external-validity check, not a replacement for a larger real absent benchmark.
 
 \input{../paper_assets/tables/realistic_absent_validation.tex}
 

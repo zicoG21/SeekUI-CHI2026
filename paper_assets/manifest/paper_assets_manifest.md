@@ -47,4 +47,4 @@ Source note: CHPC paper checkpoint and research notes, 2026-06-11
 
 ## Caveat
 
-Candidate-verifier rows with F1 around 0.95 are diagnostic/oracle-like because they rely on candidate similarity evidence; the practical paper headline should use combined AND and evidence-aware VLM rows unless the candidate evidence is fully justified.
+Candidate-verifier rows with F1 around 0.95 are diagnostic/oracle-like because they rely on candidate similarity evidence. The primary paper headline should use the image-split combined AND result. Evidence-aware VLM rows should be framed as full-benchmark verifier comparisons until matched split validation is available.
