@@ -101,6 +101,22 @@ def export_images(rows, image_root, out_dir):
     return copied
 
 
+def missing_rows(rows):
+    result = []
+    for row in rows:
+        if row.get("_resolved_image"):
+            continue
+        image = str(row.get("image", "") or "")
+        result.append({
+            "review_id": row.get("review_id", ""),
+            "image": image,
+            "basename": Path(image).name,
+            "tried_relative": str(Path(image)),
+            "tried_flat": str(Path("vsgui10k-images") / Path(image).name),
+        })
+    return result
+
+
 def compact_rows(rows):
     result = []
     for row in rows:
@@ -119,7 +135,7 @@ def compact_rows(rows):
     return result
 
 
-def write_md(path, rows, copied, sheet_path, review_csv):
+def write_md(path, rows, copied, sheet_path, review_csv, missing_csv):
     missing = sum(1 for row in rows if not row.get("_resolved_image"))
     lines = [
         "# Realistic Absent Review Package",
@@ -129,6 +145,7 @@ def write_md(path, rows, copied, sheet_path, review_csv):
         f"- Missing images: {missing}",
         f"- Contact sheet: `{sheet_path}`",
         f"- Review CSV: `{review_csv}`",
+        f"- Missing-image CSV: `{missing_csv}`",
         "",
         "Fill the review CSV columns:",
         "",
@@ -170,15 +187,24 @@ def main():
     copied = export_images(rows, image_root, copied_dir)
     review_rows = compact_rows(rows)
     write_csv(review_csv, review_rows, list(review_rows[0].keys()) if review_rows else [])
+    missing_csv = out_dir / "missing_images.csv"
+    missing = missing_rows(rows)
+    write_csv(
+        missing_csv,
+        missing,
+        ["review_id", "image", "basename", "tried_relative", "tried_flat"],
+    )
     sheet_count = make_contact_sheet(rows, image_root, contact_sheet, args.cols, args.thumb_width, args.thumb_height, 26)
-    write_md(out_dir / "real_absent_review_package.md", rows, copied, contact_sheet, review_csv)
+    write_md(out_dir / "real_absent_review_package.md", rows, copied, contact_sheet, review_csv, missing_csv)
 
     print(json.dumps({
         "absent_rows": len(rows),
         "images_copied": copied,
+        "missing_images": len(missing),
         "contact_sheet_images": sheet_count,
         "review_csv": str(review_csv),
         "contact_sheet": str(contact_sheet),
+        "missing_csv": str(missing_csv),
         "summary_md": str(out_dir / "real_absent_review_package.md"),
     }, indent=2))
 
