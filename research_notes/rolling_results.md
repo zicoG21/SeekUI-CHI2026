@@ -455,6 +455,7 @@ Takeaways:
   - Variants: `evidence_aware`, `evidence_conservative`, `evidence_rescue_present`.
   - Main comparison: OCR-aware VLM vs combined AND vs evidence-aware VLM.
   - Key question: can the VLM use path/OCR evidence to keep OCR-aware accuracy while recovering combined AND's not-found safety?
+  - Run `scripts_utah/export_vlm_ablation_table.slurm` after jobs finish to rank prompt-only, combined, VLM presence, and VLM evidence variants in one table.
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
 - Small real/manual absent validation protocol execution.
 
@@ -497,4 +498,7 @@ scripts_utah/vlm_evidence_presence.slurm
 scripts_utah/submit_vlm_evidence_ablation.sh
 scripts_greatlakes/vlm_evidence_presence.slurm
 scripts_greatlakes/submit_vlm_evidence_ablation.sh
+scripts_research/export_vlm_ablation_table.py
+scripts_utah/export_vlm_ablation_table.slurm
+scripts_greatlakes/export_vlm_ablation_table.slurm
 ```
