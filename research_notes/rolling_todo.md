@@ -36,7 +36,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
 | P2 | Multi-sample scanpath uncertainty | pending | Sample K scanpaths per target to measure endpoint variance and agreement if extra A40 capacity remains |
-| P2 | Small real/manual absent validation | starter + safe-prefill code ready | Prefill present rows, fill/review absent rows, then run prepare with `SHEET=$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prefilled.csv` |
+| P2 | Small real/manual absent validation | review package code ready | Prefill present rows, export absent review package, fill 50-row review CSV, merge, then prepare eval JSON |
 
 ## Commands To Run Next
 
@@ -187,10 +187,24 @@ sbatch scripts_utah/prefill_real_absent_validation_sheet.slurm
 cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prefilled.md"
 ```
 
-After filling the starter CSV, prepare model/eval JSON:
+Export a compact absent-only review package:
 
 ```bash
-SHEET="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prefilled.csv" \
+sbatch scripts_utah/export_real_absent_review_package.slurm
+cat "$SEEKUI_WORK/outputs/real_absent_validation/review_package/real_absent_review_package.md"
+```
+
+After filling `review_package/real_absent_rows_to_fill.csv`, merge it back:
+
+```bash
+sbatch scripts_utah/merge_real_absent_review.slurm
+cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_merge.md"
+```
+
+Then prepare model/eval JSON:
+
+```bash
+SHEET="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_filled.csv" \
 sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm
 cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prep.md"
 ```
