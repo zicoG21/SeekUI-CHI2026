@@ -1,8 +1,0 @@
-group,label,count
-prompt_wrong_combined_correct,"Prompt wrong, combined correct",15
-prompt_correct_combined_wrong,"Prompt correct, combined wrong",6
-both_wrong,Both wrong,3
-both_correct,Both correct,76
-absent_false_present_corrected,Absent false-present corrected by combined,15
-new_present_false_absent,New present false-absent from combined,6
-kept_absent_false_present,Absent false-present kept by combined,1

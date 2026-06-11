@@ -1,4 +1,0 @@
-index,review_id,image,image_basename,target,gold_status,prompt_status,combined_status,prompt_correct,combined_correct,case_tags,path_best_evidence,ocr_score,ocr_text,ocr_conf,ambiguity_level,manual_notes
-19,19,vsgui10k-images/55251b.png,55251b.png,Videos,present,absent,absent,0,0,both_wrong,0.7420385412806101,0.6666666666666666,Movies,94.252296,low,auto_prefilled_present_verify_if_used
-24,24,vsgui10k-images/8b2ea2.png,8b2ea2.png,Player,present,absent,absent,0,0,both_wrong,0.8901959259819383,1.0,Player,96.479752,low,auto_prefilled_present_verify_if_used
-88,88,vsgui10k-images/b8c70a.png,b8c70a.png,settings,absent,present,present,0,0,both_wrong;kept_absent_false_present,0.24621813941149628,0.5714285714285714,Trains,96.312523,low,travel bus search page has no settings visible

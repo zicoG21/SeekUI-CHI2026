@@ -10,3 +10,9 @@ data/*.json
 vsgui10k-images/
 outputs/
 results/
+
+# Local research notes and paper drafting artifacts.
+RESEARCH_TODO.md
+research_notes/
+paper_draft/
+paper_assets/
