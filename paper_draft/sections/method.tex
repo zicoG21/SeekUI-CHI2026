@@ -17,7 +17,20 @@ The first baseline uses SeekUI's prompt-only output. If the model emits an absen
 
 The cognitive stopping layer measures whether the predicted scanpath provides evidence for a target-like candidate. Intuitively, a present target should eventually attract the path toward a stable region, while an absent target often yields weak, diffuse, or unsupported evidence. The path score is not a new scanpath generator; it is a post-hoc signal derived from the generated path.
 
-We use this score to convert some present predictions into absent predictions. A low path-evidence score increases the likelihood that the model is making a forced-choice commitment rather than finding a real target.
+For each screenshot, we build a candidate set from known target annotations in the released data. Each candidate has a center point $c_j$ and text label $t_j$. For a query $q$ and predicted fixation point $f_i$, we compute:
+
+\[
+  e(f_i, c_j, q, t_j) =
+  \operatorname{sim}(q,t_j) \cdot \exp\left(-\frac{\|f_i-c_j\|_2}{r}\right),
+\]
+
+where $\operatorname{sim}$ is a normalized fuzzy string similarity and $r$ is a radius proportional to the image diagonal. The path evidence score is the maximum evidence over all predicted fixations and candidates:
+
+\[
+  E_{\mathrm{path}} = \max_{i,j} e(f_i,c_j,q,t_j).
+\]
+
+A low $E_{\mathrm{path}}$ increases the likelihood that the model is making a forced-choice commitment rather than finding a real target.
 
 \subsection{OCR Candidate Verification}
 
@@ -25,12 +38,61 @@ Because the released subset is text-target dominated, OCR provides an interpreta
 
 The OCR verifier therefore should not be treated as a complete GUI understanding model. Its role is narrower: it checks whether visible text supports the target cue.
 
+Let $\mathcal{O}(I)$ be OCR candidates extracted from screenshot $I$ after filtering by OCR confidence. The OCR evidence score is:
+
+\[
+  E_{\mathrm{ocr}} = \max_{o_k \in \mathcal{O}(I)} \operatorname{sim}(q,o_k).
+\]
+
 \subsection{Combined AND Verifier}
 
-The combined verifier rejects a target only when both path evidence and OCR evidence are weak. This AND rule is intentionally conservative: it tries to reduce absent false-present errors while avoiding unnecessary rejection of visible targets. Thresholds are selected on development examples and evaluated on held-out examples. The image-disjoint split is the primary evaluation because it avoids shared screenshots across development and test sets.
+The combined verifier rejects a target only when both path evidence and OCR evidence are weak:
+
+\[
+  \hat{y} =
+  \begin{cases}
+  \mathrm{absent}, & E_{\mathrm{path}} < \tau_{\mathrm{path}} \land E_{\mathrm{ocr}} < \tau_{\mathrm{ocr}}\\
+  \mathrm{present}, & \mathrm{otherwise.}
+  \end{cases}
+\]
+
+This AND rule is intentionally conservative: it tries to reduce absent false-present errors while avoiding unnecessary rejection of visible targets. Thresholds are selected on development examples by optimizing absent F1, then evaluated on held-out examples. The image-disjoint split is the primary evaluation because it avoids shared screenshots across development and test sets.
+
+\begin{figure}[t]
+\small
+\fbox{\begin{minipage}{0.94\linewidth}
+\textbf{Algorithm 1: Combined path+OCR verifier}
+
+\begin{enumerate}
+  \item Run SeekUI on screenshot $I$ and query $q$ to obtain scanpath $S$ and original status.
+  \item Build UI candidates from target annotations and OCR candidates from the screenshot.
+  \item Compute $E_{\mathrm{path}} = \max_{f_i,c_j} \operatorname{sim}(q,t_j)\exp(-\|f_i-c_j\|_2/r)$.
+  \item Compute $E_{\mathrm{ocr}} = \max_{o_k} \operatorname{sim}(q,o_k)$ over OCR candidates above the confidence threshold.
+  \item If both $E_{\mathrm{path}} < \tau_{\mathrm{path}}$ and $E_{\mathrm{ocr}} < \tau_{\mathrm{ocr}}$, output \texttt{absent}; otherwise output \texttt{present}.
+\end{enumerate}
+\end{minipage}}
+\caption{Reproducible decision rule for the interpretable combined verifier.}
+\label{fig:combined_algorithm}
+\end{figure}
 
 \subsection{VLM Baselines and Evidence-Aware VLM}
 
 We also evaluate generic VLM yes/no target-presence prompts. These baselines answer a reviewer-risk question: could we simply ask a VLM whether the target is visible? We test direct, conservative, OCR-aware, and search-behavior prompts.
 
 Finally, we evaluate an evidence-aware VLM verifier. This verifier sees the screenshot as primary evidence and also receives structured path/OCR evidence from the post-hoc pipeline. We report it both on the full benchmark and on the matched image split. In the current framing, combined AND is the main interpretable verifier and evidence-aware VLM is the strongest validated verifier.
+
+\begin{figure}[t]
+\small
+\fbox{\begin{minipage}{0.94\linewidth}
+\textbf{Algorithm 2: Evidence-aware VLM verifier}
+
+\begin{enumerate}
+  \item Start from the combined-verifier record for screenshot $I$ and query $q$.
+  \item Construct a VLM prompt containing the screenshot, target cue, original status, combined status, $E_{\mathrm{path}}$, $E_{\mathrm{ocr}}$, best OCR text, and thresholds.
+  \item Instruct the VLM to use the screenshot as primary evidence and answer only \texttt{status: present} or \texttt{status: absent}.
+  \item Parse the answer using explicit present/absent patterns; if parsing is ambiguous, default to \texttt{present}.
+\end{enumerate}
+\end{minipage}}
+\caption{Evidence-aware VLM verifier. The prompt includes structured evidence but asks the VLM to judge the screenshot as the primary source.}
+\label{fig:vlm_algorithm}
+\end{figure}

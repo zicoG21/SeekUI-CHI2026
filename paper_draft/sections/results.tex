@@ -26,9 +26,9 @@ Table~\ref{tab:realistic_absent_validation} reports the manually reviewed valida
 
 \input{../paper_assets/tables/realistic_absent_validation.tex}
 
-Table~\ref{tab:method_strength_summary} gives the current narrative summary of each method's role.
+\subsection{Method Roles}
 
-\input{../paper_assets/tables/method_strength_summary.tex}
+The methods play different roles rather than forming a simple leaderboard. Prompt-only SeekUI is the target-present baseline. Cognitive stopping isolates the contribution of scanpath evidence. Combined AND is the main interpretable method because its decision can be traced to path and OCR scores. Generic VLM yes/no prompting is a strong reviewer-risk baseline, but it is prompt-sensitive. Evidence-aware VLM is the strongest validated verifier because it combines screenshot reasoning with structured path/OCR evidence.
 
 \subsection{Sanity and Filtered Sensitivity}
 

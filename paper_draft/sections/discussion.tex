@@ -11,3 +11,6 @@ Generic VLM yes/no prompting is a strong baseline and should remain in the paper
 
 \paragraph{Implications for non-text and associative targets.}
 The released subset is text-target dominated, so the current results do not solve non-text, icon, or associative GUI search. However, the target-absence formulation is relevant to those directions. Non-text target search will need candidate evidence beyond OCR, such as icon proposals, visual embeddings, or crop-level VLM verification. Associative search will need new query annotations because correctness is more semantic and context-dependent.
+
+\paragraph{Implications for GUI evaluation.}
+Forced-choice synthetic users can overestimate findability: if a model must always return an element, it may make an interface look searchable even when the desired action is absent from the screen. Uncertainty-aware search changes the evaluation question. A GUI can fail because the target is not exposed, because the screen contains a strong distractor, or because the target requires navigation or contextual state. A target-absence verifier can therefore support UI evaluation by flagging screens where the expected action is missing or where visible distractors attract unsupported commitments.
