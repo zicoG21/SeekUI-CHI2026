@@ -166,6 +166,7 @@ def build_report(work_dir):
     filtered_rows = read_csv(outputs / "vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv")
     hardcase_rows = read_csv(outputs / "vlm_hard_cases" / "vlm_hard_case_comparison.csv")
     vlm_rows = read_csv(outputs / "paper_tables" / "vlm_ablation_table.csv")
+    real_absent_rows = read_csv(outputs / "real_absent_validation" / "real_absent_results.csv")
     image_cue_summary = None
     image_cue_paths = sorted(comparisons.glob("image_cue_SeekUI_vs_SeekUI_sft_*.json"))
     if image_cue_paths:
@@ -196,6 +197,7 @@ def build_report(work_dir):
         "ranked_diagnostic_absent_status": [row for row in ranked if is_diagnostic_variant(row)],
         "selected_absent_status": chosen,
         "vlm_ablation_rows": vlm_rows,
+        "real_absent_rows": real_absent_rows,
         "image_cue_proxy": image_cue_summary,
         "image_cue_proxy_path": str(image_cue_paths[-1]) if image_cue_paths else "",
         "evidence_filtered_rows": filtered_rows,
@@ -246,6 +248,32 @@ def md_table_hardcases(rows):
             f"| {row.get('label', '')} | {row.get('case_source', '')} | {row.get('case_type', '')} | "
             f"{row.get('count', '')} | {fmt(row.get('mean_path_best_evidence'))} | {fmt(row.get('mean_ocr_score'))} |"
         )
+    return lines
+
+
+def md_table_real_absent(rows):
+    if not rows:
+        return [
+            "Pending: missing `outputs/real_absent_validation/real_absent_results.csv`.",
+            "",
+            "Run the real-absent VLM baselines after preparing `real_absent_validation_eval.json`.",
+        ]
+    lines = [
+        "| Model | Family | Variant | N | Acc | Precision | Recall | F1 | Present->Absent | Absent->Present |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('model', '')} | {row.get('family', '')} | {row.get('variant', '')} | "
+            f"{row.get('num_examples', '')} | {fmt(row.get('accuracy'))} | "
+            f"{fmt(row.get('absent_precision'))} | {fmt(row.get('absent_recall'))} | "
+            f"{fmt(row.get('absent_f1'))} | {row.get('present_absent', '')} | "
+            f"{row.get('absent_present', '')} |"
+        )
+    lines.extend([
+        "",
+        "Interpretation: this 100-row manually reviewed set is an external-validity smoke test for realistic absent queries.",
+    ])
     return lines
 
 
@@ -314,6 +342,10 @@ def write_md(path, report):
         "## VLM vs Combined Hard-Case Comparison",
         "",
         *md_table_hardcases(report["hardcase_comparison_rows"]),
+        "",
+        "## Realistic Absent Validation",
+        "",
+        *md_table_real_absent(report["real_absent_rows"]),
         "",
         "## Image-Cue Multimodal Proxy",
         "",

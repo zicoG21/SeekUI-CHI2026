@@ -212,10 +212,14 @@ cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_prep.md"
 Then run OCR-aware VLM on the filled realistic validation set:
 
 ```bash
-INPUT_JSON="$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_eval.json" \
-MODEL_LABEL=SeekUI_vlm_presence_real_absent_ocr_aware \
-VLM_PROMPT_VARIANT=ocr_aware \
-sbatch scripts_utah/vlm_presence_baseline.slurm
+bash scripts_utah/submit_real_absent_vlm_baselines.sh
+cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_results.md"
+```
+
+If you want the diagnostic evidence prompt too, add `RUN_EVIDENCE=1`:
+
+```bash
+RUN_EVIDENCE=1 bash scripts_utah/submit_real_absent_vlm_baselines.sh
 ```
 
 Run the same evidence-aware VLM ablation on Great Lakes with `jaabell0`:

@@ -268,6 +268,21 @@ def build_items(limit, variants):
             ],
             "command": "sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm",
         },
+        {
+            "id": "real_absent_vlm_baselines",
+            "title": "Realistic absent validation VLM baselines",
+            "required": [
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_real_absent_status_eval.json",
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_real_absent_ocr_aware_status_eval.json",
+                "{outputs}/real_absent_validation/real_absent_results.md",
+            ],
+            "optional": [
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_real_absent_conservative_status_eval.json",
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_real_absent_search_behavior_status_eval.json",
+                "{outputs}/vlm_evidence_predictions_SeekUI_vlm_evidence_real_absent_evidence_aware_status_eval.json",
+            ],
+            "command": "bash scripts_utah/submit_real_absent_vlm_baselines.sh",
+        },
     ]
 
 
