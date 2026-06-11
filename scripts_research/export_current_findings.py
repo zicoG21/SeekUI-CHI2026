@@ -18,6 +18,11 @@ KEY_VARIANTS = [
     ("SeekUI_sft", "vlm_evidence_evidence_aware"),
 ]
 
+TARGET_SPLIT_FILES = [
+    ("SeekUI", "target", "devtest_status_SeekUI_target.csv"),
+    ("SeekUI_sft", "target", "devtest_status_SeekUI_sft_target.csv"),
+]
+
 
 def read_csv(path):
     if not path.exists():
@@ -121,6 +126,104 @@ def table_real_absent(rows):
     return lines
 
 
+def read_target_disjoint_rows(work_dir):
+    out_dir = work_dir / "outputs" / "devtest_status"
+    rows = []
+    for model, split, filename in TARGET_SPLIT_FILES:
+        path = out_dir / filename
+        for row in read_csv(path):
+            if row.get("split") != "test":
+                continue
+            rows.append({
+                "model_group": model,
+                "split_by": split,
+                **row,
+            })
+    return rows
+
+
+def table_target_disjoint(rows):
+    if not rows:
+        return ["Pending: target-disjoint dev/test status outputs not found."]
+    lines = [
+        "| Model Group | Method | Acc | F1 | Delta F1 | 95% CI | Delta Acc | 95% CI | P->A | A->P |",
+        "|---|---|---:|---:|---:|---|---:|---|---:|---:|",
+    ]
+    for row in rows:
+        ci_f1 = ""
+        ci_acc = ""
+        if row.get("baseline"):
+            ci_f1 = f"[{fmt(row.get('delta_absent_f1_ci_low'))}, {fmt(row.get('delta_absent_f1_ci_high'))}]"
+            ci_acc = f"[{fmt(row.get('delta_accuracy_ci_low'))}, {fmt(row.get('delta_accuracy_ci_high'))}]"
+        lines.append(
+            f"| {row.get('model_group', '')} | {row.get('name', '')} | {fmt(row.get('accuracy'))} | "
+            f"{fmt(row.get('absent_f1'))} | {fmt(row.get('delta_absent_f1_mean'))} | {ci_f1} | "
+            f"{fmt(row.get('delta_accuracy_mean'))} | {ci_acc} | {row.get('present_absent', '')} | "
+            f"{row.get('absent_present', '')} |"
+        )
+    return lines
+
+
+def directions_summary(summary):
+    has_target = bool(summary.get("target_disjoint_rows"))
+    has_real_absent = bool(summary.get("real_absent_rows"))
+    return [
+        {
+            "direction": "1. Multimodal / non-text UI search",
+            "status": "partial",
+            "what_we_have": (
+                "Target-crop image-cue proxy, OCR candidate verifier, annotation-free OCR candidate inventory, "
+                "and evidence-aware VLM reasoning."
+            ),
+            "evidence": (
+                "Image-cue proxy is feasible but weak; annotation-free OCR candidate inventory improves SeekUI F1 "
+                "from 0.7300 to 0.7995."
+            ),
+            "remaining": "Native icon/non-text target data and UI component/icon proposals are still needed.",
+        },
+        {
+            "direction": "2. Cognitive model / stopping",
+            "status": "strong",
+            "what_we_have": "Cognitive stopping, path evidence, behavioral metrics, combined AND verifier, and evidence-aware VLM.",
+            "evidence": "Combined AND improves SeekUI absent F1 from 0.7300 to 0.8824; evidence-aware VLM reaches 0.8981.",
+            "remaining": "A deployable candidate inventory can be strengthened beyond OCR-only proposals.",
+        },
+        {
+            "direction": "3. Target absent handling",
+            "status": "strong",
+            "what_we_have": "Synthetic present/absent benchmark, filtered sensitivity, held-out splits, target-disjoint split, and 100-row realistic validation.",
+            "evidence": (
+                "Realistic validation improves F1 from 0.7907 to 0.9159; "
+                + ("target-disjoint validation is positive." if has_target else "target-disjoint validation is pending.")
+            ),
+            "remaining": (
+                "Expand realistic validation beyond 100 rows." if has_real_absent
+                else "Complete realistic validation."
+            ),
+        },
+        {
+            "direction": "4. Associative search",
+            "status": "exploratory",
+            "what_we_have": "Semantic-query v3 with association-first examples and split summaries.",
+            "evidence": "Association queries are represented as a small benchmark slice, but not yet a standalone contribution.",
+            "remaining": "Needs a dedicated dataset or stronger query-generation protocol before becoming a main paper thread.",
+        },
+    ]
+
+
+def table_directions(rows):
+    lines = [
+        "| Direction | Status | What We Have | Evidence | Remaining |",
+        "|---|---|---|---|---|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row['direction']} | {row['status']} | {row['what_we_have']} | "
+            f"{row['evidence']} | {row['remaining']} |"
+        )
+    return lines
+
+
 def write_md(path, summary):
     lines = [
         "# Current SeekUI Follow-Up Findings",
@@ -143,6 +246,14 @@ def write_md(path, summary):
         "## Realistic Absent Validation",
         "",
         *table_real_absent(summary["real_absent_rows"]),
+        "",
+        "## Target-Disjoint Robustness",
+        "",
+        *table_target_disjoint(summary["target_disjoint_rows"]),
+        "",
+        "## Original 3+1 Direction Coverage",
+        "",
+        *table_directions(summary["directions_summary"]),
         "",
         "## Interpretation",
         "",
@@ -168,6 +279,7 @@ def main():
     real_dir = work_dir / "outputs" / "real_absent_validation"
     absent_rows = read_csv(tables / "absent_status_core.csv")
     real_rows = read_csv(real_dir / "real_absent_results.csv")
+    target_disjoint_rows = read_target_disjoint_rows(work_dir)
     indexed = row_index(absent_rows)
     seekui_prompt = indexed.get(("SeekUI", "prompt_only"), {})
     seekui_combined = indexed.get(("SeekUI", "combined_and_present_only_best_f1"), {})
@@ -204,6 +316,14 @@ def main():
             "On the 100-row realistic absent validation set, combined best-F1 improves F1 from "
             f"{fmt(real_prompt.get('absent_f1'))} to {fmt(real_combined.get('absent_f1'))}."
         )
+    for row in target_disjoint_rows:
+        if row.get("model_group") == "SeekUI" and row.get("name") == "SeekUI_combined":
+            claims.append(
+                "Target-disjoint validation remains positive for SeekUI combined AND: test absent F1 "
+                f"{fmt(row.get('absent_f1'))}, delta F1 {fmt(row.get('delta_absent_f1_mean'))} "
+                f"with CI [{fmt(row.get('delta_absent_f1_ci_low'))}, {fmt(row.get('delta_absent_f1_ci_high'))}]."
+            )
+            break
 
     summary = {
         "work_dir": str(work_dir),
@@ -211,7 +331,9 @@ def main():
         "selected_rows": select_rows(absent_rows),
         "top_practical_rows": best_practical(absent_rows),
         "real_absent_rows": real_selected,
+        "target_disjoint_rows": target_disjoint_rows,
     }
+    summary["directions_summary"] = directions_summary(summary)
     write_json(Path(args.output_json), summary)
     write_md(Path(args.output_md), summary)
     print(json.dumps({
