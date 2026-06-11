@@ -175,23 +175,67 @@ def table_filtered_sensitivity(rows):
     return lines
 
 
-def read_tradeoff_utility_rows(work_dir, limit=12):
+TRADEOFF_DISPLAY_RATIOS = {
+    "PtoA:1_AtoP:1",
+    "PtoA:1_AtoP:5",
+    "PtoA:5_AtoP:1",
+}
+
+TRADEOFF_DISPLAY_METHODS = (
+    "SeekUI_combined_and_present_only",
+    "SeekUI_annotation_free_combined_and_present_only",
+    "SeekUI_annotation_free_visual_combined_and_present_only",
+    "SeekUI_cognitive_stop_present_only",
+    "SeekUI_sft_combined_and_present_only",
+    "SeekUI_sft_annotation_free_combined_and_present_only",
+)
+
+
+def is_practical_tradeoff_row(row):
+    method = row.get("method", "")
+    if "candidate_verifier" in method:
+        return False
+    if method.endswith("_stopping_evidence") or method.endswith("_visual_stopping_evidence"):
+        return False
+    if as_float(row.get("absent_f1"), 0.0) < 0.5:
+        return False
+    return any(token in method for token in TRADEOFF_DISPLAY_METHODS)
+
+
+def read_tradeoff_utility_rows(work_dir, limit=18):
     path = work_dir / "outputs" / "tradeoff_utility" / "tradeoff_cost_utility.csv"
     rows = read_csv(path)
-    rows.sort(
+    curated = [
+        row for row in rows
+        if row.get("cost_ratio") in TRADEOFF_DISPLAY_RATIOS and is_practical_tradeoff_row(row)
+    ]
+    curated.sort(
         key=lambda row: (
-            row.get("cost_ratio", ""),
+            sorted(TRADEOFF_DISPLAY_RATIOS).index(row.get("cost_ratio"))
+            if row.get("cost_ratio") in TRADEOFF_DISPLAY_RATIOS else 999,
             as_float(row.get("expected_cost_per_example"), 999.0),
             -as_float(row.get("absent_f1"), -1.0),
         )
     )
-    return rows[:limit]
+    if curated:
+        return curated[:limit]
+
+    fallback = [row for row in rows if is_practical_tradeoff_row(row)]
+    fallback.sort(
+        key=lambda row: (
+            as_float(row.get("expected_cost_per_example"), 999.0),
+            -as_float(row.get("absent_f1"), -1.0),
+        )
+    )
+    return fallback[:limit]
 
 
 def table_tradeoff_utility(rows):
     if not rows:
         return ["Pending: run `sbatch scripts_utah/export_tradeoff_utility.slurm`."]
     lines = [
+        "Curated practical rows are shown here; the full sweep remains in `outputs/tradeoff_utility/tradeoff_cost_utility.csv`.",
+        "",
         "| Cost Ratio | Method | Thresholds | Expected Cost | Acc | F1 | P->A | A->P |",
         "|---|---|---|---:|---:|---:|---:|---:|",
     ]
@@ -385,6 +429,16 @@ def table_revision_route(rows):
 def directions_summary(summary):
     has_target = bool(summary.get("target_disjoint_rows"))
     has_real_absent = bool(summary.get("real_absent_rows"))
+    indexed = row_index(summary.get("selected_rows", []))
+    ocr_free = indexed.get(("SeekUI", "annotation_free_combined_and_present_only_best_f1"), {})
+    visual_free = indexed.get(("SeekUI", "annotation_free_visual_combined_and_present_only_best_f1"), {})
+    visual_note = ""
+    if ocr_free and visual_free:
+        visual_note = (
+            f" Naive OCR+edge visual proposals underperform OCR-only "
+            f"({fmt(visual_free.get('absent_f1'))} vs {fmt(ocr_free.get('absent_f1'))}), "
+            "so this is a negative proposal-quality result rather than a new best deployable method."
+        )
     return [
         {
             "direction": "1. Multimodal / non-text UI search",
@@ -396,9 +450,9 @@ def directions_summary(summary):
             ),
             "evidence": (
                 "Image-cue proxy is feasible but weak; annotation-free OCR candidate inventory improves SeekUI F1 "
-                "from 0.7300 to 0.7995."
+                "from 0.7300 to 0.7995." + visual_note
             ),
-            "next_step": "Build a small icon/non-text validation set or candidate-crop VLM verifier.",
+            "next_step": "Use OCR-only as the current deployable approximation; test stronger UI/icon proposals or candidate-crop VLM next.",
             "remaining": "Native icon/non-text target data and UI component/icon proposals are still needed.",
         },
         {
@@ -450,25 +504,52 @@ def table_directions(rows):
     return lines
 
 
-def strong_accept_priorities():
+def strong_accept_priorities(summary):
+    large_real = summary.get("large_real_absent_status", {})
+    visual_status = summary.get("visual_inventory_status", {})
+    has_case_study = bool(summary.get("gui_case_study_rows"))
+    indexed = row_index(summary.get("selected_rows", []))
+    ocr_free = indexed.get(("SeekUI", "annotation_free_combined_and_present_only_best_f1"), {})
+    visual_free = indexed.get(("SeekUI", "annotation_free_visual_combined_and_present_only_best_f1"), {})
+    if visual_status.get("combined_exists"):
+        annotation_status = "visual ready"
+        if ocr_free and visual_free:
+            annotation_next = (
+                "Use OCR-only as the current deployable approximation; report OCR+edge visual proposals as a negative baseline "
+                f"({fmt(visual_free.get('absent_f1'))} vs OCR-only {fmt(ocr_free.get('absent_f1'))})."
+            )
+        else:
+            annotation_next = "Compare OCR-only and OCR+visual annotation-free variants."
+    else:
+        annotation_status = "started" if ocr_free else "pending"
+        annotation_next = "Strengthen OCR-only candidates with UI component/icon proposals or crop-level VLM candidates."
+
     return [
         {
             "priority": "Annotation-free verifier",
             "why": "Turns annotation-backed evidence from an oracle-like controlled analysis into a deployable approximation.",
-            "status": "started",
-            "next_step": "Strengthen OCR-only candidates with UI component/icon proposals or crop-level VLM candidates.",
+            "status": annotation_status,
+            "next_step": annotation_next,
         },
         {
             "priority": "Larger realistic validation",
             "why": "Directly addresses the main external-validity risk of the synthetic absent benchmark.",
-            "status": "started",
-            "next_step": "Scale the current 100-row set to 200-400 stratified present/absent rows.",
+            "status": "500-row starter ready" if large_real.get("exists") else "started",
+            "next_step": (
+                "Fill/review the 500-row package and convert it into eval JSON."
+                if large_real.get("exists")
+                else "Scale the current 100-row set to 200-400 stratified present/absent rows."
+            ),
         },
         {
             "priority": "UI evaluation case study",
             "why": "Makes the HCI implication concrete: forced-choice synthetic users can overstate screen findability.",
-            "status": "pending",
-            "next_step": "Select a few screens where prompt-only grounds to a plausible element but the uncertainty-aware verifier flags absence or weak evidence.",
+            "status": "done" if has_case_study else "pending",
+            "next_step": (
+                "Select one large visual example from each generated case type for the main paper figure."
+                if has_case_study
+                else "Select a few screens where prompt-only grounds to a plausible element but the uncertainty-aware verifier flags absence or weak evidence."
+            ),
         },
     ]
 
@@ -540,6 +621,7 @@ def write_md(path, summary):
         "",
         "- Annotation-backed candidate inventories remain diagnostic/upper-bound evidence, not a deployable assumption.",
         "- Annotation-free OCR candidates recover part of the gain, supporting deployability, but they underperform stronger UI/VLM evidence.",
+        "- Naive OCR+edge visual proposals underperform OCR-only annotation-free evidence, suggesting simple visual regions add noise; stronger UI detectors or crop-level VLM proposals are the right next deployable inventory path.",
         "- Evidence-aware VLM gives the strongest practical synthetic result, while combined AND remains the most transparent verifier.",
         "- The 100-row realistic validation is an external-validity smoke test; expanding it is the next data-facing priority.",
         "- The most important revision gaps are deployability and validity: annotation-free evidence plus larger realistic validation matter more than further prompt tuning.",
@@ -589,10 +671,17 @@ def main():
             f"{fmt(seekui_annotation_free.get('absent_f1'))}, showing the effect is not only an annotation-candidate artifact."
         )
     if seekui_prompt and seekui_annotation_free_visual:
-        claims.append(
-            "Annotation-free OCR+visual proposals reach SeekUI absent F1 "
-            f"{fmt(seekui_annotation_free_visual.get('absent_f1'))}, testing a more deployable candidate inventory."
-        )
+        if seekui_annotation_free:
+            claims.append(
+                "Naive OCR+edge visual proposals underperform OCR-only annotation-free evidence "
+                f"({fmt(seekui_annotation_free_visual.get('absent_f1'))} vs "
+                f"{fmt(seekui_annotation_free.get('absent_f1'))} F1), suggesting simple visual regions add noise."
+            )
+        else:
+            claims.append(
+                "Naive OCR+edge visual proposals reach SeekUI absent F1 "
+                f"{fmt(seekui_annotation_free_visual.get('absent_f1'))}, best treated as a proposal-quality baseline."
+            )
     if seekui_prompt and seekui_evidence:
         claims.append(
             "Evidence-aware VLM is the strongest practical synthetic verifier: absent F1 "
@@ -641,7 +730,7 @@ def main():
         "target_disjoint_rows": target_disjoint_rows,
     }
     summary["directions_summary"] = directions_summary(summary)
-    summary["strong_accept_priorities"] = strong_accept_priorities()
+    summary["strong_accept_priorities"] = strong_accept_priorities(summary)
     summary["revision_route"] = revision_route(summary)
     write_json(Path(args.output_json), summary)
     write_md(Path(args.output_md), summary)
