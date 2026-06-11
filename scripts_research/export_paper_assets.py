@@ -252,6 +252,63 @@ TAXONOMY_ROWS = [
     },
 ]
 
+METHOD_STRENGTH_ROWS = [
+    {
+        "method": "SeekUI prompt-only",
+        "family": "base model",
+        "synthetic_f1": 0.7300,
+        "realistic_f1": 0.7907,
+        "main_strength": "High absent precision; few present targets rejected.",
+        "main_weakness": "Forced-choice absent errors remain common.",
+        "recommended_role": "Baseline showing target-present assumption.",
+    },
+    {
+        "method": "Cognitive stopping",
+        "family": "scanpath evidence",
+        "synthetic_f1": 0.8522,
+        "realistic_f1": "",
+        "main_strength": "Large absent-recall gain from path evidence.",
+        "main_weakness": "Can over-reject present targets without OCR support.",
+        "recommended_role": "Behaviorally motivated mechanism.",
+    },
+    {
+        "method": "Combined AND best-F1",
+        "family": "path + OCR rule",
+        "synthetic_f1": 0.8824,
+        "realistic_f1": 0.9159,
+        "main_strength": "Best real-absent validation result; strong not-found safety.",
+        "main_weakness": "Conservative threshold creates present false-absent errors.",
+        "recommended_role": "Main interpretable practical method.",
+    },
+    {
+        "method": "VLM yes/no direct",
+        "family": "generic VLM",
+        "synthetic_f1": 0.8386,
+        "realistic_f1": 0.8542,
+        "main_strength": "Strong simple reviewer-risk baseline.",
+        "main_weakness": "Still misses many absent cases on synthetic benchmark.",
+        "recommended_role": "Simple baseline to rule out trivial prompting.",
+    },
+    {
+        "method": "VLM yes/no OCR-aware",
+        "family": "generic VLM",
+        "synthetic_f1": 0.8939,
+        "realistic_f1": 0.8824,
+        "main_strength": "Best generic prompt on synthetic benchmark.",
+        "main_weakness": "Prompt-sensitive and not scanpath-grounded.",
+        "recommended_role": "Strong VLM baseline.",
+    },
+    {
+        "method": "Evidence-aware VLM",
+        "family": "screenshot + evidence VLM",
+        "synthetic_f1": 0.8981,
+        "realistic_f1": "",
+        "main_strength": "Best practical synthetic result; combines VLM with evidence.",
+        "main_weakness": "Needs real-absent evidence-aware validation before headline.",
+        "recommended_role": "Promising next-stage verifier.",
+    },
+]
+
 
 CASE_SHEETS = [
     (
@@ -297,11 +354,23 @@ def write_csv(path, rows):
 
 
 def write_md_table(path, title, rows, columns, note=None):
+    text_columns = {
+        "model",
+        "family",
+        "variant",
+        "split",
+        "case_type",
+        "patterns",
+        "method",
+        "main_strength",
+        "main_weakness",
+        "recommended_role",
+    }
     lines = [f"# {title}", ""]
     if note:
         lines.extend([note, ""])
     lines.append("| " + " | ".join(label for _, label in columns) + " |")
-    lines.append("|" + "|".join("---:" if key not in {"model", "family", "variant", "split", "case_type", "patterns"} else "---" for key, _ in columns) + "|")
+    lines.append("|" + "|".join("---" if key in text_columns else "---:" for key, _ in columns) + "|")
     for row in rows:
         values = [fmt(row.get(key, "")) for key, _ in columns]
         lines.append("| " + " | ".join(values) + " |")
@@ -309,8 +378,19 @@ def write_md_table(path, title, rows, columns, note=None):
 
 
 def write_latex_table(path, rows, columns, caption, label):
-    colspec = "l" * sum(1 for key, _ in columns if key in {"model", "family", "variant", "split", "case_type", "patterns"})
-    colspec += "r" * (len(columns) - len(colspec))
+    text_columns = {
+        "model",
+        "family",
+        "variant",
+        "split",
+        "case_type",
+        "patterns",
+        "method",
+        "main_strength",
+        "main_weakness",
+        "recommended_role",
+    }
+    colspec = "".join("l" if key in text_columns else "r" for key, _ in columns)
     lines = [
         "\\begin{table}[t]",
         "\\centering",
@@ -399,6 +479,21 @@ def export_tables(out_dir):
             ],
             "Counts come from mined combined-verifier cases; patterns come from local contact-sheet review.",
         ),
+        (
+            "method_strength_summary",
+            "Method Strength Summary",
+            METHOD_STRENGTH_ROWS,
+            [
+                ("method", "Method"),
+                ("family", "Family"),
+                ("synthetic_f1", "Synthetic F1"),
+                ("realistic_f1", "Realistic F1"),
+                ("main_strength", "Main Strength"),
+                ("main_weakness", "Main Weakness"),
+                ("recommended_role", "Recommended Role"),
+            ],
+            "Compact narrative table for choosing the paper's main method and baselines.",
+        ),
     ]
     generated = []
     for stem, title, rows, columns, note in table_specs:
@@ -410,6 +505,12 @@ def export_tables(out_dir):
         write_latex_table(tex_path, rows, columns, title, f"tab:{stem}")
         generated.extend([csv_path, md_path, tex_path])
     return generated
+
+
+def strip_trailing_whitespace(path):
+    text = path.read_text(encoding="utf-8")
+    cleaned = "\n".join(line.rstrip() for line in text.splitlines()) + "\n"
+    path.write_text(cleaned, encoding="utf-8")
 
 
 def add_box(ax, xy, width, height, text, facecolor, edgecolor="#333333"):
@@ -470,6 +571,7 @@ def export_method_diagram(out_dir):
     fig.savefig(png_path, dpi=220, bbox_inches="tight")
     fig.savefig(svg_path, bbox_inches="tight")
     plt.close(fig)
+    strip_trailing_whitespace(svg_path)
     caption = (
         "# Method Diagram Caption\n\n"
         "Post-hoc target-presence verification for GUI visual search. SeekUI first produces a scanpath and status. "
@@ -605,6 +707,7 @@ def export_error_taxonomy_figure(out_dir):
     fig.savefig(png_path, dpi=220, bbox_inches="tight")
     fig.savefig(svg_path, bbox_inches="tight")
     plt.close(fig)
+    strip_trailing_whitespace(svg_path)
     caption_path = out_dir / "figures" / "error_taxonomy_caption.md"
     caption_path.write_text(
         "# Error Taxonomy Figure Caption\n\n"
@@ -634,6 +737,7 @@ def export_manifest(out_dir, generated):
         "- `tables/main_results.*`: full synthetic present/absent benchmark baselines and verifier variants.",
         "- `tables/heldout_image_split.*`: cleaner image-split headline result with bootstrap confidence intervals.",
         "- `tables/realistic_absent_validation.*`: small manually reviewed external-validity check.",
+        "- `tables/method_strength_summary.*`: compact story table comparing strengths, weaknesses, and paper role.",
         "- `figures/method_diagram.*`: method overview.",
         "- `figures/case_taxonomy_contact_sheet.*`: qualitative case figure from local contact sheets.",
         "- `figures/case_taxonomy_compact.*`: compact qualitative case figure for paper body.",

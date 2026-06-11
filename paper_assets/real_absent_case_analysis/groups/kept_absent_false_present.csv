@@ -1,0 +1,2 @@
+index,review_id,image,image_basename,target,gold_status,prompt_status,combined_status,prompt_correct,combined_correct,case_tags,path_best_evidence,ocr_score,ocr_text,ocr_conf,ambiguity_level,manual_notes
+88,88,vsgui10k-images/b8c70a.png,b8c70a.png,settings,absent,present,present,0,0,both_wrong;kept_absent_false_present,0.24621813941149628,0.5714285714285714,Trains,96.312523,low,travel bus search page has no settings visible

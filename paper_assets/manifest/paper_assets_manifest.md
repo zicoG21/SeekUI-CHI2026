@@ -27,6 +27,9 @@ Source note: CHPC paper checkpoint and research notes, 2026-06-11
 - `tables/main_results.csv`
 - `tables/main_results.md`
 - `tables/main_results.tex`
+- `tables/method_strength_summary.csv`
+- `tables/method_strength_summary.md`
+- `tables/method_strength_summary.tex`
 - `tables/realistic_absent_validation.csv`
 - `tables/realistic_absent_validation.md`
 - `tables/realistic_absent_validation.tex`
@@ -36,6 +39,7 @@ Source note: CHPC paper checkpoint and research notes, 2026-06-11
 - `tables/main_results.*`: full synthetic present/absent benchmark baselines and verifier variants.
 - `tables/heldout_image_split.*`: cleaner image-split headline result with bootstrap confidence intervals.
 - `tables/realistic_absent_validation.*`: small manually reviewed external-validity check.
+- `tables/method_strength_summary.*`: compact story table comparing strengths, weaknesses, and paper role.
 - `figures/method_diagram.*`: method overview.
 - `figures/case_taxonomy_contact_sheet.*`: qualitative case figure from local contact sheets.
 - `figures/case_taxonomy_compact.*`: compact qualitative case figure for paper body.
