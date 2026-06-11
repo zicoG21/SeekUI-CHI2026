@@ -23,6 +23,18 @@ TARGET_SPLIT_FILES = [
     ("SeekUI_sft", "target", "devtest_status_SeekUI_sft_target.csv"),
 ]
 
+FILTERED_KEY_NAMES = {
+    "SeekUI_prompt",
+    "SeekUI_cognitive",
+    "SeekUI_combined_default",
+    "SeekUI_combined_best_f1",
+    "SeekUI_sft_prompt",
+    "SeekUI_sft_combined_default",
+    "SeekUI_sft_combined_best_f1",
+    "SeekUI_vlm_evidence_evidence_aware",
+    "SeekUI_sft_vlm_evidence_evidence_aware",
+}
+
 
 def read_csv(path):
     if not path.exists():
@@ -126,6 +138,41 @@ def table_real_absent(rows):
     return lines
 
 
+def read_filtered_sensitivity_rows(work_dir):
+    outputs = work_dir / "outputs"
+    rows = []
+    for row in read_csv(outputs / "filtered_status_eval" / "filtered_absent_status.csv"):
+        name = row.get("name", "")
+        if not name or name in FILTERED_KEY_NAMES:
+            rows.append({"source": "synthetic_filtered", **row})
+
+    for path in sorted(outputs.glob("vlm_evidence_predictions_*_filtered_status_eval.csv")):
+        for row in read_csv(path):
+            name = row.get("name") or path.name.removesuffix("_filtered_status_eval.csv")
+            if name not in FILTERED_KEY_NAMES:
+                continue
+            rows.append({"source": "evidence_filtered", "name": name, **row})
+    return rows
+
+
+def table_filtered_sensitivity(rows):
+    if not rows:
+        return ["Pending: filtered sensitivity outputs not found."]
+    lines = [
+        "| Source | Method | N | Excluded | Acc | Precision | Recall | F1 | P->A | A->P |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('source', '')} | {row.get('name', '')} | "
+            f"{row.get('num_examples') or row.get('kept_examples') or ''} | "
+            f"{row.get('excluded_examples', '')} | {fmt(row.get('accuracy'))} | "
+            f"{fmt(row.get('absent_precision'))} | {fmt(row.get('absent_recall'))} | "
+            f"{fmt(row.get('absent_f1'))} | {row.get('present_absent', '')} | {row.get('absent_present', '')} |"
+        )
+    return lines
+
+
 def read_target_disjoint_rows(work_dir):
     out_dir = work_dir / "outputs" / "devtest_status"
     rows = []
@@ -160,6 +207,64 @@ def table_target_disjoint(rows):
             f"{fmt(row.get('absent_f1'))} | {fmt(row.get('delta_absent_f1_mean'))} | {ci_f1} | "
             f"{fmt(row.get('delta_accuracy_mean'))} | {ci_acc} | {row.get('present_absent', '')} | "
             f"{row.get('absent_present', '')} |"
+        )
+    return lines
+
+
+def revision_route(summary):
+    has_filtered = bool(summary.get("filtered_sensitivity_rows"))
+    has_real_absent = bool(summary.get("real_absent_rows"))
+    has_annotation_free = any(
+        row.get("variant") == "annotation_free_combined_and_present_only_best_f1"
+        for row in summary.get("selected_rows", [])
+    )
+    return [
+        {
+            "priority": "1",
+            "item": "Annotation-free candidate inventory",
+            "status": "started" if has_annotation_free else "pending",
+            "why": "Defensibility/deployability: answers whether path evidence depends on benchmark annotations.",
+            "next_step": "Strengthen the OCR-only inventory with UI component proposals, icon proposals, or crop-level VLM candidates.",
+        },
+        {
+            "priority": "2",
+            "item": "Larger realistic absent validation",
+            "status": "started" if has_real_absent else "pending",
+            "why": "External validity: moves the result beyond synthetic absent target swaps.",
+            "next_step": "Expand the reviewed set from 100 rows to at least 300-500 stratified rows.",
+        },
+        {
+            "priority": "3",
+            "item": "PR/ROC/cost-sensitive utility",
+            "status": "pending",
+            "why": "Tradeoff clarity: explains the cost of P->A errors versus A->P errors instead of only reporting F1.",
+            "next_step": "Export threshold curves and utility tables under multiple false-absent / false-present cost ratios.",
+        },
+        {
+            "priority": "4",
+            "item": "Filtered sensitivity in main results",
+            "status": "done" if has_filtered else "pending",
+            "why": "Validity: shows the main effect survives annotation-conflict and OCR-leak filtering.",
+            "next_step": "Keep filtered sensitivity in the main result narrative, not only as a sanity appendix.",
+        },
+        {
+            "priority": "5",
+            "item": "GUI evaluation case study",
+            "status": "pending",
+            "why": "HCI relevance: demonstrates how a forced-choice synthetic user can overestimate screen findability.",
+            "next_step": "Select several screens where prompt-only grounds to a plausible element but uncertainty-aware verification flags absence or weak evidence.",
+        },
+    ]
+
+
+def table_revision_route(rows):
+    lines = [
+        "| Priority | Item | Status | Why It Matters | Next Step |",
+        "|---:|---|---|---|---|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row['priority']} | {row['item']} | {row['status']} | {row['why']} | {row['next_step']} |"
         )
     return lines
 
@@ -290,6 +395,10 @@ def write_md(path, summary):
         "",
         *table_real_absent(summary["real_absent_rows"]),
         "",
+        "## Filtered Sensitivity",
+        "",
+        *table_filtered_sensitivity(summary["filtered_sensitivity_rows"]),
+        "",
         "## Target-Disjoint Robustness",
         "",
         *table_target_disjoint(summary["target_disjoint_rows"]),
@@ -302,12 +411,18 @@ def write_md(path, summary):
         "",
         *table_priorities(summary["strong_accept_priorities"]),
         "",
+        "## RR/ARR Revision Route",
+        "",
+        *table_revision_route(summary["revision_route"]),
+        "",
         "## Interpretation",
         "",
         "- Annotation-backed candidate inventories remain diagnostic/upper-bound evidence, not a deployable assumption.",
         "- Annotation-free OCR candidates recover part of the gain, supporting deployability, but they underperform stronger UI/VLM evidence.",
         "- Evidence-aware VLM gives the strongest practical synthetic result, while combined AND remains the most transparent verifier.",
         "- The 100-row realistic validation is an external-validity smoke test; expanding it is the next data-facing priority.",
+        "- The most important revision gaps are deployability and validity: annotation-free evidence plus larger realistic validation matter more than further prompt tuning.",
+        "- Add PR/ROC/cost-sensitive utility before submission so the P->A versus A->P tradeoff is explicitly argued rather than hidden inside F1.",
         "- Keep the paper focused: target absence is the core problem, cognitive stopping is the mechanism, multimodal/non-text is secondary generalization, and associative search is future work.",
         "",
     ])
@@ -327,6 +442,7 @@ def main():
     real_dir = work_dir / "outputs" / "real_absent_validation"
     absent_rows = read_csv(tables / "absent_status_core.csv")
     real_rows = read_csv(real_dir / "real_absent_results.csv")
+    filtered_sensitivity_rows = read_filtered_sensitivity_rows(work_dir)
     target_disjoint_rows = read_target_disjoint_rows(work_dir)
     indexed = row_index(absent_rows)
     seekui_prompt = indexed.get(("SeekUI", "prompt_only"), {})
@@ -364,6 +480,13 @@ def main():
             "On the 100-row realistic absent validation set, combined best-F1 improves F1 from "
             f"{fmt(real_prompt.get('absent_f1'))} to {fmt(real_combined.get('absent_f1'))}."
         )
+    for row in filtered_sensitivity_rows:
+        if row.get("name") == "SeekUI_combined_best_f1":
+            claims.append(
+                "Filtered sensitivity keeps the main effect: SeekUI combined best-F1 reaches filtered absent F1 "
+                f"{fmt(row.get('absent_f1'))} on {row.get('num_examples') or row.get('kept_examples')} kept examples."
+            )
+            break
     for row in target_disjoint_rows:
         if row.get("model_group") == "SeekUI" and row.get("name") == "SeekUI_combined":
             claims.append(
@@ -379,10 +502,12 @@ def main():
         "selected_rows": select_rows(absent_rows),
         "top_practical_rows": best_practical(absent_rows),
         "real_absent_rows": real_selected,
+        "filtered_sensitivity_rows": filtered_sensitivity_rows,
         "target_disjoint_rows": target_disjoint_rows,
     }
     summary["directions_summary"] = directions_summary(summary)
     summary["strong_accept_priorities"] = strong_accept_priorities()
+    summary["revision_route"] = revision_route(summary)
     write_json(Path(args.output_json), summary)
     write_md(Path(args.output_md), summary)
     print(json.dumps({
