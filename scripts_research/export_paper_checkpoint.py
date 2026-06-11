@@ -14,6 +14,26 @@ PREFERRED_VARIANTS = [
     "vlm_evidence_evidence_aware",
 ]
 
+PAPER_PRACTICAL_VARIANTS = {
+    "prompt_only",
+    "cognitive_stop_present_only",
+    "combined_or_present_only",
+    "combined_and_present_only",
+    "combined_and_present_only_best_f1",
+    "vlm_presence",
+    "vlm_presence_conservative",
+    "vlm_presence_ocr_aware",
+    "vlm_presence_search_behavior",
+    "vlm_evidence_evidence_aware",
+    "vlm_evidence_evidence_conservative",
+    "vlm_evidence_evidence_rescue_present",
+}
+
+DIAGNOSTIC_VARIANT_PREFIXES = (
+    "candidate_verifier_",
+    "ocr_candidate_verifier_",
+)
+
 
 def read_csv(path):
     if not path.exists():
@@ -88,7 +108,12 @@ def delta(best, baseline, metric):
 def compact_status(followup):
     if not followup:
         return {"done": "", "pending": "", "pending_items": []}
+    items = followup.get("items", [])
+    pending_items = [item for item in items if item.get("state") == "pending" and item.get("id") != "paper_checkpoint"]
+    done_items = [item for item in items if item.get("state") == "done" or item.get("id") == "paper_checkpoint"]
     counts = followup.get("counts", {})
+    done = len(done_items) if items else counts.get("done", "")
+    pending_count = len(pending_items) if items else counts.get("pending", "")
     pending = [
         {
             "id": item.get("id"),
@@ -96,18 +121,36 @@ def compact_status(followup):
             "missing": len(item.get("missing", [])),
             "command": item.get("command", ""),
         }
-        for item in followup.get("items", [])
-        if item.get("state") == "pending"
+        for item in pending_items
     ]
     return {
-        "done": counts.get("done", ""),
-        "pending": counts.get("pending", ""),
+        "done": done,
+        "pending": pending_count,
         "pending_items": pending,
     }
 
 
+def is_diagnostic_variant(row):
+    variant = row.get("variant", "")
+    return variant.startswith(DIAGNOSTIC_VARIANT_PREFIXES)
+
+
+def is_paper_practical_variant(row):
+    return row.get("variant", "") in PAPER_PRACTICAL_VARIANTS
+
+
 def best_rows(absent_rows):
     ranked = sort_by_f1(absent_rows)
+    by_model = {}
+    for row in ranked:
+        model = row.get("model", "")
+        by_model.setdefault(model, row)
+    return ranked, by_model
+
+
+def best_practical_rows(absent_rows):
+    practical = [row for row in absent_rows if is_paper_practical_variant(row)]
+    ranked = sort_by_f1(practical)
     by_model = {}
     for row in ranked:
         model = row.get("model", "")
@@ -130,9 +173,10 @@ def build_report(work_dir):
     followup = compact_status(read_json(outputs / "followup_status.json"))
 
     ranked, best_by_model = best_rows(absent_rows)
+    practical_ranked, practical_best_by_model = best_practical_rows(absent_rows)
     chosen = choose_rows(absent_rows)
     seekui_prompt = index_rows(absent_rows).get("SeekUI:prompt_only")
-    seekui_best = best_by_model.get("SeekUI")
+    seekui_best = practical_best_by_model.get("SeekUI")
     headline = {}
     if seekui_prompt and seekui_best:
         headline = {
@@ -148,6 +192,8 @@ def build_report(work_dir):
         "work_dir": str(work_dir),
         "headline": headline,
         "ranked_absent_status": ranked,
+        "ranked_practical_absent_status": practical_ranked,
+        "ranked_diagnostic_absent_status": [row for row in ranked if is_diagnostic_variant(row)],
         "selected_absent_status": chosen,
         "vlm_ablation_rows": vlm_rows,
         "image_cue_proxy": image_cue_summary,
@@ -253,9 +299,13 @@ def write_md(path, report):
         "",
         *md_table_status(report["selected_absent_status"]),
         "",
-        "## Top Ranked Results",
+        "## Top Ranked Practical Results",
         "",
-        *md_table_status(report["ranked_absent_status"][:8]),
+        *md_table_status(report["ranked_practical_absent_status"][:8]),
+        "",
+        "## Diagnostic / Upper-Bound Results",
+        "",
+        *md_table_status(report["ranked_diagnostic_absent_status"][:8]),
         "",
         "## Evidence-Aware Filtered Sensitivity",
         "",
