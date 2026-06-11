@@ -35,7 +35,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
 | P2 | Multi-sample scanpath uncertainty | pending | Sample K scanpaths per target to measure endpoint variance and agreement if extra A40 capacity remains |
-| P2 | Small real/manual absent validation | protocol ready | See `research_notes/manual_real_absent_validation_protocol.md`; start with 100 manually verified GUI-query pairs |
+| P2 | Small real/manual absent validation | starter sheet code ready | Run `sbatch scripts_utah/export_real_absent_validation_sheet.slurm`; then fill realistic absent queries manually |
 
 ## Commands To Run Next
 
@@ -152,6 +152,13 @@ Run evidence-aware VLM for SFT as a secondary-model GPU check:
 MODEL_NAME=SeekUI_sft \
 VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware" \
 bash scripts_utah/submit_vlm_evidence_ablation.sh
+```
+
+Generate a starter CSV for small realistic absent validation:
+
+```bash
+sbatch scripts_utah/export_real_absent_validation_sheet.slurm
+cat "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.md"
 ```
 
 Run the same evidence-aware VLM ablation on Great Lakes with `jaabell0`:

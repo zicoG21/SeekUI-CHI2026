@@ -1,6 +1,6 @@
 # Small Manual / Realistic Absent Validation Protocol
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 ## Goal
 
@@ -98,3 +98,25 @@ This manual validation is useful if:
 ## Scope Control
 
 Do not start with a large annotation effort. The first goal is a credibility check, not a new benchmark paper.
+
+## Starter Sheet Command
+
+Generate a 50-present / 50-absent-placeholder sheet from the existing VSGUI data:
+
+```bash
+sbatch scripts_utah/export_real_absent_validation_sheet.slurm
+```
+
+Direct command:
+
+```bash
+python scripts_research/export_real_absent_validation_sheet.py \
+  --scanpath "$SEEKUI_WORK/data/scanpath_train_explanation.json" \
+  --target2text "$SEEKUI_WORK/data/target2text.json" \
+  --output-csv "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.csv" \
+  --output-md "$SEEKUI_WORK/outputs/real_absent_validation/real_absent_validation_starter.md" \
+  --present-count 50 \
+  --absent-count 50
+```
+
+The absent rows are intentionally placeholders. Fill `query_text`, `target_visible`, `query_realistic`, `ambiguity_level`, and `notes` before using them for evaluation.
