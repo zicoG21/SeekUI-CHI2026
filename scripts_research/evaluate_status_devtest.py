@@ -37,6 +37,23 @@ def normalize_status(value, default="present"):
     return "absent" if text in ABSENT_STATUSES else "present"
 
 
+def normalize_text(text):
+    return " ".join(str(text or "").casefold().replace("_", " ").replace("-", " ").split())
+
+
+def target_key(example):
+    target_id = str(example.get("target_id", "") or "")
+    return target_id[4:] if target_id.startswith("txt_") else target_id
+
+
+def get_target_text(example, target2text):
+    for key in ["query_text", "target", "original_target"]:
+        text = str(example.get(key, "") or "")
+        if text:
+            return text
+    return str(target2text.get(target_key(example), "") or "")
+
+
 def gold_status(example):
     if "target_present" in example:
         return "present" if example["target_present"] else "absent"
@@ -68,7 +85,7 @@ def example_key(example, fallback_index=None):
     return f"index:{fallback_index}"
 
 
-def split_records_from_examples(examples):
+def split_records_from_examples(examples, target2text):
     records = []
     seen = set()
     for idx, example in enumerate(examples):
@@ -76,10 +93,12 @@ def split_records_from_examples(examples):
         if key in seen:
             raise ValueError(f"Duplicate split key: {key}")
         seen.add(key)
+        target_text = normalize_text(get_target_text(example, target2text))
         records.append({
             "key": key,
             "gold_status": gold_status(example),
             "image": str(example.get("image", "")),
+            "target_text": target_text or f"target_key:{target_key(example)}",
         })
     return records
 
@@ -166,9 +185,84 @@ def split_image_indices(records, dev_fraction, seed):
     return sorted(dev), sorted(test)
 
 
+def split_group_indices(records, dev_fraction, seed, field):
+    rng = random.Random(seed)
+    group_to_indices = defaultdict(list)
+    for idx, record in enumerate(records):
+        group_to_indices[record[field]].append(idx)
+
+    by_status = defaultdict(list)
+    for group, indices in group_to_indices.items():
+        by_status[image_majority_status(records, indices)].append((group, indices))
+
+    dev = []
+    test = []
+    for groups in by_status.values():
+        groups = list(groups)
+        rng.shuffle(groups)
+        n_dev = round(len(groups) * dev_fraction)
+        for _, indices in groups[:n_dev]:
+            dev.extend(indices)
+        for _, indices in groups[n_dev:]:
+            test.extend(indices)
+    return sorted(dev), sorted(test)
+
+
+class UnionFind:
+    def __init__(self):
+        self.parent = {}
+
+    def find(self, item):
+        self.parent.setdefault(item, item)
+        if self.parent[item] != item:
+            self.parent[item] = self.find(self.parent[item])
+        return self.parent[item]
+
+    def union(self, a, b):
+        ra = self.find(a)
+        rb = self.find(b)
+        if ra != rb:
+            self.parent[rb] = ra
+
+
+def split_image_target_indices(records, dev_fraction, seed):
+    rng = random.Random(seed)
+    uf = UnionFind()
+    for idx, record in enumerate(records):
+        node = f"example:{idx}"
+        image = f"image:{record['image']}"
+        target = f"target:{record['target_text']}"
+        uf.union(node, image)
+        uf.union(node, target)
+
+    component_to_indices = defaultdict(list)
+    for idx in range(len(records)):
+        component_to_indices[uf.find(f"example:{idx}")].append(idx)
+
+    by_status = defaultdict(list)
+    for component, indices in component_to_indices.items():
+        by_status[image_majority_status(records, indices)].append((component, indices))
+
+    dev = []
+    test = []
+    for groups in by_status.values():
+        groups = list(groups)
+        rng.shuffle(groups)
+        n_dev = round(len(groups) * dev_fraction)
+        for _, indices in groups[:n_dev]:
+            dev.extend(indices)
+        for _, indices in groups[n_dev:]:
+            test.extend(indices)
+    return sorted(dev), sorted(test)
+
+
 def split_indices(records, dev_fraction, seed, split_by):
     if split_by == "image":
         return split_image_indices(records, dev_fraction, seed)
+    if split_by == "target":
+        return split_group_indices(records, dev_fraction, seed, "target_text")
+    if split_by == "image_target":
+        return split_image_target_indices(records, dev_fraction, seed)
     return split_random_indices(records, dev_fraction, seed)
 
 
@@ -264,6 +358,8 @@ def write_markdown(path, summary):
         f"- Test examples: {summary['num_test']}",
         f"- Dev images: {summary['num_dev_images']}",
         f"- Test images: {summary['num_test_images']}",
+        f"- Dev targets: {summary['num_dev_targets']}",
+        f"- Test targets: {summary['num_test_targets']}",
         f"- Baseline: {summary['baseline_name']}",
         "",
         "| Split | Model | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present | Missing |",
@@ -303,7 +399,8 @@ def main():
     parser.add_argument("--prediction", action="append", required=True, help="NAME=PATH. First item is baseline unless --baseline-name is set.")
     parser.add_argument("--split-source", default="", help="Optional JSON used only to define keys, gold labels, images, and splits.")
     parser.add_argument("--baseline-name", default="")
-    parser.add_argument("--split-by", choices=["random", "image"], default="image")
+    parser.add_argument("--target2text", default="")
+    parser.add_argument("--split-by", choices=["random", "image", "target", "image_target"], default="image")
     parser.add_argument("--dev-fraction", type=float, default=0.5)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--bootstrap", type=int, default=1000)
@@ -322,7 +419,8 @@ def main():
         raise ValueError("At least one --prediction is required")
 
     split_source_path = Path(args.split_source) if args.split_source else specs[0][1]
-    records = split_records_from_examples(load_json(split_source_path))
+    target2text = load_json(Path(args.target2text)) if args.target2text else {}
+    records = split_records_from_examples(load_json(split_source_path), target2text)
     dev_indices, test_indices = split_indices(records, args.dev_fraction, args.seed, args.split_by)
 
     predictions = {name: prediction_map(load_json(path)) for name, path in specs}
@@ -354,6 +452,8 @@ def main():
         "num_test": len(test_indices),
         "num_dev_images": len({records[idx]["image"] for idx in dev_indices}),
         "num_test_images": len({records[idx]["image"] for idx in test_indices}),
+        "num_dev_targets": len({records[idx]["target_text"] for idx in dev_indices}),
+        "num_test_targets": len({records[idx]["target_text"] for idx in test_indices}),
         "prediction_files": {name: str(path) for name, path in specs},
         "rows": rows,
         "metrics": detailed,

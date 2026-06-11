@@ -600,3 +600,30 @@ python scripts_research/summarize_manual_review.py \
   --output-json "$SEEKUI_WORK/outputs/review_cases/manual_review_summary.json" \
   --output-md "$SEEKUI_WORK/outputs/review_cases/manual_review_summary.md"
 ```
+
+## 10. Paper-Facing Follow-Up Checks
+
+Export a compact current-findings memo from generated result tables:
+
+```bash
+sbatch scripts_utah/export_current_findings.slurm
+cat "$SEEKUI_WORK/outputs/paper_checkpoint/current_findings.md"
+```
+
+Run target-disjoint and image+target-disjoint status validation. This checks
+whether gains persist when target text does not overlap between dev/test splits:
+
+```bash
+sbatch scripts_utah/evaluate_target_disjoint_status.slurm
+cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_target.md"
+cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_image_target.md"
+```
+
+Create a larger realistic-absent review package. By default this exports 100
+present and 100 absent rows under
+`$SEEKUI_WORK/outputs/real_absent_validation_200`:
+
+```bash
+sbatch scripts_utah/export_expanded_real_absent_validation.slurm
+cat "$SEEKUI_WORK/outputs/real_absent_validation_200/review_package/real_absent_review_package.md"
+```

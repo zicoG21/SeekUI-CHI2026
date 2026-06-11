@@ -14,6 +14,7 @@ cd "$REPO_ROOT"
 
 SEEKUI_WORK="${SEEKUI_WORK:-${SCRATCH:-$REPO_ROOT/.scratch}/seekui}"
 OUTPUT_DIR="$SEEKUI_WORK/outputs"
+DATA_DIR="${SEEKUI_DATA_DIR:-$SEEKUI_WORK/data}"
 OUT_DIR="${OUT_DIR:-$OUTPUT_DIR/devtest_status}"
 MODEL_NAME="${MODEL_NAME:-SeekUI}"
 SPLITS="${SPLITS:-random image}"
@@ -50,6 +51,7 @@ for split_by in $SPLITS; do
   python scripts_research/evaluate_status_devtest.py \
     "${prediction_args[@]}" \
     --baseline-name "$baseline_name" \
+    --target2text "$DATA_DIR/target2text.json" \
     --split-by "$split_by" \
     --dev-fraction "$DEV_FRACTION" \
     --seed "$SEED" \
