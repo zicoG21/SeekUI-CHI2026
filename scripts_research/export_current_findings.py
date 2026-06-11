@@ -171,6 +171,7 @@ def directions_summary(summary):
         {
             "direction": "1. Multimodal / non-text UI search",
             "status": "partial",
+            "paper_role": "secondary generalization, not the current main claim",
             "what_we_have": (
                 "Target-crop image-cue proxy, OCR candidate verifier, annotation-free OCR candidate inventory, "
                 "and evidence-aware VLM reasoning."
@@ -179,23 +180,28 @@ def directions_summary(summary):
                 "Image-cue proxy is feasible but weak; annotation-free OCR candidate inventory improves SeekUI F1 "
                 "from 0.7300 to 0.7995."
             ),
+            "next_step": "Build a small icon/non-text validation set or candidate-crop VLM verifier.",
             "remaining": "Native icon/non-text target data and UI component/icon proposals are still needed.",
         },
         {
             "direction": "2. Cognitive model / stopping",
             "status": "strong",
+            "paper_role": "mechanism behind uncertainty-aware search",
             "what_we_have": "Cognitive stopping, path evidence, behavioral metrics, combined AND verifier, and evidence-aware VLM.",
             "evidence": "Combined AND improves SeekUI absent F1 from 0.7300 to 0.8824; evidence-aware VLM reaches 0.8981.",
+            "next_step": "Run a multi-sample uncertainty pilot to test whether repeated scanpaths converge for present targets and disperse for absent targets.",
             "remaining": "A deployable candidate inventory can be strengthened beyond OCR-only proposals.",
         },
         {
             "direction": "3. Target absent handling",
             "status": "strong",
+            "paper_role": "main paper core",
             "what_we_have": "Synthetic present/absent benchmark, filtered sensitivity, held-out splits, target-disjoint split, and 100-row realistic validation.",
             "evidence": (
                 "Realistic validation improves F1 from 0.7907 to 0.9159; "
                 + ("target-disjoint validation is positive." if has_target else "target-disjoint validation is pending.")
             ),
+            "next_step": "Expand realistic validation to 200-400 rows and keep annotation-free candidate inventory in the main defensibility story.",
             "remaining": (
                 "Expand realistic validation beyond 100 rows." if has_real_absent
                 else "Complete realistic validation."
@@ -204,8 +210,10 @@ def directions_summary(summary):
         {
             "direction": "4. Associative search",
             "status": "exploratory",
+            "paper_role": "future robustness challenge",
             "what_we_have": "Semantic-query v3 with association-first examples and split summaries.",
             "evidence": "Association queries are represented as a small benchmark slice, but not yet a standalone contribution.",
+            "next_step": "Define query-generation rules and human-labeled acceptable target sets before treating this as a separate contribution.",
             "remaining": "Needs a dedicated dataset or stronger query-generation protocol before becoming a main paper thread.",
         },
     ]
@@ -213,13 +221,48 @@ def directions_summary(summary):
 
 def table_directions(rows):
     lines = [
-        "| Direction | Status | What We Have | Evidence | Remaining |",
-        "|---|---|---|---|---|",
+        "| Direction | Status | Paper Role | What We Have | Evidence | Next Step | Remaining |",
+        "|---|---|---|---|---|---|---|",
     ]
     for row in rows:
         lines.append(
-            f"| {row['direction']} | {row['status']} | {row['what_we_have']} | "
-            f"{row['evidence']} | {row['remaining']} |"
+            f"| {row['direction']} | {row['status']} | {row['paper_role']} | {row['what_we_have']} | "
+            f"{row['evidence']} | {row['next_step']} | {row['remaining']} |"
+        )
+    return lines
+
+
+def strong_accept_priorities():
+    return [
+        {
+            "priority": "Annotation-free verifier",
+            "why": "Turns annotation-backed evidence from an oracle-like controlled analysis into a deployable approximation.",
+            "status": "started",
+            "next_step": "Strengthen OCR-only candidates with UI component/icon proposals or crop-level VLM candidates.",
+        },
+        {
+            "priority": "Larger realistic validation",
+            "why": "Directly addresses the main external-validity risk of the synthetic absent benchmark.",
+            "status": "started",
+            "next_step": "Scale the current 100-row set to 200-400 stratified present/absent rows.",
+        },
+        {
+            "priority": "UI evaluation case study",
+            "why": "Makes the HCI implication concrete: forced-choice synthetic users can overstate screen findability.",
+            "status": "pending",
+            "next_step": "Select a few screens where prompt-only grounds to a plausible element but the uncertainty-aware verifier flags absence or weak evidence.",
+        },
+    ]
+
+
+def table_priorities(rows):
+    lines = [
+        "| Priority | Why It Matters | Status | Next Step |",
+        "|---|---|---|---|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row['priority']} | {row['why']} | {row['status']} | {row['next_step']} |"
         )
     return lines
 
@@ -255,12 +298,17 @@ def write_md(path, summary):
         "",
         *table_directions(summary["directions_summary"]),
         "",
+        "## Highest-Value Next Upgrades",
+        "",
+        *table_priorities(summary["strong_accept_priorities"]),
+        "",
         "## Interpretation",
         "",
         "- Annotation-backed candidate inventories remain diagnostic/upper-bound evidence, not a deployable assumption.",
         "- Annotation-free OCR candidates recover part of the gain, supporting deployability, but they underperform stronger UI/VLM evidence.",
         "- Evidence-aware VLM gives the strongest practical synthetic result, while combined AND remains the most transparent verifier.",
         "- The 100-row realistic validation is an external-validity smoke test; expanding it is the next data-facing priority.",
+        "- Keep the paper focused: target absence is the core problem, cognitive stopping is the mechanism, multimodal/non-text is secondary generalization, and associative search is future work.",
         "",
     ])
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -334,6 +382,7 @@ def main():
         "target_disjoint_rows": target_disjoint_rows,
     }
     summary["directions_summary"] = directions_summary(summary)
+    summary["strong_accept_priorities"] = strong_accept_priorities()
     write_json(Path(args.output_json), summary)
     write_md(Path(args.output_md), summary)
     print(json.dumps({
