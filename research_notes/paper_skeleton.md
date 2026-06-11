@@ -1,6 +1,6 @@
 # One-Page Paper Skeleton
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 ## Working Title
 
@@ -29,6 +29,7 @@ We add a post-hoc stopping/verifier layer:
 1. Cognitive path evidence estimates whether the predicted scanpath approached a target-like candidate.
 2. OCR candidate verification checks whether visible text evidence supports the requested target.
 3. A combined AND rule rejects a prediction only when both path evidence and OCR evidence are weak.
+4. An evidence-aware VLM verifier uses the screenshot plus scanpath/OCR evidence to make the final present/absent decision.
 
 ## Headline Result
 
@@ -47,13 +48,15 @@ The full benchmark shows that prompt design strongly affects generic VLM yes/no 
 | VLM yes/no direct | 0.8510 | 0.9142 | 0.7746 | 0.8386 |
 | VLM yes/no OCR-aware | 0.8924 | 0.8821 | 0.9060 | 0.8939 |
 | SeekUI combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 |
+| Evidence-aware VLM | 0.8891 | 0.8308 | 0.9772 | 0.8981 |
 
-The OCR-aware VLM prompt is the strongest full-benchmark classifier so far, while combined AND has higher absent recall and is grounded in the predicted scanpath. This suggests a revised framing: target-absent GUI search needs both strong presence classification and interpretable search-evidence analysis.
+The evidence-aware VLM is the strongest practical full-benchmark method so far. It improves over both direct VLM prompting and rule-based combined AND by letting the VLM inspect the screenshot while also seeing scanpath/OCR evidence. It keeps high absent recall (`0.9772`) while reducing absent false-present errors from 45 under combined AND to 31.
 
 Hard-case overlap supports complementarity:
 
 - OCR-aware VLM still has many absent cases where it predicts present but combined AND is correct; these have very low path evidence.
 - Combined AND has many present cases where it over-rejects but OCR-aware VLM is correct; these have weak path/OCR evidence but are visually recoverable.
+- Evidence-aware VLM keeps most of combined AND's not-found safety while rescuing many present cases that rule-based combined AND over-rejects.
 - Both-wrong absent cases have high OCR scores, suggesting strong distractors or synthetic OCR-leak cases.
 
 ## Evidence Beyond the Main Table
@@ -84,8 +87,8 @@ Qualitative taxonomy:
 1. A target-absent GUI visual search formulation that exposes a forced-choice limitation of target-present SeekUI inference.
 2. A synthetic present/absent benchmark and sanity-audit protocol for evaluating target absence.
 3. A cognitive stopping and OCR-verification layer that improves held-out absent F1 and accuracy.
-4. Behavioral and qualitative analyses showing when the method corrects false-present errors and when it fails.
-5. A VLM prompt-ablation baseline showing that generic presence classification is strong and prompt-sensitive, but trades off interpretability and absent recall.
+4. An evidence-aware VLM verifier that combines screenshot reasoning with interpretable scanpath/OCR evidence.
+5. Behavioral and qualitative analyses showing when the method corrects false-present errors and when it fails.
 
 ## Current Limitations
 
@@ -97,5 +100,5 @@ Qualitative taxonomy:
 ## Next Validation
 
 1. Design a small manually verified realistic absent benchmark.
-2. Run the evidence-aware VLM verifier that gives the VLM both screenshot evidence and scanpath/OCR evidence.
+2. Run the evidence-aware VLM verifier for SeekUI-SFT as a secondary model check.
 3. Test the hybrid on hard absent distractors and small/edge present targets.

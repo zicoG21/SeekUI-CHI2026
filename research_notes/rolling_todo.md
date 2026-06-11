@@ -10,8 +10,9 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 |---:|---|---|---|
 | P0 | Finish v3 semantic-query jobs | completed | v3 association-first summaries are in `rolling_results.md`; run split eval if scanpath metrics are needed |
 | P0 | GL VLM prompt ablation | completed | OCR-aware VLM is strongest full-benchmark classifier so far; run hard-case overlap with combined AND |
-| P0 | Evidence-aware VLM verifier | code ready | Run full prompt ablation with scanpath/OCR evidence; compare against OCR-aware VLM and combined AND |
-| P0 | VLM/evidence ablation table | code ready | After evidence jobs finish, run `sbatch scripts_utah/export_vlm_ablation_table.slurm` |
+| P0 | Evidence-aware VLM verifier | completed for SeekUI | Evidence-aware VLM is current strongest practical method; run SFT version as secondary check |
+| P0 | VLM/evidence ablation table | completed | Evidence-aware VLM ranks first in `$SEEKUI_WORK/outputs/paper_tables/vlm_ablation_table.md` |
+| P0 | Evidence-aware hard-case comparison | code ready | Run `sbatch scripts_utah/export_vlm_hard_case_comparison.slurm` after pulling latest code |
 | P0 | VLM direct presence baseline | completed on CHPC | Direct VLM full: absent F1 0.8386, accuracy 0.8510; filtered F1 0.8494, accuracy 0.8706 |
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
 | P0 | Add dev/test validation for combined verifier | completed | Random and image splits both show positive held-out F1/accuracy deltas |
@@ -29,6 +30,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases; v3 semantic association results are now available |
 | P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
 | P1 | VLM hard-case analysis | completed | Direct and OCR-aware VLM hard-case overlap summaries are recorded in `rolling_results.md` |
+| P1 | Evidence-aware filtered sensitivity | pending | Run filtered eval for `vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware.json` |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
@@ -122,6 +124,34 @@ After VLM/evidence jobs finish, export a compact ablation table:
 ```bash
 sbatch scripts_utah/export_vlm_ablation_table.slurm
 cat "$SEEKUI_WORK/outputs/paper_tables/vlm_ablation_table.md"
+```
+
+Export direct/OCR-aware/evidence-aware hard-case comparison:
+
+```bash
+sbatch scripts_utah/export_vlm_hard_case_comparison.slurm
+cat "$SEEKUI_WORK/outputs/vlm_hard_cases/vlm_hard_case_comparison.md"
+```
+
+Run filtered sensitivity for evidence-aware VLM:
+
+```bash
+python scripts_research/evaluate_absent_status_filtered.py \
+  --filter-csv "$SEEKUI_WORK/outputs/absent_benchmark_sanity/absent_examples_sanity.csv" \
+  --exclude-flag annotation_conflict_flag \
+  --exclude-flag ocr_leak_flag \
+  --prediction "SeekUI_vlm_evidence_evidence_aware=$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware.json" \
+  --output-json "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.json" \
+  --output-csv "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv" \
+  --excluded-output "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_excluded.csv"
+```
+
+Run evidence-aware VLM for SFT as a secondary-model GPU check:
+
+```bash
+MODEL_NAME=SeekUI_sft \
+VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware" \
+bash scripts_utah/submit_vlm_evidence_ablation.sh
 ```
 
 Run the same evidence-aware VLM ablation on Great Lakes with `jaabell0`:

@@ -1,6 +1,6 @@
 # Paper Assets Checklist
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 ## Figure 1: Problem Setup
 
@@ -40,7 +40,7 @@ $SEEKUI_WORK/outputs/paper_tables/main_result_table.md
 
 Purpose:
 
-Show that VLM yes/no prompting is a strong, prompt-sensitive baseline, while combined AND provides scanpath-grounded absent recall and interpretability.
+Show that VLM yes/no prompting is a strong, prompt-sensitive baseline, and that the strongest current practical method is an evidence-aware VLM that sees both the screenshot and scanpath/OCR evidence.
 
 Current full-benchmark rows:
 
@@ -53,16 +53,13 @@ Current full-benchmark rows:
 | VLM yes/no search-behavior | 0.8902 | 0.9136 | 0.8620 | 0.8870 | 111 | 188 |
 | Cognitive stop present-only | 0.8414 | 0.7981 | 0.9141 | 0.8522 | 315 | 117 |
 | Combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 | 306 | 45 |
+| Evidence-aware VLM | 0.8891 | 0.8308 | 0.9772 | 0.8981 | 271 | 31 |
 
-Pending GL prompt rows:
+Source:
 
-| Prompt Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present |
-|---|---:|---:|---:|---:|---:|---:|
-| Direct | 0.8510 | 0.9142 | 0.7746 | 0.8386 | 99 | 307 |
-| Conservative | 0.8605 | 0.8160 | 0.9310 | 0.8697 | 286 | 94 |
-| OCR-aware | 0.8924 | 0.8821 | 0.9060 | 0.8939 | 165 | 128 |
-| Search-behavior | 0.8902 | 0.9136 | 0.8620 | 0.8870 | 111 | 188 |
-| Combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 | 306 | 45 |
+```text
+$SEEKUI_WORK/outputs/paper_tables/vlm_ablation_table.md
+```
 
 ## Table 3: Sanity and Sensitivity
 
@@ -129,12 +126,13 @@ GUI + target cue
     -> cognitive path evidence
     -> OCR candidate verifier
     -> combined AND stopping decision
+    -> evidence-aware VLM verifier
     -> present scanpath or absent decision
 ```
 
 Message:
 
-The method is a post-hoc interpretable safety layer, not a retrained model.
+The method is a post-hoc verifier: no retraining is required, but the VLM is given interpretable scanpath/OCR evidence when making the final target-presence decision.
 
 ## Table 4: VLM vs Combined Hard-Case Overlap
 
@@ -149,7 +147,10 @@ Show that OCR-aware VLM and combined AND are complementary.
 | OCR-aware VLM vs combined | vlm wrong, combined correct | absent | 100 capped | 0.0373 | 0.3613 |
 | OCR-aware VLM vs combined | combined wrong, VLM correct | present | 100 capped | 0.1545 | 0.4569 |
 | OCR-aware VLM vs combined | both wrong | absent | 22 | 0.0919 | 0.7750 |
+| Evidence-aware VLM vs combined | vlm wrong, combined correct | absent | 16 | 0.0401 | 0.3749 |
+| Evidence-aware VLM vs combined | combined wrong, VLM correct | present | 100 capped | 0.1604 | 0.5089 |
+| Evidence-aware VLM vs combined | both wrong | absent | 15 | 0.0999 | 0.8618 |
 
 Message:
 
-OCR-aware VLM is the stronger full-benchmark classifier, but combined AND catches low-evidence absent cases that VLM still misclassifies as present. VLM, in turn, rescues visible present targets that combined AND over-rejects.
+Evidence-aware VLM keeps much of combined AND's not-found safety while rescuing many visible present targets that rule-based combined AND over-rejects. The remaining both-wrong absent cases have high OCR scores, suggesting hard distractors or OCR leakage.

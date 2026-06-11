@@ -416,7 +416,7 @@ Takeaway: association-style prompts trigger much higher predicted-absent rates t
 
 ## VLM vs Combined Hard-Case Overlap
 
-Hard-case overlap confirms that OCR-aware VLM and combined AND are complementary rather than redundant.
+Hard-case overlap confirms that VLM-style verifiers and combined AND are complementary rather than redundant.
 
 Direct VLM vs combined AND:
 
@@ -440,22 +440,31 @@ OCR-aware VLM vs combined AND:
 | vlm_wrong_combined_correct | absent_case | 100 | 0.0373 | 0.3613 |
 | vlm_wrong_combined_correct | present_case | 87 | 0.5223 | 0.6821 |
 
+Evidence-aware VLM vs combined AND:
+
+| Case Source | Case Type | Count | Mean Path Evidence | Mean OCR Score |
+|---|---|---:|---:|---:|
+| both_wrong | absent_case | 15 | 0.0999 | 0.8618 |
+| both_wrong | present_case | 100 | 0.1663 | 0.4121 |
+| combined_wrong_vlm_correct | absent_case | 30 | 0.1419 | 0.5301 |
+| combined_wrong_vlm_correct | present_case | 100 | 0.1604 | 0.5089 |
+| vlm_wrong_combined_correct | absent_case | 16 | 0.0401 | 0.3749 |
+| vlm_wrong_combined_correct | present_case | 100 | 0.5933 | 0.4452 |
+
 Takeaways:
 
 - Even the strongest OCR-aware VLM has at least 100 capped absent cases where VLM predicts present but combined AND is correct. These have very low path evidence and low-to-moderate OCR score, matching the not-found safety role of combined AND.
 - VLM corrects at least 100 capped present cases where combined AND over-rejects. These have weak path/OCR evidence, so VLM appears better at preserving visible targets when the scanpath verifier is too conservative.
 - Both-wrong absent cases have high OCR scores, suggesting strong text/semantic distractors or OCR-leak cases.
 - Both-wrong present cases remain difficult and may include small, ambiguous, low-visibility, or annotation-noisy targets.
-- This motivates a hybrid future model: use OCR-aware VLM as a strong presence classifier, but retain scanpath/path-evidence signals for not-found safety and interpretability.
+- Evidence-aware VLM reduces VLM-wrong/combined-correct absent cases from the 100 cap under OCR-aware prompting to 16, showing that scanpath/OCR evidence helps the VLM recover not-found safety.
+- Evidence-aware VLM still rescues many present cases that combined AND over-rejects, which is why it improves full-benchmark F1 over combined AND.
+- Remaining both-wrong absent cases have very high OCR scores (`0.8618`), suggesting the hardest residual failures are strong distractors or OCR-leak cases.
 
 ## Pending Results
 
-- Evidence-aware VLM verifier:
-  - New code feeds the screenshot plus combined scanpath/OCR evidence into the VLM.
-  - Variants: `evidence_aware`, `evidence_conservative`, `evidence_rescue_present`.
-  - Main comparison: OCR-aware VLM vs combined AND vs evidence-aware VLM.
-  - Key question: can the VLM use path/OCR evidence to keep OCR-aware accuracy while recovering combined AND's not-found safety?
-  - Run `scripts_utah/export_vlm_ablation_table.slurm` after jobs finish to rank prompt-only, combined, VLM presence, and VLM evidence variants in one table.
+- Evidence-aware VLM verifier for SeekUI-SFT as a secondary-model check.
+- Filtered sensitivity for evidence-aware VLM after `evaluate_absent_status_filtered.py` is run on the evidence-aware prediction output.
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
 - Small real/manual absent validation protocol execution.
 
@@ -501,4 +510,6 @@ scripts_greatlakes/submit_vlm_evidence_ablation.sh
 scripts_research/export_vlm_ablation_table.py
 scripts_utah/export_vlm_ablation_table.slurm
 scripts_greatlakes/export_vlm_ablation_table.slurm
+scripts_research/export_vlm_hard_case_comparison.py
+scripts_utah/export_vlm_hard_case_comparison.slurm
 ```
