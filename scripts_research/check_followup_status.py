@@ -177,6 +177,88 @@ def build_items(limit, variants):
             ],
             "command": "sbatch scripts_utah/summarize_research_outputs.slurm",
         },
+        {
+            "id": "vlm_presence_baselines",
+            "title": "VLM presence prompt baselines",
+            "required": [
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence.json",
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_status_eval.json",
+            ],
+            "optional": [
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_ocr_aware_status_eval.json",
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_conservative_status_eval.json",
+                "{outputs}/vlm_presence_predictions_SeekUI_vlm_presence_search_behavior_status_eval.json",
+            ],
+            "command": "VLM_PROMPT_VARIANTS=\"conservative ocr_aware search_behavior\" bash scripts_greatlakes/submit_vlm_prompt_ablation.sh",
+        },
+        {
+            "id": "evidence_aware_vlm",
+            "title": "Evidence-aware VLM verifier",
+            "required": [
+                "{outputs}/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware.json",
+                "{outputs}/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_status_eval.json",
+            ],
+            "optional": [
+                "{outputs}/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_conservative_status_eval.json",
+                "{outputs}/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_rescue_present_status_eval.json",
+            ],
+            "command": "VLM_EVIDENCE_PROMPT_VARIANTS=\"evidence_aware evidence_conservative evidence_rescue_present\" bash scripts_utah/submit_vlm_evidence_ablation.sh",
+        },
+        {
+            "id": "evidence_filtered_eval",
+            "title": "Evidence-aware filtered sensitivity",
+            "required": [
+                "{outputs}/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.json",
+                "{outputs}/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv",
+            ],
+            "command": "sbatch scripts_utah/evaluate_evidence_filtered_status.slurm",
+        },
+        {
+            "id": "vlm_ablation_table",
+            "title": "VLM/evidence ablation table",
+            "required": [
+                "{outputs}/paper_tables/vlm_ablation_table.csv",
+                "{outputs}/paper_tables/vlm_ablation_table.md",
+            ],
+            "command": "sbatch scripts_utah/export_vlm_ablation_table.slurm",
+        },
+        {
+            "id": "evidence_hard_cases",
+            "title": "Evidence-aware hard-case summary",
+            "required": [
+                "{outputs}/vlm_hard_cases/SeekUI_vlm_evidence_aware_vs_SeekUI_combined_and/manifest.json",
+                "{outputs}/vlm_hard_cases/SeekUI_vlm_evidence_aware_vs_SeekUI_combined_and/summary.json",
+                "{outputs}/vlm_hard_cases/SeekUI_vlm_evidence_aware_vs_SeekUI_combined_and/summary.md",
+            ],
+            "command": "python scripts_research/summarize_vlm_hard_cases.py --manifest $SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_evidence_aware_vs_SeekUI_combined_and/manifest.json --output-json $SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_evidence_aware_vs_SeekUI_combined_and/summary.json --output-csv $SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_evidence_aware_vs_SeekUI_combined_and/summary.csv --output-md $SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_evidence_aware_vs_SeekUI_combined_and/summary.md",
+        },
+        {
+            "id": "vlm_hard_case_comparison",
+            "title": "Direct/OCR-aware/evidence-aware hard-case comparison",
+            "required": [
+                "{outputs}/vlm_hard_cases/vlm_hard_case_comparison.csv",
+                "{outputs}/vlm_hard_cases/vlm_hard_case_comparison.md",
+            ],
+            "command": "sbatch scripts_utah/export_vlm_hard_case_comparison.slurm",
+        },
+        {
+            "id": "real_absent_validation_starter",
+            "title": "Realistic absent validation starter sheet",
+            "required": [
+                "{outputs}/real_absent_validation/real_absent_validation_starter.csv",
+                "{outputs}/real_absent_validation/real_absent_validation_starter.md",
+            ],
+            "command": "sbatch scripts_utah/export_real_absent_validation_sheet.slurm",
+        },
+        {
+            "id": "real_absent_validation_eval",
+            "title": "Prepared realistic absent validation eval JSON",
+            "required": [
+                "{outputs}/real_absent_validation/real_absent_validation_eval.json",
+                "{outputs}/real_absent_validation/real_absent_validation_prep.md",
+            ],
+            "command": "sbatch scripts_utah/prepare_real_absent_validation_dataset.slurm",
+        },
     ]
 
 

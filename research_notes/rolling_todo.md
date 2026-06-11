@@ -55,6 +55,17 @@ python scripts_research/summarize_research_outputs.py \
 cat "$SEEKUI_WORK/outputs/research_summary_tables/absent_status_core.csv"
 ```
 
+Check all original and new follow-up artifacts:
+
+```bash
+python scripts_research/check_followup_status.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output-json "$SEEKUI_WORK/outputs/followup_status.json" \
+  --output-md "$SEEKUI_WORK/outputs/followup_status.md"
+
+cat "$SEEKUI_WORK/outputs/followup_status.md"
+```
+
 Refresh validation outputs after new jobs finish:
 
 ```bash
