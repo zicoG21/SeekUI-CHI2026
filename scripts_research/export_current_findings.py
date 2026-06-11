@@ -193,9 +193,14 @@ TRADEOFF_DISPLAY_METHODS = (
 
 def is_practical_tradeoff_row(row):
     method = row.get("method", "")
+    threshold_spec = row.get("threshold_spec", "")
     if "candidate_verifier" in method:
         return False
     if method.endswith("_stopping_evidence") or method.endswith("_visual_stopping_evidence"):
+        return False
+    if "cognitive_threshold=0.0" in threshold_spec and "ocr_threshold=0.0" in threshold_spec:
+        return False
+    if threshold_spec == "threshold=0.0; mode=present_only":
         return False
     if as_float(row.get("absent_f1"), 0.0) < 0.5:
         return False
@@ -234,7 +239,7 @@ def table_tradeoff_utility(rows):
     if not rows:
         return ["Pending: run `sbatch scripts_utah/export_tradeoff_utility.slurm`."]
     lines = [
-        "Curated practical rows are shown here; the full sweep remains in `outputs/tradeoff_utility/tradeoff_cost_utility.csv`.",
+        "Curated non-degenerate practical rows are shown here; the full sweep remains in `outputs/tradeoff_utility/tradeoff_cost_utility.csv`.",
         "",
         "| Cost Ratio | Method | Thresholds | Expected Cost | Acc | F1 | P->A | A->P |",
         "|---|---|---|---:|---:|---:|---:|---:|",
@@ -473,9 +478,9 @@ def directions_summary(summary):
                 "Realistic validation improves F1 from 0.7907 to 0.9159; "
                 + ("target-disjoint validation is positive." if has_target else "target-disjoint validation is pending.")
             ),
-            "next_step": "Expand realistic validation to 200-400 rows and keep annotation-free candidate inventory in the main defensibility story.",
+            "next_step": "Fill/review the 500-row realistic validation package and keep annotation-free candidate inventory in the main defensibility story.",
             "remaining": (
-                "Expand realistic validation beyond 100 rows." if has_real_absent
+                "Finish and evaluate the 500-row realistic validation set." if has_real_absent
                 else "Complete realistic validation."
             ),
         },
@@ -623,7 +628,7 @@ def write_md(path, summary):
         "- Annotation-free OCR candidates recover part of the gain, supporting deployability, but they underperform stronger UI/VLM evidence.",
         "- Naive OCR+edge visual proposals underperform OCR-only annotation-free evidence, suggesting simple visual regions add noise; stronger UI detectors or crop-level VLM proposals are the right next deployable inventory path.",
         "- Evidence-aware VLM gives the strongest practical synthetic result, while combined AND remains the most transparent verifier.",
-        "- The 100-row realistic validation is an external-validity smoke test; expanding it is the next data-facing priority.",
+        "- The 100-row realistic validation is an external-validity smoke test; the prepared 500-row review package is the next data-facing priority.",
         "- The most important revision gaps are deployability and validity: annotation-free evidence plus larger realistic validation matter more than further prompt tuning.",
         "- Add PR/ROC/cost-sensitive utility before submission so the P->A versus A->P tradeoff is explicitly argued rather than hidden inside F1.",
         "- Keep the paper focused: target absence is the core problem, cognitive stopping is the mechanism, multimodal/non-text is secondary generalization, and associative search is future work.",
