@@ -26,7 +26,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Behavioral search metrics | completed | Optional rerun after pulling latest polish so zero-N target-distance rows display `n/a` |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases; v3 semantic association results are now available |
 | P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
-| P1 | VLM hard-case analysis | in progress | Direct VLM hard-case manifest generated; repeat for OCR-aware VLM after copying GL output to CHPC |
+| P1 | VLM hard-case analysis | in progress | Direct VLM hard-case manifest generated; summary script is ready; repeat for OCR-aware VLM after copying GL output to CHPC |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
@@ -126,6 +126,23 @@ Export VLM-vs-combined hard-case lists after a VLM output is available:
 
 ```bash
 VLM_LABEL=SeekUI_vlm_presence sbatch scripts_utah/export_vlm_hard_cases.slurm
+```
+
+If the short partition is unavailable, run the same analysis directly:
+
+```bash
+python scripts_research/export_vlm_hard_cases.py \
+  --combined-predictions "$SEEKUI_WORK/outputs/present_absent_predictions_SeekUI_combined_and_present_only_best_f1.json" \
+  --vlm-predictions "$SEEKUI_WORK/outputs/vlm_presence_predictions_SeekUI_vlm_presence.json" \
+  --combined-case-index "$SEEKUI_WORK/outputs/combined_cases/SeekUI_and_present_only_best_f1/stopping_cases_index.csv" \
+  --out-dir "$SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_presence_vs_SeekUI_combined_and" \
+  --limit-per-type 100
+
+python scripts_research/summarize_vlm_hard_cases.py \
+  --manifest "$SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_presence_vs_SeekUI_combined_and/manifest.json" \
+  --output-json "$SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_presence_vs_SeekUI_combined_and/summary.json" \
+  --output-csv "$SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_presence_vs_SeekUI_combined_and/summary.csv" \
+  --output-md "$SEEKUI_WORK/outputs/vlm_hard_cases/SeekUI_vlm_presence_vs_SeekUI_combined_and/summary.md"
 ```
 
 Download combined contact sheets locally:

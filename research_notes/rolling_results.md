@@ -452,5 +452,6 @@ Code-ready next analysis:
 
 ```text
 scripts_research/export_vlm_hard_cases.py
+scripts_research/summarize_vlm_hard_cases.py
 scripts_utah/export_vlm_hard_cases.slurm
 ```

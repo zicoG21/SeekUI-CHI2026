@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=seekui-vlm-hard
-#SBATCH --account=owner-guest
-#SBATCH --partition=notchpeak-shared-guest
+#SBATCH --account=notchpeak-shared-short
+#SBATCH --partition=notchpeak-shared-short
 #SBATCH --cpus-per-task=2
 #SBATCH --mem=8G
 #SBATCH --time=00:20:00
@@ -40,3 +40,12 @@ python scripts_research/export_vlm_hard_cases.py \
 
 echo "VLM hard cases: $out_dir"
 cat "$out_dir/manifest.json"
+
+python scripts_research/summarize_vlm_hard_cases.py \
+  --manifest "$out_dir/manifest.json" \
+  --output-json "$out_dir/summary.json" \
+  --output-csv "$out_dir/summary.csv" \
+  --output-md "$out_dir/summary.md"
+
+echo "VLM hard-case summary: $out_dir/summary.md"
+cat "$out_dir/summary.md"
