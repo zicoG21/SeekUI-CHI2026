@@ -17,7 +17,7 @@ The first baseline uses SeekUI's prompt-only output. If the model emits an absen
 
 The cognitive stopping layer measures whether the predicted scanpath provides evidence for a target-like candidate. Intuitively, a present target should eventually attract the path toward a stable region, while an absent target often yields weak, diffuse, or unsupported evidence. The path score is not a new scanpath generator; it is a post-hoc signal derived from the generated path.
 
-For each screenshot, we build a candidate set from known target annotations in the released data. Each candidate has a center point $c_j$ and text label $t_j$. For a query $q$ and predicted fixation point $f_i$, we compute:
+For each screenshot, we build a candidate set from known target annotations in the released data. Each candidate has a center point $c_j$ and text label $t_j$. This candidate inventory is annotation-backed: it is appropriate for controlled benchmark analysis because it lets us ask whether the generated scanpath visits any known target-like UI element, but it is not itself a deployable perception module. A deployed version would replace this inventory with OCR boxes, accessibility-tree elements, UI detector proposals, icon proposals, or crop-level VLM candidates. For a query $q$ and predicted fixation point $f_i$, we compute:
 
 \[
   e(f_i, c_j, q, t_j) =
@@ -65,7 +65,7 @@ This AND rule is intentionally conservative: it tries to reduce absent false-pre
 
 \begin{enumerate}
   \item Run SeekUI on screenshot $I$ and query $q$ to obtain scanpath $S$ and original status.
-  \item Build UI candidates from target annotations and OCR candidates from the screenshot.
+  \item Build benchmark UI candidates from target annotations and OCR candidates from the screenshot.
   \item Compute $E_{\mathrm{path}} = \max_{f_i,c_j} \operatorname{sim}(q,t_j)\exp(-\|f_i-c_j\|_2/r)$.
   \item Compute $E_{\mathrm{ocr}} = \max_{o_k} \operatorname{sim}(q,o_k)$ over OCR candidates above the confidence threshold.
   \item If both $E_{\mathrm{path}} < \tau_{\mathrm{path}}$ and $E_{\mathrm{ocr}} < \tau_{\mathrm{ocr}}$, output \texttt{absent}; otherwise output \texttt{present}.
