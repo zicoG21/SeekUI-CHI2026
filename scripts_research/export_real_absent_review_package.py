@@ -31,6 +31,11 @@ def resolve_image(image_root, image):
     for path in candidates:
         if path.exists():
             return path
+    basename = Path(image).name
+    if basename:
+        for path in image_root.rglob(basename):
+            if path.is_file():
+                return path
     return None
 
 
@@ -84,10 +89,14 @@ def export_images(rows, image_root, out_dir):
     for row in rows:
         src = resolve_image(image_root, row.get("image"))
         if not src:
+            row["_resolved_image"] = ""
+            row["_local_image"] = ""
             continue
         dst = out_dir / f"{int(row.get('review_id', copied)):03d}_{src.name}"
         if not dst.exists():
             shutil.copy2(src, dst)
+        row["_resolved_image"] = str(src)
+        row["_local_image"] = str(dst)
         copied += 1
     return copied
 
@@ -98,6 +107,7 @@ def compact_rows(rows):
         result.append({
             "review_id": row.get("review_id", ""),
             "image": row.get("image", ""),
+            "local_image": row.get("_local_image", ""),
             "query_text": row.get("query_text", ""),
             "gold_status": row.get("gold_status", ""),
             "target_visible": row.get("target_visible", ""),
@@ -110,11 +120,13 @@ def compact_rows(rows):
 
 
 def write_md(path, rows, copied, sheet_path, review_csv):
+    missing = sum(1 for row in rows if not row.get("_resolved_image"))
     lines = [
         "# Realistic Absent Review Package",
         "",
         f"- Absent rows: {len(rows)}",
         f"- Images copied: {copied}",
+        f"- Missing images: {missing}",
         f"- Contact sheet: `{sheet_path}`",
         f"- Review CSV: `{review_csv}`",
         "",
@@ -151,13 +163,13 @@ def main():
         rows = rows[:args.limit]
     out_dir = Path(args.out_dir)
     image_root = Path(args.image_root)
-    review_rows = compact_rows(rows)
     review_csv = out_dir / "real_absent_rows_to_fill.csv"
     contact_sheet = out_dir / "real_absent_review_contact_sheet.jpg"
     copied_dir = out_dir / "images"
 
-    write_csv(review_csv, review_rows, list(review_rows[0].keys()) if review_rows else [])
     copied = export_images(rows, image_root, copied_dir)
+    review_rows = compact_rows(rows)
+    write_csv(review_csv, review_rows, list(review_rows[0].keys()) if review_rows else [])
     sheet_count = make_contact_sheet(rows, image_root, contact_sheet, args.cols, args.thumb_width, args.thumb_height, 26)
     write_md(out_dir / "real_absent_review_package.md", rows, copied, contact_sheet, review_csv)
 
