@@ -28,7 +28,7 @@ echo "OUT_DIR    : $OUT_DIR"
 echo "PNG count under DATA_DIR:"
 find "$DATA_DIR" -type f -name '*.png' | wc -l
 echo "First five PNGs:"
-find "$DATA_DIR" -type f -name '*.png' | head -5
+find "$DATA_DIR" -type f -name '*.png' -print | sed -n '1,5p'
 echo "First five absent image fields:"
 python - <<'PY' "$INPUT_CSV"
 import csv, sys
