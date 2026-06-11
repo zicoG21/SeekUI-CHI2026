@@ -1,8 +1,22 @@
 #!/usr/bin/env python
 import argparse
+import csv
 import json
 import os
 from pathlib import Path
+
+
+def csv_has_row(path, where):
+    if not path.exists():
+        return False
+    try:
+        with open(path, "r", encoding="utf-8", newline="") as f:
+            for row in csv.DictReader(f):
+                if all(str(row.get(key, "")) == str(value) for key, value in where.items()):
+                    return True
+    except csv.Error:
+        return False
+    return False
 
 
 def status_for(outputs, data, item):
@@ -11,8 +25,17 @@ def status_for(outputs, data, item):
     missing = [str(path) for path in required if not path.exists()]
     present = [str(path) for path in required if path.exists()]
     optional_present = [str(path) for path in optional if path.exists()]
+    content_missing = []
+    content_present = []
+    for check in item.get("csv_contains", []):
+        path = Path(check["path"].format(outputs=outputs, data=data))
+        label = check.get("label", str(path))
+        if csv_has_row(path, check.get("where", {})):
+            content_present.append(label)
+        else:
+            content_missing.append(label)
 
-    if not missing:
+    if not missing and not content_missing:
         state = "done"
     else:
         state = "pending"
@@ -22,8 +45,9 @@ def status_for(outputs, data, item):
         "title": item["title"],
         "state": state,
         "present": present,
-        "missing": missing,
+        "missing": missing + content_missing,
         "optional_present": optional_present,
+        "content_present": content_present,
         "command": item.get("command", ""),
     }
 
@@ -326,11 +350,23 @@ def build_items(limit, variants):
             "id": "real_absent_seekui_baseline",
             "title": "Realistic absent validation SeekUI baseline",
             "required": [
-                "{outputs}/present_absent_predictions_SeekUI_real_absent.json",
-                "{outputs}/present_absent_predictions_SeekUI_real_absent_status_eval.json",
+                "{outputs}/real_absent_validation/real_absent_results.csv",
                 "{outputs}/real_absent_validation/real_absent_results.md",
             ],
+            "csv_contains": [
+                {
+                    "path": "{outputs}/real_absent_validation/real_absent_results.csv",
+                    "label": "real_absent_results.csv contains SeekUI prompt_only_real_absent",
+                    "where": {
+                        "model": "SeekUI",
+                        "family": "seekui_prompt",
+                        "variant": "prompt_only_real_absent",
+                    },
+                },
+            ],
             "optional": [
+                "{outputs}/present_absent_predictions_SeekUI_real_absent.json",
+                "{outputs}/present_absent_predictions_SeekUI_real_absent_status_eval.json",
                 "{outputs}/present_absent_predictions_SeekUI_real_absent_combined_and_present_only_status_eval.json",
                 "{outputs}/present_absent_predictions_SeekUI_real_absent_combined_and_present_only_best_f1_status_eval.json",
                 "{outputs}/real_absent_validation/stopping_evidence/SeekUI_real_absent_stopping_evidence.csv",
