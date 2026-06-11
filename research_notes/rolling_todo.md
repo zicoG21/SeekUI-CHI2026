@@ -222,6 +222,20 @@ If you want the diagnostic evidence prompt too, add `RUN_EVIDENCE=1`:
 RUN_EVIDENCE=1 bash scripts_utah/submit_real_absent_vlm_baselines.sh
 ```
 
+If running directly on Great Lakes, rebuild the 100-row validation JSON from the tracked review artifact first:
+
+```bash
+bash scripts_research/rebuild_real_absent_validation_from_repo.sh
+SBATCH_ACCOUNT=jaabell0 \
+SBATCH_PARTITION=spgpu \
+SBATCH_GRES=gpu:a40:1 \
+SBATCH_CPUS_PER_TASK=4 \
+SBATCH_MEM=40G \
+SUMMARY_ACCOUNT=jaabell0 \
+SUMMARY_PARTITION=standard \
+bash scripts_greatlakes/submit_real_absent_vlm_baselines.sh
+```
+
 Run the same evidence-aware VLM ablation on Great Lakes with `jaabell0`:
 
 ```bash
