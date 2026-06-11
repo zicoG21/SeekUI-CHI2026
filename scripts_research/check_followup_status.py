@@ -277,6 +277,25 @@ def build_items(limit, variants):
             "command": "sbatch scripts_utah/apply_annotation_free_combined_verifier.slurm",
         },
         {
+            "id": "annotation_free_visual_inventory",
+            "title": "Annotation-free OCR plus visual candidate inventory",
+            "required": [
+                "{outputs}/annotation_free_visual_stopping_evidence/SeekUI_annotation_free_stopping_evidence.csv",
+                "{outputs}/annotation_free_visual_stopping_evidence/SeekUI_sft_annotation_free_stopping_evidence.csv",
+                "{outputs}/annotation_free_visual_stopping_evidence/annotation_free_stopping_evidence_summary.md",
+            ],
+            "command": "sbatch scripts_utah/analyze_annotation_free_visual_stopping_evidence.slurm",
+        },
+        {
+            "id": "annotation_free_visual_combined",
+            "title": "Annotation-free OCR plus visual combined verifier",
+            "required": [
+                "{outputs}/present_absent_predictions_SeekUI_annotation_free_visual_combined_and_present_only_best_f1_status_eval.json",
+                "{outputs}/present_absent_predictions_SeekUI_sft_annotation_free_visual_combined_and_present_only_best_f1_status_eval.json",
+            ],
+            "command": "sbatch scripts_utah/apply_annotation_free_visual_combined_verifier.slurm",
+        },
+        {
             "id": "tradeoff_utility",
             "title": "PR/ROC and cost-sensitive utility curves",
             "required": [
@@ -295,6 +314,17 @@ def build_items(limit, variants):
                 "{outputs}/gui_evaluation_case_study/SeekUI_combined_and_present_only_best_f1/case_study_manifest.json",
             ],
             "command": "sbatch scripts_utah/export_gui_evaluation_case_study.slurm",
+        },
+        {
+            "id": "real_absent_validation_500_starter",
+            "title": "Expanded 500-row realistic absent validation starter",
+            "required": [
+                "{outputs}/real_absent_validation_500/real_absent_validation_starter.csv",
+                "{outputs}/real_absent_validation_500/real_absent_validation_prefilled.csv",
+                "{outputs}/real_absent_validation_500/review_package/real_absent_rows_to_fill.csv",
+                "{outputs}/real_absent_validation_500/review_package/real_absent_review_package.md",
+            ],
+            "command": "sbatch scripts_utah/export_large_real_absent_validation.slurm",
         },
         {
             "id": "vlm_ablation_table",

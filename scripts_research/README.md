@@ -635,6 +635,22 @@ sbatch scripts_utah/export_expanded_real_absent_validation.slurm
 cat "$SEEKUI_WORK/outputs/real_absent_validation_200/review_package/real_absent_review_package.md"
 ```
 
+Create the larger 500-row revision package:
+
+```bash
+sbatch scripts_utah/export_large_real_absent_validation.slurm
+cat "$SEEKUI_WORK/outputs/real_absent_validation_500/review_package/real_absent_review_package.md"
+```
+
+Run the stronger annotation-free candidate inventory that augments OCR boxes
+with simple edge-based visual region proposals, then apply the combined
+verifier without overwriting the OCR-only annotation-free outputs:
+
+```bash
+sbatch scripts_utah/analyze_annotation_free_visual_stopping_evidence.slurm
+sbatch scripts_utah/apply_annotation_free_visual_combined_verifier.slurm
+```
+
 Export PR/ROC points and cost-sensitive utility tables from all available
 threshold sweeps. This is the main artifact for explaining the `P->A` versus
 `A->P` tradeoff in the paper:

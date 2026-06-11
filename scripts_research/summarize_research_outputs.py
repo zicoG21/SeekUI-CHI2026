@@ -107,6 +107,10 @@ def absent_variant(name):
     if marker in name:
         model, variant = name.split(marker, 1)
         return model, f"vlm_presence{variant}"
+    marker = "_annotation_free_visual_combined_"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"annotation_free_visual_combined_{variant}"
     marker = "_annotation_free_combined_"
     if marker in name:
         model, variant = name.split(marker, 1)
@@ -165,13 +169,15 @@ def absent_status_core_rows(absent_status):
         "combined_and_present_only_best_f1": 9,
         "annotation_free_combined_and_present_only": 10,
         "annotation_free_combined_and_present_only_best_f1": 11,
-        "vlm_presence": 12,
-        "vlm_presence_ocr_aware": 13,
-        "vlm_presence_search_behavior": 14,
-        "vlm_presence_conservative": 15,
-        "vlm_evidence_evidence_aware": 16,
-        "vlm_evidence_evidence_conservative": 17,
-        "vlm_evidence_evidence_rescue_present": 18,
+        "annotation_free_visual_combined_and_present_only": 12,
+        "annotation_free_visual_combined_and_present_only_best_f1": 13,
+        "vlm_presence": 14,
+        "vlm_presence_ocr_aware": 15,
+        "vlm_presence_search_behavior": 16,
+        "vlm_presence_conservative": 17,
+        "vlm_evidence_evidence_aware": 18,
+        "vlm_evidence_evidence_conservative": 19,
+        "vlm_evidence_evidence_rescue_present": 20,
     }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
@@ -329,6 +335,13 @@ def main():
             report["absent_status"][f"{model}_{variant}"] = read_json(combined_eval_path)
         for combined_eval_path in sorted(
             outputs.glob(f"present_absent_predictions_{model}_annotation_free_combined_*_status_eval.json")
+        ):
+            prefix = f"present_absent_predictions_{model}_"
+            suffix = "_status_eval"
+            variant = combined_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            report["absent_status"][f"{model}_{variant}"] = read_json(combined_eval_path)
+        for combined_eval_path in sorted(
+            outputs.glob(f"present_absent_predictions_{model}_annotation_free_visual_combined_*_status_eval.json")
         ):
             prefix = f"present_absent_predictions_{model}_"
             suffix = "_status_eval"

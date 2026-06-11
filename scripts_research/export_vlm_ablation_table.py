@@ -46,6 +46,11 @@ def infer_label(path, outputs_dir):
             None,
         ),
         (
+            r"^present_absent_predictions_(?P<model>SeekUI(?:_sft)?)_(?P<variant>annotation_free_visual_combined_.*)_status_eval\.json$",
+            "annotation_free_visual_combined",
+            None,
+        ),
+        (
             r"^present_absent_predictions_(?P<model>SeekUI(?:_sft)?)_(?P<variant>annotation_free_combined_.*)_status_eval\.json$",
             "annotation_free_combined",
             None,
@@ -125,6 +130,8 @@ def collect_paths(outputs_dir, include_pilots):
         "present_absent_predictions_SeekUI_sft_combined_*_status_eval.json",
         "present_absent_predictions_SeekUI_annotation_free_combined_*_status_eval.json",
         "present_absent_predictions_SeekUI_sft_annotation_free_combined_*_status_eval.json",
+        "present_absent_predictions_SeekUI_annotation_free_visual_combined_*_status_eval.json",
+        "present_absent_predictions_SeekUI_sft_annotation_free_visual_combined_*_status_eval.json",
         "vlm_presence_predictions_SeekUI_vlm_presence*_status_eval.json",
         "vlm_presence_predictions_SeekUI_sft_vlm_presence*_status_eval.json",
         "vlm_evidence_predictions_SeekUI_vlm_evidence*_status_eval.json",

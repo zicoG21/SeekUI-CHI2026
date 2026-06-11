@@ -17,6 +17,7 @@ DATA_DIR="$SEEKUI_WORK/data"
 OUTPUT_DIR="$SEEKUI_WORK/outputs"
 EVIDENCE_DIR="${EVIDENCE_DIR:-$OUTPUT_DIR/annotation_free_stopping_evidence}"
 OCR_CANDIDATES="${OCR_CANDIDATES:-$OUTPUT_DIR/ocr_candidates_tesseract.json}"
+VARIANT_PREFIX="${VARIANT_PREFIX:-annotation_free_combined}"
 MODE="${MODE:-present_only}"
 RULES="${RULES:-and}"
 COGNITIVE_THRESHOLD="${COGNITIVE_THRESHOLD:-0.05}"
@@ -54,7 +55,7 @@ PY
 
 for model in SeekUI SeekUI_sft; do
   for rule in $RULES; do
-    base="$OUTPUT_DIR/present_absent_predictions_${model}_annotation_free_combined_${rule}_${MODE}"
+    base="$OUTPUT_DIR/present_absent_predictions_${model}_${VARIANT_PREFIX}_${rule}_${MODE}"
     evidence="$EVIDENCE_DIR/${model}_annotation_free_stopping_evidence.csv"
     sweep_path="${base}_threshold_sweep.csv"
 

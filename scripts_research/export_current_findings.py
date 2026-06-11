@@ -10,11 +10,13 @@ KEY_VARIANTS = [
     ("SeekUI", "cognitive_stop_present_only"),
     ("SeekUI", "combined_and_present_only_best_f1"),
     ("SeekUI", "annotation_free_combined_and_present_only_best_f1"),
+    ("SeekUI", "annotation_free_visual_combined_and_present_only_best_f1"),
     ("SeekUI", "vlm_presence"),
     ("SeekUI", "vlm_evidence_evidence_aware"),
     ("SeekUI_sft", "prompt_only"),
     ("SeekUI_sft", "combined_and_present_only_best_f1"),
     ("SeekUI_sft", "annotation_free_combined_and_present_only_best_f1"),
+    ("SeekUI_sft", "annotation_free_visual_combined_and_present_only_best_f1"),
     ("SeekUI_sft", "vlm_evidence_evidence_aware"),
 ]
 
@@ -213,6 +215,34 @@ def read_gui_case_study_rows(work_dir):
         return json.load(f)
 
 
+def large_real_absent_status(work_dir):
+    base = work_dir / "outputs" / "real_absent_validation_500"
+    package_md = base / "review_package" / "real_absent_review_package.md"
+    starter = base / "real_absent_validation_starter.csv"
+    review = base / "review_package" / "real_absent_rows_to_fill.csv"
+    return {
+        "exists": starter.exists() and review.exists() and package_md.exists(),
+        "base_dir": str(base),
+        "starter_csv": str(starter),
+        "review_csv": str(review),
+        "review_package_md": str(package_md),
+    }
+
+
+def visual_inventory_status(work_dir):
+    outputs = work_dir / "outputs"
+    evidence_summary = outputs / "annotation_free_visual_stopping_evidence" / "annotation_free_stopping_evidence_summary.md"
+    seekui_eval = outputs / "present_absent_predictions_SeekUI_annotation_free_visual_combined_and_present_only_best_f1_status_eval.json"
+    sft_eval = outputs / "present_absent_predictions_SeekUI_sft_annotation_free_visual_combined_and_present_only_best_f1_status_eval.json"
+    return {
+        "evidence_exists": evidence_summary.exists(),
+        "combined_exists": seekui_eval.exists() and sft_eval.exists(),
+        "evidence_summary": str(evidence_summary),
+        "seekui_eval": str(seekui_eval),
+        "sft_eval": str(sft_eval),
+    }
+
+
 def table_gui_case_study(rows):
     if not rows:
         return ["Pending: run `sbatch scripts_utah/export_gui_evaluation_case_study.slurm`."]
@@ -274,26 +304,39 @@ def table_target_disjoint(rows):
 def revision_route(summary):
     has_filtered = bool(summary.get("filtered_sensitivity_rows"))
     has_real_absent = bool(summary.get("real_absent_rows"))
+    has_large_real_absent = summary.get("large_real_absent_status", {}).get("exists", False)
     has_tradeoff = bool(summary.get("tradeoff_utility_rows"))
     has_case_study = bool(summary.get("gui_case_study_rows"))
+    visual_status = summary.get("visual_inventory_status", {})
     has_annotation_free = any(
-        row.get("variant") == "annotation_free_combined_and_present_only_best_f1"
+        row.get("variant") in {
+            "annotation_free_combined_and_present_only_best_f1",
+            "annotation_free_visual_combined_and_present_only_best_f1",
+        }
         for row in summary.get("selected_rows", [])
     )
     return [
         {
             "priority": "1",
             "item": "Annotation-free candidate inventory",
-            "status": "started" if has_annotation_free else "pending",
+            "status": "visual ready" if visual_status.get("combined_exists") else ("visual evidence ready" if visual_status.get("evidence_exists") else ("started" if has_annotation_free else "pending")),
             "why": "Defensibility/deployability: answers whether path evidence depends on benchmark annotations.",
-            "next_step": "Strengthen the OCR-only inventory with UI component proposals, icon proposals, or crop-level VLM candidates.",
+            "next_step": (
+                "Compare OCR-only and OCR+visual annotation-free variants in the main result tables."
+                if visual_status.get("combined_exists")
+                else "Run OCR+edge visual proposals, then apply the visual annotation-free combined verifier."
+            ),
         },
         {
             "priority": "2",
             "item": "Larger realistic absent validation",
-            "status": "started" if has_real_absent else "pending",
+            "status": "500-row starter ready" if has_large_real_absent else ("started" if has_real_absent else "pending"),
             "why": "External validity: moves the result beyond synthetic absent target swaps.",
-            "next_step": "Expand the reviewed set from 100 rows to at least 300-500 stratified rows.",
+            "next_step": (
+                "Fill/review the 500-row package and convert it into eval JSON."
+                if has_large_real_absent
+                else "Expand the reviewed set from 100 rows to at least 300-500 stratified rows."
+            ),
         },
         {
             "priority": "3",
@@ -523,11 +566,14 @@ def main():
     filtered_sensitivity_rows = read_filtered_sensitivity_rows(work_dir)
     tradeoff_utility_rows = read_tradeoff_utility_rows(work_dir)
     gui_case_study_rows = read_gui_case_study_rows(work_dir)
+    large_real_status = large_real_absent_status(work_dir)
+    visual_status = visual_inventory_status(work_dir)
     target_disjoint_rows = read_target_disjoint_rows(work_dir)
     indexed = row_index(absent_rows)
     seekui_prompt = indexed.get(("SeekUI", "prompt_only"), {})
     seekui_combined = indexed.get(("SeekUI", "combined_and_present_only_best_f1"), {})
     seekui_annotation_free = indexed.get(("SeekUI", "annotation_free_combined_and_present_only_best_f1"), {})
+    seekui_annotation_free_visual = indexed.get(("SeekUI", "annotation_free_visual_combined_and_present_only_best_f1"), {})
     seekui_evidence = indexed.get(("SeekUI", "vlm_evidence_evidence_aware"), {})
 
     claims = []
@@ -541,6 +587,11 @@ def main():
         claims.append(
             "Annotation-free OCR candidate inventory still improves SeekUI absent F1 to "
             f"{fmt(seekui_annotation_free.get('absent_f1'))}, showing the effect is not only an annotation-candidate artifact."
+        )
+    if seekui_prompt and seekui_annotation_free_visual:
+        claims.append(
+            "Annotation-free OCR+visual proposals reach SeekUI absent F1 "
+            f"{fmt(seekui_annotation_free_visual.get('absent_f1'))}, testing a more deployable candidate inventory."
         )
     if seekui_prompt and seekui_evidence:
         claims.append(
@@ -585,6 +636,8 @@ def main():
         "filtered_sensitivity_rows": filtered_sensitivity_rows,
         "tradeoff_utility_rows": tradeoff_utility_rows,
         "gui_case_study_rows": gui_case_study_rows,
+        "large_real_absent_status": large_real_status,
+        "visual_inventory_status": visual_status,
         "target_disjoint_rows": target_disjoint_rows,
     }
     summary["directions_summary"] = directions_summary(summary)
