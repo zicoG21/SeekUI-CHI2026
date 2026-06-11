@@ -463,9 +463,9 @@ Takeaways:
 
 ## Pending Results
 
-- Evidence-aware VLM verifier for SeekUI-SFT as a secondary-model check.
-- Matched dev/test image-split validation for evidence-aware VLM before treating it as a headline method.
-- Real-absent evidence-aware VLM with per-example evidence and predictions.
+- Evidence-aware matched dev/test split validation is now code-ready via `scripts_research/evaluate_status_devtest.py`; run `sbatch scripts_utah/evaluate_status_devtest.slurm` and treat the image split as the key check.
+- Evidence-aware VLM verifier for SeekUI-SFT remains a secondary-model GPU check; after inference, run `MODEL_NAME=SeekUI_sft sbatch scripts_utah/evaluate_status_devtest.slurm`.
+- Real-absent evidence-aware VLM with per-example evidence and predictions is still pending; current real-absent evidence supports combined AND and VLM presence baselines.
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
 
 ## Files To Check

@@ -214,6 +214,26 @@ def build_items(limit, variants):
             "command": "sbatch scripts_utah/evaluate_evidence_filtered_status.slurm",
         },
         {
+            "id": "evidence_matched_split",
+            "title": "Evidence-aware matched dev/test split validation",
+            "required": [
+                "{outputs}/devtest_status/devtest_status_SeekUI_random.json",
+                "{outputs}/devtest_status/devtest_status_SeekUI_random.md",
+                "{outputs}/devtest_status/devtest_status_SeekUI_image.json",
+                "{outputs}/devtest_status/devtest_status_SeekUI_image.md",
+            ],
+            "command": "sbatch scripts_utah/evaluate_status_devtest.slurm",
+        },
+        {
+            "id": "evidence_aware_vlm_sft",
+            "title": "Evidence-aware VLM verifier for SeekUI-SFT",
+            "required": [
+                "{outputs}/vlm_evidence_predictions_SeekUI_sft_vlm_evidence_evidence_aware.json",
+                "{outputs}/vlm_evidence_predictions_SeekUI_sft_vlm_evidence_evidence_aware_status_eval.json",
+            ],
+            "command": "MODEL_NAME=SeekUI_sft VLM_EVIDENCE_PROMPT_VARIANTS=\"evidence_aware\" bash scripts_utah/submit_vlm_evidence_ablation.sh",
+        },
+        {
             "id": "vlm_ablation_table",
             "title": "VLM/evidence ablation table",
             "required": [

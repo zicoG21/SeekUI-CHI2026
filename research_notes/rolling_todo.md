@@ -32,8 +32,8 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
 | P1 | VLM hard-case analysis | completed | Direct and OCR-aware VLM hard-case overlap summaries are recorded in `rolling_results.md` |
 | P1 | Evidence-aware filtered sensitivity | completed for SeekUI | Filtered evidence-aware result is recorded in paper checkpoint: F1 0.8881, accuracy 0.8867 on 2497 kept examples |
-| P1 | Evidence-aware matched split validation | pending | Add dev/test image-split evaluation for evidence-aware VLM before promoting it to headline status |
-| P1 | Evidence-aware VLM for SFT | pending | Run SFT evidence-aware verifier as a secondary-model check |
+| P1 | Evidence-aware matched split validation | code ready | Run `sbatch scripts_utah/evaluate_status_devtest.slurm`; inspect `$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_image.md` |
+| P1 | Evidence-aware VLM for SFT | pending GPU | Run `MODEL_NAME=SeekUI_sft VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware" bash scripts_utah/submit_vlm_evidence_ablation.sh`, then `MODEL_NAME=SeekUI_sft sbatch scripts_utah/evaluate_status_devtest.slurm` |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
@@ -167,12 +167,22 @@ sbatch scripts_utah/evaluate_evidence_filtered_status.slurm
 cat "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv"
 ```
 
+Run matched random/image split validation for evidence-aware VLM:
+
+```bash
+sbatch scripts_utah/evaluate_status_devtest.slurm
+cat "$SEEKUI_WORK/outputs/devtest_status/devtest_status_SeekUI_image.md"
+```
+
 Run evidence-aware VLM for SFT as a secondary-model GPU check:
 
 ```bash
 MODEL_NAME=SeekUI_sft \
 VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware" \
 bash scripts_utah/submit_vlm_evidence_ablation.sh
+
+MODEL_NAME=SeekUI_sft \
+sbatch scripts_utah/evaluate_status_devtest.slurm
 ```
 
 Generate a starter CSV for small realistic absent validation:
