@@ -1,0 +1,16 @@
+\section{Method}
+
+Figure~\ref{fig:method} summarizes the post-hoc verifier. Given a GUI screenshot and target cue, SeekUI first predicts a scanpath and target status. We then compute cognitive path evidence from whether the scanpath visits target-like candidates, and OCR candidate evidence from fuzzy matching between the query and visible text. A combined AND rule rejects a target only when both evidence sources are weak. We also evaluate an evidence-aware VLM that receives the screenshot and structured path/OCR evidence.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=\linewidth]{method_diagram.png}
+  \caption{Post-hoc target-presence verification for GUI visual search. The verifier converts forced-choice grounding into uncertainty-aware present/absent decisions without retraining SeekUI.}
+  \label{fig:method}
+\end{figure}
+
+\paragraph{Synthetic present/absent benchmark.}
+We construct synthetic absent examples by pairing GUI screenshots with plausible target cues that are absent from the screen, while preserving the original present examples.
+
+\paragraph{Realistic absent validation.}
+We additionally create a 100-example manually reviewed validation set with 50 present and 50 realistic absent queries. The absent queries are plausible user targets for the screen but manually verified to be absent.

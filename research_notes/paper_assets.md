@@ -16,6 +16,8 @@ paper_assets/figures/case_taxonomy_compact.jpg
 paper_assets/figures/case_taxonomy_contact_sheet.jpg
 paper_assets/figures/error_taxonomy.png
 paper_assets/real_absent_case_analysis/real_absent_case_analysis.md
+paper_assets/appendix/real_absent_100row_audit_appendix.md
+paper_assets/non_text_image_cue_scaffold/non_text_image_cue_scaffold.md
 ```
 
 Regenerate with:

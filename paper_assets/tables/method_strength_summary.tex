@@ -1,6 +1,7 @@
 \begin{table}[t]
 \centering
 \small
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llrrlll}
 \toprule
 Method & Family & Synthetic F1 & Realistic F1 & Main Strength & Main Weakness & Recommended Role \\
@@ -13,6 +14,7 @@ VLM yes/no OCR-aware & generic VLM & 0.8939 & 0.8824 & Best generic prompt on sy
 Evidence-aware VLM & screenshot + evidence VLM & 0.8981 &  & Best practical synthetic result; combines VLM with evidence. & Needs real-absent evidence-aware validation before headline. & Promising next-stage verifier. \\
 \bottomrule
 \end{tabular}
+}
 \caption{Method Strength Summary}
 \label{tab:method_strength_summary}
 \end{table}

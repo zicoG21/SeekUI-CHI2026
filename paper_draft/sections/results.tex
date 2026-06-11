@@ -1,0 +1,17 @@
+\section{Results}
+
+Table~\ref{tab:heldout_image_split} reports the cleaner held-out image split. Combined path+OCR verification improves absent F1 for both SeekUI and SeekUI-SFT, with bootstrap confidence intervals above zero.
+
+\input{../paper_assets/tables/heldout_image_split.tex}
+
+Table~\ref{tab:main_results} summarizes the full synthetic benchmark and main baselines. Prompt-only SeekUI reaches 0.7300 absent F1. Cognitive stopping improves this to 0.8522, combined AND reaches 0.8824, and the evidence-aware VLM reaches 0.8981.
+
+\input{../paper_assets/tables/main_results.tex}
+
+Table~\ref{tab:realistic_absent_validation} reports the manually reviewed validation set. Combined AND best-F1 improves over prompt-only from 0.7907 to 0.9159 absent F1, reducing absent-to-present errors from 16 to 1.
+
+\input{../paper_assets/tables/realistic_absent_validation.tex}
+
+Table~\ref{tab:method_strength_summary} gives the current narrative summary of each method's role.
+
+\input{../paper_assets/tables/method_strength_summary.tex}

@@ -1,6 +1,7 @@
 \begin{table}[t]
 \centering
 \small
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lllrrrrrrr}
 \toprule
 Model & Family & Variant & N & Acc & Precision & Recall & F1 & Present->Absent & Absent->Present \\
@@ -14,6 +15,7 @@ SeekUI\_sft & seekui\_prompt & prompt\_only & 2724 & 0.7430 & 0.8761 & 0.5661 & 
 SeekUI\_sft & combined & combined\_and\_present\_only\_best\_f1 & 2724 & 0.8278 & 0.7853 & 0.9023 & 0.8398 & 336 & 133 \\
 \bottomrule
 \end{tabular}
+}
 \caption{Main Present/Absent Results}
 \label{tab:main_results}
 \end{table}

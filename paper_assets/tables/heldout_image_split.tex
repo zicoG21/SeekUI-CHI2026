@@ -1,6 +1,7 @@
 \begin{table}[t]
 \centering
 \small
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{llrrrrrr}
 \toprule
 Model & Split & Prompt F1 & Combined F1 & Delta F1 95\% CI & Prompt Acc & Combined Acc & Delta Acc 95\% CI \\
@@ -9,6 +10,7 @@ SeekUI & image & 0.7347 & 0.8804 & [0.1167, 0.1739] & 0.7708 & 0.8692 & [0.0720,
 SeekUI-SFT & image & 0.6744 & 0.8279 & [0.1232, 0.1834] & 0.7325 & 0.8148 & [0.0558, 0.1080] \\
 \bottomrule
 \end{tabular}
+}
 \caption{Held-Out Image Split Result}
 \label{tab:heldout_image_split}
 \end{table}

@@ -395,6 +395,7 @@ def write_latex_table(path, rows, columns, caption, label):
         "\\begin{table}[t]",
         "\\centering",
         "\\small",
+        "\\resizebox{\\linewidth}{!}{%",
         "\\begin{tabular}{" + colspec + "}",
         "\\toprule",
         " & ".join(latex_escape(label) for _, label in columns) + " \\\\",
@@ -405,6 +406,7 @@ def write_latex_table(path, rows, columns, caption, label):
     lines.extend([
         "\\bottomrule",
         "\\end{tabular}",
+        "}",
         f"\\caption{{{latex_escape(caption)}}}",
         f"\\label{{{label}}}",
         "\\end{table}",

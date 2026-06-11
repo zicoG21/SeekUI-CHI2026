@@ -1,0 +1,101 @@
+index,review_id,image,target,gold_status,prompt_status,combined_status,case_tags,path_best_evidence,ocr_score,ocr_text,ambiguity_level,manual_notes
+0,0,vsgui10k-images/824f2b.png,On,present,present,present,both_correct,0.16460792739062277,1.0,On,low,auto_prefilled_present_verify_if_used
+1,1,vsgui10k-images/cc787e.png,ALLOW,present,present,present,both_correct,0.7131099096274736,0.3333333333333333,w,low,auto_prefilled_present_verify_if_used
+2,2,vsgui10k-images/c9fe43.png,Blender.exe,present,present,present,both_correct,0.4266125952197991,1.0,Blender.exe,low,auto_prefilled_present_verify_if_used
+3,3,vsgui10k-images/5c0bcf.png,MC,present,present,present,both_correct,0.5383409107819083,0.0,,low,auto_prefilled_present_verify_if_used
+4,4,vsgui10k-images/28cf69.png,Adiban of Glance,present,present,present,both_correct,0.7529497308388265,0.7272727272727273,of ‘Adivan Glance,low,auto_prefilled_present_verify_if_used
+5,5,vsgui10k-images/76822c.png,25 minutes,present,present,present,both_correct,0.668259395691325,1.0,25 minutes,low,auto_prefilled_present_verify_if_used
+6,6,vsgui10k-images/853a11.png,Undergraduate,present,present,present,both_correct,0.6562344568190449,1.0,UNDERGRADUATE,low,auto_prefilled_present_verify_if_used
+7,7,vsgui10k-images/fe670b.png,F12,present,present,present,both_correct,0.36056754986149286,0.1,© Default Windows,low,auto_prefilled_present_verify_if_used
+8,8,vsgui10k-images/cfca97.png,vimeo,present,present,present,both_correct,0.024310327356386788,0.8,Video,low,auto_prefilled_present_verify_if_used
+9,9,vsgui10k-images/78ddbd.png,Submit News,present,present,present,both_correct,0.6355699962086135,0.9166666666666666,‘Submit News,low,auto_prefilled_present_verify_if_used
+10,10,vsgui10k-images/1e27b2.png,week,present,present,absent,prompt_correct_combined_wrong;new_present_false_absent,0.018497861772825724,0.3333333333333333,Ed,low,auto_prefilled_present_verify_if_used
+11,11,vsgui10k-images/c228a1.png,BUSINESSES,present,present,absent,prompt_correct_combined_wrong;new_present_false_absent,0.0833597511668394,0.5,TUNERS,low,auto_prefilled_present_verify_if_used
+12,12,vsgui10k-images/c6a6d9.png,ABOUT THE SCHOOL,present,present,present,both_correct,0.3487808803587394,0.3333333333333333,Shark Tank: Health Hackathon Finalists ion >,low,auto_prefilled_present_verify_if_used
+13,13,vsgui10k-images/6193f8.png,Sign up,present,present,absent,prompt_correct_combined_wrong;new_present_false_absent,0.013190613269727633,0.46153846153846156,NB Buy,low,auto_prefilled_present_verify_if_used
+14,14,vsgui10k-images/026dd2.png,Jobs,present,present,present,both_correct,0.6447836321053562,1.0,Jobs,low,auto_prefilled_present_verify_if_used
+15,15,vsgui10k-images/5062ba.png,4 weeks,present,present,absent,prompt_correct_combined_wrong;new_present_false_absent,0.039324321527808376,0.5,month week day st,low,auto_prefilled_present_verify_if_used
+16,16,vsgui10k-images/de5446.png,Save,present,present,present,both_correct,0.8446824922092827,0.32,Capture Screen Active,low,auto_prefilled_present_verify_if_used
+17,17,vsgui10k-images/3eb8f9.png,Western Boots,present,present,present,both_correct,0.1616873894950349,1.0,Western Boots,low,auto_prefilled_present_verify_if_used
+18,18,vsgui10k-images/1b307f.png,test,present,present,present,both_correct,0.23114416639840102,1.0,Test,low,auto_prefilled_present_verify_if_used
+19,19,vsgui10k-images/55251b.png,Videos,present,absent,absent,both_wrong,0.7420385412806101,0.6666666666666666,Movies,low,auto_prefilled_present_verify_if_used
+20,20,vsgui10k-images/82361c.png,john,present,present,present,both_correct,0.5895623429345282,1.0,John,low,auto_prefilled_present_verify_if_used
+21,21,vsgui10k-images/091b5e.png,Stay Connected,present,present,present,both_correct,0.15095039118265757,1.0,Stay Connected,low,auto_prefilled_present_verify_if_used
+22,22,vsgui10k-images/66935b.png,Video,present,present,present,both_correct,0.5684928052857574,1.0,Video,low,auto_prefilled_present_verify_if_used
+23,23,vsgui10k-images/a9793b.png,search gymshark,present,present,present,both_correct,0.011312624431968817,0.6923076923076923,55 GYMSHARK,low,auto_prefilled_present_verify_if_used
+24,24,vsgui10k-images/8b2ea2.png,Player,present,absent,absent,both_wrong,0.8901959259819383,1.0,Player,low,auto_prefilled_present_verify_if_used
+25,25,vsgui10k-images/da36d4.png,Landing,present,present,present,both_correct,0.4261783951956298,0.4117647058823529,Landing Thu 19:22,low,auto_prefilled_present_verify_if_used
+26,26,vsgui10k-images/912a36.png,Wonach suchen Sie?,present,present,present,both_correct,0.590218919825031,0.4,Wristwatches,low,auto_prefilled_present_verify_if_used
+27,27,vsgui10k-images/574bac.png,Search,present,present,present,both_correct,0.2535754878386957,0.46153846153846156,HEALTHY,low,auto_prefilled_present_verify_if_used
+28,28,vsgui10k-images/d079f1.png,Email,present,present,present,both_correct,0.46008853670596084,0.2857142857142857,au,low,auto_prefilled_present_verify_if_used
+29,29,vsgui10k-images/ecf129.png,Enter keywords to search,present,present,present,both_correct,0.6288130699726622,0.3829787234042553,filter facte steel wire,low,auto_prefilled_present_verify_if_used
+30,30,vsgui10k-images/9efcf0.png,Download for mac,present,present,present,both_correct,0.797677973205778,0.8888888888888888,& Download for Mac,low,auto_prefilled_present_verify_if_used
+31,31,vsgui10k-images/c6c2cd.png,Create your blog,present,present,present,both_correct,0.29881494965059446,0.4375,PY hy Our Family -,low,auto_prefilled_present_verify_if_used
+32,32,vsgui10k-images/840bb8.png,Cherche/Search,present,present,absent,prompt_correct_combined_wrong;new_present_false_absent,0.024322660050328015,0.26666666666666666,LOmbre Reveil Du,low,auto_prefilled_present_verify_if_used
+33,33,vsgui10k-images/641719.png,Disclaimer of Privacy,present,present,present,both_correct,0.008662267804533531,0.8571428571428571,of Disclaimer Privacy,low,auto_prefilled_present_verify_if_used
+34,34,vsgui10k-images/917a4f.png,see plans,present,present,present,both_correct,0.5064979406257598,0.3225806451612903,Add languages 12 to up,low,auto_prefilled_present_verify_if_used
+35,35,vsgui10k-images/52658e.png,Alert Location,present,present,present,both_correct,0.06985748263577149,1.0,Alert Location,low,auto_prefilled_present_verify_if_used
+36,36,vsgui10k-images/1a2169.png,Find new friends!,present,present,present,both_correct,0.6036228692000905,0.41025641025641024,a friend Search name €,low,auto_prefilled_present_verify_if_used
+37,37,vsgui10k-images/71a0b1.png,favorite,present,present,present,both_correct,0.7408306444086228,1.0,favorite,low,auto_prefilled_present_verify_if_used
+38,38,vsgui10k-images/215727.png,iExit,present,present,absent,prompt_correct_combined_wrong;new_present_false_absent,0.1768869921462716,0.1935483870967742,What would like do? to you,low,auto_prefilled_present_verify_if_used
+39,39,vsgui10k-images/4cd989.png,Set this as default center,present,present,present,both_correct,0.5876983263923883,0.43243243243243246,"order the best ask give experience, In to you we",low,auto_prefilled_present_verify_if_used
+40,40,vsgui10k-images/a11833.png,Normal,present,present,present,both_correct,0.05146959664768221,1.0,Normal,low,auto_prefilled_present_verify_if_used
+41,41,vsgui10k-images/37cecc.png,NFC tag on,present,present,present,both_correct,0.43998645439561596,0.7,NFC On Tag,low,auto_prefilled_present_verify_if_used
+42,42,vsgui10k-images/0db596.png,Lova animals,present,present,present,both_correct,0.803865244895429,0.45454545454545453,Aviomals o,low,auto_prefilled_present_verify_if_used
+43,43,vsgui10k-images/af49df.png,start,present,present,present,both_correct,0.730675958289334,0.16216216216216217,and recall words Repeat your new,low,auto_prefilled_present_verify_if_used
+44,44,vsgui10k-images/a8e85c.png,GLAUCOMA AWARENESS,present,present,present,both_correct,0.7283826118793786,0.5,AWARENESS,low,auto_prefilled_present_verify_if_used
+45,45,vsgui10k-images/ea4596.png,Google,present,present,present,both_correct,0.40056616462953004,0.3076923076923077,YouTube,low,auto_prefilled_present_verify_if_used
+46,46,vsgui10k-images/9dd93b.png,Travels,present,present,present,both_correct,0.6985546885365318,0.26666666666666666,lections,low,auto_prefilled_present_verify_if_used
+47,47,vsgui10k-images/46e638.png,Invite friends,present,present,present,both_correct,0.43213436248381343,0.48,with Invite,low,auto_prefilled_present_verify_if_used
+48,48,vsgui10k-images/b908c7.png,Family Law,present,present,present,both_correct,0.031043527128495223,1.0,Family Law,low,auto_prefilled_present_verify_if_used
+49,49,vsgui10k-images/37ad54.png,Tool settings,present,present,present,both_correct,0.024225850380993202,1.0,Tool Settings,low,auto_prefilled_present_verify_if_used
+50,50,vsgui10k-images/a7c147.png,help,absent,absent,absent,both_correct,0.0,0.4,th fle,low,no help/support link visible on eToro landing page
+51,51,vsgui10k-images/0a0c95.png,settings,absent,absent,absent,both_correct,0.061996142181596305,0.6,GAS STATIONS,low,gas station list has no settings control visible
+52,52,vsgui10k-images/912a36.png,checkout,absent,absent,absent,both_correct,0.01029971341285762,0.43478260869565216,"Help & Contact,",low,eBay home page is not a cart/checkout view
+53,53,vsgui10k-images/3766a5.png,save,absent,absent,absent,both_correct,0.04531452420850044,0.2857142857142857,CSS,medium,gesture control panel shows edit/delete but no save button visible
+54,54,vsgui10k-images/dd9efb.png,search,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.028069892855846088,0.4,Uber,low,app recommendations screen has no search field visible
+55,55,vsgui10k-images/42c444.png,skip,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.00943468583410072,0.16666666666666666,Continue,low,onboarding ad only shows Continue
+56,56,vsgui10k-images/aff2b7.png,sign in,absent,absent,absent,both_correct,0.0,0.3076923076923077,Gender,low,profile setup form has no sign-in option visible
+57,57,vsgui10k-images/73d5d7.png,log in,absent,absent,absent,both_correct,0.006869345718167963,0.5,li,low,library homepage has no login/sign-in control visible
+58,58,vsgui10k-images/1d0e96.png,history,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.0,0.2222222222222222,Lt,low,calculator overlay has no history control visible
+59,59,vsgui10k-images/251672.png,admissions,absent,absent,absent,both_correct,0.045167564318070855,0.5,[Academics,low,physics department page has no admissions link visible
+60,60,vsgui10k-images/9efc81.png,checkout,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.1981835499840779,0.4,log account or in,medium,game item store page has search/order fields but no checkout button visible
+61,61,vsgui10k-images/1b984b.png,search,absent,absent,absent,both_correct,0.09766491137300884,0.4,sane,low,task manager has no search field visible
+62,62,vsgui10k-images/48a5a0.png,settings,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.012092094871832056,0.2564102564102564,| ID) sae 710| Tal. | Gs | | Gl,low,email client view has no settings control visible
+63,63,vsgui10k-images/da36d4.png,baggage,absent,absent,absent,both_correct,0.1255326056455515,0.2857142857142857,Takeoff,low,flight details page has no baggage option visible
+64,64,vsgui10k-images/55d16d.png,warranty,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.00571828481389401,0.4,aa,low,product page has no warranty link visible
+65,65,vsgui10k-images/02622b.png,tickets,absent,absent,absent,both_correct,0.0037948166718487384,0.375,Watchlist,medium,IMDb trailer page has no ticket/booking control visible
+66,66,vsgui10k-images/b3acff.png,subscribe,absent,absent,absent,both_correct,0.051197181732791995,0.3333333333333333,rel,medium,news homepage has no subscribe button visible
+67,67,vsgui10k-images/003eb9.png,settings,absent,absent,absent,both_correct,0.004182068921509975,0.5,Stranger,low,chat screen has no settings control visible
+68,68,vsgui10k-images/229d89.png,rotate,absent,absent,absent,both_correct,0.04803984863172208,0.4,Save,low,image viewer toolbar lacks rotate control
+69,69,vsgui10k-images/7caa99.png,settings,absent,absent,absent,both_correct,0.10125244359584461,0.46153846153846156,Sears,low,TuneIn library screen has no settings control visible
+70,70,vsgui10k-images/74db3f.png,search,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.10648003001660754,0.4166666666666667,Seleccionar ciudad,low,city selector has no search field visible
+71,71,vsgui10k-images/c75d3f.png,settings,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.03576924352238845,0.4,EQUINOX,low,menstrual cycle page has no settings control visible
+72,72,vsgui10k-images/6e2c8e.png,watchlist,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.07406186661007441,0.375,Western,low,genres screen has no watchlist target visible
+73,73,vsgui10k-images/eb34f4.png,sleep timer,absent,absent,absent,both_correct,0.0029112435924870095,0.375,Sport,low,playlist app has no sleep timer control visible
+74,74,vsgui10k-images/bbd445.png,shopping,absent,absent,absent,both_correct,0.0,0.5454545454545454,sin,medium,Bing home page has search but no shopping link visible
+75,75,vsgui10k-images/c00ba0.png,search,absent,absent,absent,both_correct,0.003182715621423234,0.5,rh,low,TV video menu has no search control visible
+76,76,vsgui10k-images/2f5041.png,download app,absent,absent,absent,both_correct,0.00946128757334958,0.23529411764705882,Service Not in Area or,medium,HBO Max region error page has no app download control visible
+77,77,vsgui10k-images/b0c3be.png,download,absent,absent,absent,both_correct,0.014031501478567476,0.3333333333333333,Discover GNOME 3,medium,GNOME homepage has no explicit download button visible
+78,78,vsgui10k-images/8e0c5b.png,format cells,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.006973480711369296,0.5,alls,medium,spreadsheet filter menu has no format-cells option visible
+79,79,vsgui10k-images/091ab0.png,privacy policy,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.07282755442951222,0.3870967741935484,Drink Volume Unit,low,settings page has no privacy-policy item visible
+80,80,vsgui10k-images/71e30d.png,contact,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.06108380171139307,0.3333333333333333,ABOUT,low,bike page nav has no contact link visible
+81,81,vsgui10k-images/66058d.png,weather,absent,absent,absent,both_correct,0.006270559132103859,0.4444444444444444,The HARINGE,low,news homepage has no weather link visible
+82,82,vsgui10k-images/5dbe49.png,help,absent,absent,absent,both_correct,0.06719556419991492,0.25,Free License,low,VPN app has no help/support button visible
+83,83,vsgui10k-images/c3709c.png,settings,absent,absent,absent,both_correct,0.0006045944596143844,0.5454545454545454,tig,low,flight simulator view has no settings control visible
+84,84,vsgui10k-images/538c08.png,help,absent,absent,absent,both_correct,0.22584590537266797,0.3333333333333333,al,low,classifieds page has no help link visible
+85,85,vsgui10k-images/58033d.png,skip,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.004572429243151393,0.2857142857142857,Ke),low,video ad dialog has no skip control visible
+86,86,vsgui10k-images/be0882.png,settings,absent,absent,absent,both_correct,0.04487321833133056,0.3076923076923077,Space,low,search overlay has no settings control visible
+87,87,vsgui10k-images/ead495.png,pricing,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.0023343481329581597,0.375,PDF in si,low,PDF tools homepage has no pricing link visible
+88,88,vsgui10k-images/b8c70a.png,settings,absent,present,present,both_wrong;kept_absent_false_present,0.24621813941149628,0.5714285714285714,Trains,low,travel bus search page has no settings visible
+89,89,vsgui10k-images/909a4f.png,dealer locator,absent,absent,absent,both_correct,0.12174872603401689,0.5142857142857142,vehicle applications.,medium,automotive supplier homepage has no dealer locator visible
+90,90,vsgui10k-images/1eb64a.png,settings,absent,absent,absent,both_correct,0.06229914372223528,0.4,s Start,low,search alert screen has no settings visible
+91,91,vsgui10k-images/42941c.png,contact us,absent,absent,absent,both_correct,0.08546611245693486,0.375,Nicola,low,Guardian homepage has no contact link visible
+92,92,vsgui10k-images/2f0568.png,log in,absent,absent,absent,both_correct,0.01237768525079061,0.43478260869565216,‘to dealmaking in,low,EBDGroup page has no login control visible
+93,93,vsgui10k-images/27b0cb.png,cart,absent,absent,absent,both_correct,0.0,0.4,A,low,eyewear landing page has no cart icon/button visible
+94,94,vsgui10k-images/d59f99.png,tuition,absent,absent,absent,both_correct,0.01175492415944112,0.4444444444444444,IN,medium,university admissions page has no tuition link visible
+95,95,vsgui10k-images/840bb8.png,settings,absent,absent,absent,both_correct,0.025387167519008547,0.20689655172413793,Leternel Beni soit 54,low,list/search app has no settings control visible
+96,96,vsgui10k-images/1e79f1.png,size guide,absent,absent,absent,both_correct,0.0930610794195204,0.35294117647058826,WEBSITE,medium,fashion landing page has no size-guide link visible
+97,97,vsgui10k-images/33eb5e.png,help,absent,absent,absent,both_correct,0.06120303463872362,0.2222222222222222,Photo,low,camera/gallery app start screen has no help control visible
+98,98,vsgui10k-images/591218.png,skip,absent,present,absent,prompt_wrong_combined_correct;absent_false_present_corrected,0.0168643265436524,0.3333333333333333,Ko,low,fitness ad has no skip control visible
+99,99,vsgui10k-images/f717f5.png,settings,absent,absent,absent,both_correct,0.15852789645257426,0.2926829268292683,"Today, I'm Let's to travel. going",low,labels/calendar screen has no settings control visible

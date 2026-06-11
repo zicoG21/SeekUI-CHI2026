@@ -1,6 +1,7 @@
 \begin{table}[t]
 \centering
 \small
+\resizebox{\linewidth}{!}{%
 \begin{tabular}{lllrrrrrrr}
 \toprule
 Model & Family & Variant & N & Acc & Precision & Recall & F1 & Present->Absent & Absent->Present \\
@@ -14,6 +15,7 @@ SeekUI & vlm\_presence & vlm\_presence\_real\_absent\_search\_behavior & 100 & 0
 SeekUI & vlm\_presence & vlm\_presence\_real\_absent\_direct & 100 & 0.8600 & 0.8913 & 0.8200 & 0.8542 & 5 & 9 \\
 \bottomrule
 \end{tabular}
+}
 \caption{Realistic Absent Validation}
 \label{tab:realistic_absent_validation}
 \end{table}

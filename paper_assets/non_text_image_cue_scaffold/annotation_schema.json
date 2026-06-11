@@ -1,0 +1,14 @@
+{
+  "row_id": "stable integer or UUID",
+  "image": "relative screenshot path",
+  "cue_type": "target_crop_image | category_text | functional_text | icon_or_function_absent",
+  "query_text": "text cue when applicable",
+  "query_image": "target crop path when applicable",
+  "gold_status": "present | absent",
+  "target_bbox": "x,y,w,h for present rows; empty for absent rows",
+  "target_visible": "yes | no",
+  "query_realistic": "yes | no",
+  "ambiguity_level": "low | medium | high",
+  "primary_target_modality": "text | icon | image | layout | function",
+  "notes": "short reason for ambiguity/invalidity"
+}

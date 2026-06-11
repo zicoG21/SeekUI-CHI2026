@@ -377,6 +377,48 @@ def export_outputs(out_dir, methods, case_rows, grouped, review_image_dir, aggre
     return group_rows
 
 
+def write_audit_appendix(appendix_dir, case_rows):
+    appendix_dir.mkdir(parents=True, exist_ok=True)
+    columns = [
+        "index",
+        "review_id",
+        "image",
+        "target",
+        "gold_status",
+        "prompt_status",
+        "combined_status",
+        "case_tags",
+        "path_best_evidence",
+        "ocr_score",
+        "ocr_text",
+        "ambiguity_level",
+        "manual_notes",
+    ]
+    rows = [{key: row.get(key, "") for key in columns} for row in case_rows]
+    csv_path = appendix_dir / "real_absent_100row_audit_appendix.csv"
+    md_path = appendix_dir / "real_absent_100row_audit_appendix.md"
+    write_csv(csv_path, rows)
+    lines = [
+        "# Real Absent 100-Row Audit Appendix",
+        "",
+        "Each row records the manually reviewed query, gold target-presence label, prompt-only status, combined best-F1 status, and evidence fields.",
+        "",
+        "| Index | Review ID | Image | Query | Gold | Prompt | Combined | Tags | Path Evidence | OCR Score | OCR Text | Ambiguity | Notes |",
+        "|---:|---:|---|---|---|---|---|---|---:|---:|---|---|---|",
+    ]
+    for row in rows:
+        note = str(row["manual_notes"]).replace("|", "/")
+        ocr_text = str(row["ocr_text"]).replace("|", "/")
+        lines.append(
+            f"| {row['index']} | {row['review_id']} | {row['image']} | {row['target']} | "
+            f"{row['gold_status']} | {row['prompt_status']} | {row['combined_status']} | "
+            f"{row['case_tags']} | {safe_float(row['path_best_evidence']):.4f} | "
+            f"{safe_float(row['ocr_score']):.4f} | {ocr_text} | {row['ambiguity_level']} | {note} |"
+        )
+    md_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return [csv_path, md_path]
+
+
 def main():
     parser = argparse.ArgumentParser(description="Export real-absent prompt-vs-combined case analysis.")
     parser.add_argument("--real-absent-source", required=True, help="Directory or .tgz containing real_absent_validation outputs.")
@@ -384,6 +426,7 @@ def main():
     parser.add_argument("--review-image-dir", default="/home/perzival/HCI_Research/seekui_real_absent_review/review_package/images")
     parser.add_argument("--aggregate-results", default="paper_assets/tables/realistic_absent_validation.md")
     parser.add_argument("--out-dir", default="paper_assets/real_absent_case_analysis")
+    parser.add_argument("--appendix-dir", default="paper_assets/appendix")
     args = parser.parse_args()
 
     real_absent_dir, tmp = resolve_real_absent_dir(args.real_absent_source)
@@ -399,8 +442,10 @@ def main():
             Path(args.review_image_dir),
             args.aggregate_results,
         )
+        appendix_paths = write_audit_appendix(Path(args.appendix_dir), case_rows)
         print(json.dumps({
             "out_dir": args.out_dir,
+            "appendix": [str(path) for path in appendix_paths],
             "num_cases": len(case_rows),
             "groups": group_rows,
             "missing_evidence": methods["missing_evidence"],
