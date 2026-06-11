@@ -634,3 +634,12 @@ present and 100 absent rows under
 sbatch scripts_utah/export_expanded_real_absent_validation.slurm
 cat "$SEEKUI_WORK/outputs/real_absent_validation_200/review_package/real_absent_review_package.md"
 ```
+
+Export PR/ROC points and cost-sensitive utility tables from all available
+threshold sweeps. This is the main artifact for explaining the `P->A` versus
+`A->P` tradeoff in the paper:
+
+```bash
+sbatch scripts_utah/export_tradeoff_utility.slurm
+cat "$SEEKUI_WORK/outputs/tradeoff_utility/tradeoff_summary.md"
+```

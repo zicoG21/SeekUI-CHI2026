@@ -173,6 +173,35 @@ def table_filtered_sensitivity(rows):
     return lines
 
 
+def read_tradeoff_utility_rows(work_dir, limit=12):
+    path = work_dir / "outputs" / "tradeoff_utility" / "tradeoff_cost_utility.csv"
+    rows = read_csv(path)
+    rows.sort(
+        key=lambda row: (
+            row.get("cost_ratio", ""),
+            as_float(row.get("expected_cost_per_example"), 999.0),
+            -as_float(row.get("absent_f1"), -1.0),
+        )
+    )
+    return rows[:limit]
+
+
+def table_tradeoff_utility(rows):
+    if not rows:
+        return ["Pending: run `sbatch scripts_utah/export_tradeoff_utility.slurm`."]
+    lines = [
+        "| Cost Ratio | Method | Thresholds | Expected Cost | Acc | F1 | P->A | A->P |",
+        "|---|---|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('cost_ratio', '')} | {row.get('method', '')} | {row.get('threshold_spec', '')} | "
+            f"{fmt(row.get('expected_cost_per_example'))} | {fmt(row.get('accuracy'))} | "
+            f"{fmt(row.get('absent_f1'))} | {row.get('present_absent', '')} | {row.get('absent_present', '')} |"
+        )
+    return lines
+
+
 def read_target_disjoint_rows(work_dir):
     out_dir = work_dir / "outputs" / "devtest_status"
     rows = []
@@ -214,6 +243,7 @@ def table_target_disjoint(rows):
 def revision_route(summary):
     has_filtered = bool(summary.get("filtered_sensitivity_rows"))
     has_real_absent = bool(summary.get("real_absent_rows"))
+    has_tradeoff = bool(summary.get("tradeoff_utility_rows"))
     has_annotation_free = any(
         row.get("variant") == "annotation_free_combined_and_present_only_best_f1"
         for row in summary.get("selected_rows", [])
@@ -236,9 +266,13 @@ def revision_route(summary):
         {
             "priority": "3",
             "item": "PR/ROC/cost-sensitive utility",
-            "status": "pending",
+            "status": "done" if has_tradeoff else "pending",
             "why": "Tradeoff clarity: explains the cost of P->A errors versus A->P errors instead of only reporting F1.",
-            "next_step": "Export threshold curves and utility tables under multiple false-absent / false-present cost ratios.",
+            "next_step": (
+                "Use the generated utility table in the results narrative."
+                if has_tradeoff
+                else "Export threshold curves and utility tables under multiple false-absent / false-present cost ratios."
+            ),
         },
         {
             "priority": "4",
@@ -403,6 +437,10 @@ def write_md(path, summary):
         "",
         *table_target_disjoint(summary["target_disjoint_rows"]),
         "",
+        "## PR/ROC and Cost-Sensitive Utility",
+        "",
+        *table_tradeoff_utility(summary["tradeoff_utility_rows"]),
+        "",
         "## Original 3+1 Direction Coverage",
         "",
         *table_directions(summary["directions_summary"]),
@@ -443,6 +481,7 @@ def main():
     absent_rows = read_csv(tables / "absent_status_core.csv")
     real_rows = read_csv(real_dir / "real_absent_results.csv")
     filtered_sensitivity_rows = read_filtered_sensitivity_rows(work_dir)
+    tradeoff_utility_rows = read_tradeoff_utility_rows(work_dir)
     target_disjoint_rows = read_target_disjoint_rows(work_dir)
     indexed = row_index(absent_rows)
     seekui_prompt = indexed.get(("SeekUI", "prompt_only"), {})
@@ -503,6 +542,7 @@ def main():
         "top_practical_rows": best_practical(absent_rows),
         "real_absent_rows": real_selected,
         "filtered_sensitivity_rows": filtered_sensitivity_rows,
+        "tradeoff_utility_rows": tradeoff_utility_rows,
         "target_disjoint_rows": target_disjoint_rows,
     }
     summary["directions_summary"] = directions_summary(summary)

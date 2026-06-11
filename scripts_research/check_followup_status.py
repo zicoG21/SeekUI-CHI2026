@@ -277,6 +277,16 @@ def build_items(limit, variants):
             "command": "sbatch scripts_utah/apply_annotation_free_combined_verifier.slurm",
         },
         {
+            "id": "tradeoff_utility",
+            "title": "PR/ROC and cost-sensitive utility curves",
+            "required": [
+                "{outputs}/tradeoff_utility/tradeoff_points.csv",
+                "{outputs}/tradeoff_utility/tradeoff_cost_utility.csv",
+                "{outputs}/tradeoff_utility/tradeoff_summary.md",
+            ],
+            "command": "sbatch scripts_utah/export_tradeoff_utility.slurm",
+        },
+        {
             "id": "vlm_ablation_table",
             "title": "VLM/evidence ablation table",
             "required": [
