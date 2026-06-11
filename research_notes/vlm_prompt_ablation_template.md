@@ -20,9 +20,9 @@ Can generic VLM yes/no prompting solve target absence, or does the combined scan
 | Prompt Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present |
 |---|---:|---:|---:|---:|---:|---:|
 | direct | 0.8510 | 0.9142 | 0.7746 | 0.8386 | 99 | 307 |
-| conservative | pending | pending | pending | pending | pending | pending |
-| ocr_aware | pending | pending | pending | pending | pending | pending |
-| search_behavior | pending | pending | pending | pending | pending | pending |
+| conservative | 0.8605 | 0.8160 | 0.9310 | 0.8697 | 286 | 94 |
+| ocr_aware | 0.8924 | 0.8821 | 0.9060 | 0.8939 | 165 | 128 |
+| search_behavior | 0.8902 | 0.9136 | 0.8620 | 0.8870 | 111 | 188 |
 | combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 | 306 | 45 |
 
 Filtered direct baseline:
@@ -30,6 +30,18 @@ Filtered direct baseline:
 | Prompt Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present |
 |---|---:|---:|---:|---:|---:|---:|
 | direct filtered | 0.8706 | 0.9020 | 0.8026 | 0.8494 | 99 | 224 |
+
+## Current Interpretation
+
+The GL prompt ablation shows that prompt design matters substantially:
+
+- `direct` is strong but misses many absent cases: absent recall 0.7746.
+- `conservative` strongly improves absent recall to 0.9310, but causes many present false-absent errors.
+- `ocr_aware` is the best full-benchmark VLM prompt so far: absent F1 0.8939 and accuracy 0.8924.
+- `search_behavior` has high precision and accuracy, but lower absent recall than `ocr_aware`.
+- `combined AND` still has the highest absent recall among non-oracle practical methods: 0.9670, but lower precision and accuracy than `ocr_aware`.
+
+This changes the framing: the strongest generic VLM prompt can outperform combined AND on full-benchmark absent F1/accuracy, while combined AND remains a scanpath-grounded, interpretable safety layer with stronger absent recall and complementary hard cases.
 
 ## Interpretation Guide
 

@@ -39,13 +39,16 @@ On the cleaner image split, where dev/test images do not overlap:
 | SeekUI | image | 0.7347 | 0.8804 | [0.1167, 0.1739] | 0.7708 | 0.8692 | [0.0720, 0.1220] |
 | SeekUI-SFT | image | 0.6744 | 0.8279 | [0.1232, 0.1834] | 0.7325 | 0.8148 | [0.0558, 0.1080] |
 
-The full benchmark also shows that a direct VLM yes/no baseline is strong but insufficient:
+The full benchmark shows that prompt design strongly affects generic VLM yes/no baselines:
 
 | Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 |
 |---|---:|---:|---:|---:|
 | SeekUI prompt-only | 0.7684 | 0.8749 | 0.6263 | 0.7300 |
 | VLM yes/no direct | 0.8510 | 0.9142 | 0.7746 | 0.8386 |
+| VLM yes/no OCR-aware | 0.8924 | 0.8821 | 0.9060 | 0.8939 |
 | SeekUI combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 |
+
+The OCR-aware VLM prompt is the strongest full-benchmark classifier so far, while combined AND has higher absent recall and is grounded in the predicted scanpath. This suggests a revised framing: target-absent GUI search needs both strong presence classification and interpretable search-evidence analysis.
 
 ## Evidence Beyond the Main Table
 
@@ -76,7 +79,7 @@ Qualitative taxonomy:
 2. A synthetic present/absent benchmark and sanity-audit protocol for evaluating target absence.
 3. A cognitive stopping and OCR-verification layer that improves held-out absent F1 and accuracy.
 4. Behavioral and qualitative analyses showing when the method corrects false-present errors and when it fails.
-5. A direct VLM yes/no baseline showing that generic presence classification does not fully close the gap.
+5. A VLM prompt-ablation baseline showing that generic presence classification is strong and prompt-sensitive, but trades off interpretability and absent recall.
 
 ## Current Limitations
 
@@ -87,6 +90,6 @@ Qualitative taxonomy:
 
 ## Next Validation
 
-1. Complete VLM prompt ablation: direct, conservative, OCR-aware, search-behavior.
-2. Run hard-case analysis for examples where VLM and combined AND disagree.
-3. Design a small manually verified realistic absent benchmark.
+1. Run hard-case analysis for examples where VLM and combined AND disagree.
+2. Design a small manually verified realistic absent benchmark.
+3. Evaluate whether VLM presence classification and scanpath-grounded stopping can be combined.

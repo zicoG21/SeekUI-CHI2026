@@ -40,7 +40,7 @@ $SEEKUI_WORK/outputs/paper_tables/main_result_table.md
 
 Purpose:
 
-Show that direct VLM yes/no is a strong baseline but does not beat combined AND.
+Show that VLM yes/no prompting is a strong, prompt-sensitive baseline, while combined AND provides scanpath-grounded absent recall and interpretability.
 
 Current full-benchmark rows:
 
@@ -48,6 +48,9 @@ Current full-benchmark rows:
 |---|---:|---:|---:|---:|---:|---:|
 | SeekUI prompt-only | 0.7684 | 0.8749 | 0.6263 | 0.7300 | 122 | 509 |
 | VLM yes/no direct | 0.8510 | 0.9142 | 0.7746 | 0.8386 | 99 | 307 |
+| VLM yes/no conservative | 0.8605 | 0.8160 | 0.9310 | 0.8697 | 286 | 94 |
+| VLM yes/no OCR-aware | 0.8924 | 0.8821 | 0.9060 | 0.8939 | 165 | 128 |
+| VLM yes/no search-behavior | 0.8902 | 0.9136 | 0.8620 | 0.8870 | 111 | 188 |
 | Cognitive stop present-only | 0.8414 | 0.7981 | 0.9141 | 0.8522 | 315 | 117 |
 | Combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 | 306 | 45 |
 
@@ -56,9 +59,9 @@ Pending GL prompt rows:
 | Prompt Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present |
 |---|---:|---:|---:|---:|---:|---:|
 | Direct | 0.8510 | 0.9142 | 0.7746 | 0.8386 | 99 | 307 |
-| Conservative | pending | pending | pending | pending | pending | pending |
-| OCR-aware | pending | pending | pending | pending | pending | pending |
-| Search-behavior | pending | pending | pending | pending | pending | pending |
+| Conservative | 0.8605 | 0.8160 | 0.9310 | 0.8697 | 286 | 94 |
+| OCR-aware | 0.8924 | 0.8821 | 0.9060 | 0.8939 | 165 | 128 |
+| Search-behavior | 0.8902 | 0.9136 | 0.8620 | 0.8870 | 111 | 188 |
 | Combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 | 306 | 45 |
 
 ## Table 3: Sanity and Sensitivity

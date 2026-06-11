@@ -379,10 +379,43 @@ Present rejection reasons:
 
 Takeaway: OCR is a strong absent detector but rejects many present targets because target text is missed or weakly matched. The combined AND rule acts as a guard: it saves 478 SeekUI and 463 SeekUI-SFT present examples that OCR-only would reject, which explains why combined AND outperforms OCR-only.
 
+## VLM Yes/No Presence Baselines
+
+Generic VLM presence classification is strong and highly prompt-sensitive.
+
+| Prompt Variant | Accuracy | Absent Precision | Absent Recall | Absent F1 | Present->Absent | Absent->Present |
+|---|---:|---:|---:|---:|---:|---:|
+| direct | 0.8510 | 0.9142 | 0.7746 | 0.8386 | 99 | 307 |
+| conservative | 0.8605 | 0.8160 | 0.9310 | 0.8697 | 286 | 94 |
+| ocr_aware | 0.8924 | 0.8821 | 0.9060 | 0.8939 | 165 | 128 |
+| search_behavior | 0.8902 | 0.9136 | 0.8620 | 0.8870 | 111 | 188 |
+| combined AND best-F1 | 0.8711 | 0.8115 | 0.9670 | 0.8824 | 306 | 45 |
+
+Takeaways:
+
+- Direct VLM yes/no is strong but misses many absent examples.
+- Conservative prompting greatly reduces absent false-present errors but over-rejects present targets.
+- OCR-aware prompting is the strongest full-benchmark classifier so far, beating combined AND on absent F1 and accuracy.
+- Combined AND still has the strongest absent recall and provides scanpath-grounded interpretability.
+- The next question is complementarity: VLM appears better at preserving present targets, while combined AND is better at not-found safety.
+
+## Semantic v3 Association-First Stress Test
+
+The v3 association-first semantic query set increases the association-mapping subset from 32 to 161 examples.
+
+| Model | Query Type | N | Avg Prediction Len | Predicted Absent | Predicted Absent Rate |
+|---|---|---:|---:|---:|---:|
+| SeekUI | exact | 1362 | 4.25 | 122 | 0.0896 |
+| SeekUI | functional_template | 1201 | 4.07 | 188 | 0.1565 |
+| SeekUI | association_mapping | 161 | 4.83 | 57 | 0.3540 |
+| SeekUI-SFT | exact | 1362 | 1.57 | 109 | 0.0800 |
+| SeekUI-SFT | functional_template | 1201 | 1.59 | 116 | 0.0966 |
+| SeekUI-SFT | association_mapping | 161 | 1.53 | 46 | 0.2857 |
+
+Takeaway: association-style prompts trigger much higher predicted-absent rates than exact or functional-template prompts. This supports treating associative search as a distinct robustness challenge, not merely a paraphrase of text-target grounding.
+
 ## Pending Results
 
-- v3 semantic-query jobs.
-- GL VLM prompt ablation jobs: conservative, OCR-aware, and search-behavior prompts.
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
 - VLM hard-case overlap analysis between combined AND and direct/best VLM prompts.
 - Small real/manual absent validation protocol execution.

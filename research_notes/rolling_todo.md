@@ -8,8 +8,8 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 
 | Priority | Item | Status | Next action |
 |---:|---|---|---|
-| P0 | Finish v3 semantic-query jobs | running on CHPC | Check `squeue -u $USER`; when done, rerun summary and inspect semantic split tables |
-| P0 | GL VLM prompt ablation | running/pending on Great Lakes | Keep only one full job each for `conservative`, `ocr_aware`, and `search_behavior`; compare against CHPC direct VLM and combined AND |
+| P0 | Finish v3 semantic-query jobs | completed | v3 association-first summaries are in `rolling_results.md`; run split eval if scanpath metrics are needed |
+| P0 | GL VLM prompt ablation | completed | OCR-aware VLM is strongest full-benchmark classifier so far; run hard-case overlap with combined AND |
 | P0 | VLM direct presence baseline | completed on CHPC | Direct VLM full: absent F1 0.8386, accuracy 0.8510; filtered F1 0.8494, accuracy 0.8706 |
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
 | P0 | Add dev/test validation for combined verifier | completed | Random and image splits both show positive held-out F1/accuracy deltas |
@@ -24,9 +24,9 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | OCR verifier diagnosis | completed | Optional rerun after pulling latest polish so OCR outcomes are non-overlapping |
 | P1 | Combined verifier error taxonomy | completed | Rerun after pulling latest fix so summary separates total cases from selected tagged rows |
 | P1 | Behavioral search metrics | completed | Optional rerun after pulling latest polish so zero-N target-distance rows display `n/a` |
-| P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases after v3 jobs settle |
-| P1 | Simple VLM/OCR verifier baselines | in progress | CHPC direct VLM is done; GL is running prompt ablations for conservative/OCR-aware/search-behavior prompts |
-| P1 | VLM hard-case analysis | code ready | After GL ablations finish, run `sbatch scripts_utah/export_vlm_hard_cases.slurm` for direct/best VLM prompt comparisons |
+| P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases; v3 semantic association results are now available |
+| P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
+| P1 | VLM hard-case analysis | in progress | Direct VLM hard-case manifest generated; repeat for OCR-aware VLM after copying GL output to CHPC |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
@@ -167,6 +167,8 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Hid pilot-only `*_n200` rows from default research tables while preserving an `--include-pilots` option.
 - Reviewed stopping and combined contact sheets; visual taxonomy and CSV mapping are in `research_notes/contact_sheet_visual_taxonomy.md`.
 - Added a one-page paper skeleton, paper asset checklist, VLM prompt-ablation template, manual validation protocol, and VLM hard-case export script.
+- Completed GL VLM prompt ablation: OCR-aware VLM reaches absent F1 0.8939 and accuracy 0.8924.
+- Completed v3 semantic association-first summaries; association prompts have much higher predicted-absent rates.
 
 ## Decision Log
 
@@ -178,4 +180,4 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Image split should be the main held-out evaluation because random split shares many images and image-target pairs.
 - Filtered sensitivity supports the main combined-AND conclusion.
 - Next practical question: what error taxonomy emerges from the combined-AND contact sheets?
-- Direct VLM yes/no is a strong reviewer-risk baseline but does not close the gap to combined AND; GL prompt ablations test whether this is prompt-sensitive.
+- Direct VLM yes/no underperforms combined AND, but OCR-aware VLM surpasses combined AND on full-benchmark F1/accuracy; combined AND remains more interpretable and has higher absent recall.
