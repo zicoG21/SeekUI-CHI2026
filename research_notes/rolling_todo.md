@@ -1,6 +1,6 @@
 # SeekUI Rolling TODO
 
-Last updated: 2026-06-10
+Last updated: 2026-06-11
 
 This is the short working TODO. Update every 1-2 days; keep only active or recently completed items here. Longer background notes stay in `RESEARCH_TODO.md` and `research_notes/current_progress_summary.md`.
 
@@ -10,6 +10,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 |---:|---|---|---|
 | P0 | Finish v3 semantic-query jobs | completed | v3 association-first summaries are in `rolling_results.md`; run split eval if scanpath metrics are needed |
 | P0 | GL VLM prompt ablation | completed | OCR-aware VLM is strongest full-benchmark classifier so far; run hard-case overlap with combined AND |
+| P0 | Evidence-aware VLM verifier | code ready | Run full prompt ablation with scanpath/OCR evidence; compare against OCR-aware VLM and combined AND |
 | P0 | VLM direct presence baseline | completed on CHPC | Direct VLM full: absent F1 0.8386, accuracy 0.8510; filtered F1 0.8494, accuracy 0.8706 |
 | P0 | Combined cognitive + OCR verifier | completed | Best `and` combination beats cognitive stopping; keep as current strongest non-oracle method |
 | P0 | Add dev/test validation for combined verifier | completed | Random and image splits both show positive held-out F1/accuracy deltas |
@@ -106,6 +107,25 @@ SBATCH_PARTITION=spgpu \
 SBATCH_GRES=gpu:a40:1 \
 VLM_PROMPT_VARIANTS="conservative ocr_aware search_behavior" \
 bash scripts_greatlakes/submit_vlm_prompt_ablation.sh
+```
+
+Run evidence-aware VLM ablation on CHPC:
+
+```bash
+VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware evidence_conservative evidence_rescue_present" \
+bash scripts_utah/submit_vlm_evidence_ablation.sh
+```
+
+Run the same evidence-aware VLM ablation on Great Lakes with `jaabell0`:
+
+```bash
+SBATCH_ACCOUNT=jaabell0 \
+SBATCH_PARTITION=spgpu \
+SBATCH_GRES=gpu:a40:1 \
+SBATCH_CPUS_PER_TASK=4 \
+SBATCH_MEM=40G \
+VLM_EVIDENCE_PROMPT_VARIANTS="evidence_aware evidence_conservative evidence_rescue_present" \
+bash scripts_greatlakes/submit_vlm_evidence_ablation.sh
 ```
 
 Queue view with account:

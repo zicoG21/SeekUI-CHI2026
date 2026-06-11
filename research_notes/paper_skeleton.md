@@ -97,5 +97,5 @@ Qualitative taxonomy:
 ## Next Validation
 
 1. Design a small manually verified realistic absent benchmark.
-2. Evaluate whether OCR-aware VLM and scanpath-grounded stopping can be combined.
+2. Run the evidence-aware VLM verifier that gives the VLM both screenshot evidence and scanpath/OCR evidence.
 3. Test the hybrid on hard absent distractors and small/edge present targets.

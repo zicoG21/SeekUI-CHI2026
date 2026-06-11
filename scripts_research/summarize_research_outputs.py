@@ -99,6 +99,10 @@ def write_rows(path, rows):
 
 
 def absent_variant(name):
+    marker = "_vlm_evidence"
+    if marker in name:
+        model, variant = name.split(marker, 1)
+        return model, f"vlm_evidence{variant}"
     marker = "_vlm_presence"
     if marker in name:
         model, variant = name.split(marker, 1)
@@ -152,6 +156,12 @@ def absent_status_core_rows(absent_status):
         "combined_and_present_only": 8,
         "combined_and_present_only_best_f1": 9,
         "vlm_presence": 10,
+        "vlm_presence_ocr_aware": 11,
+        "vlm_presence_search_behavior": 12,
+        "vlm_presence_conservative": 13,
+        "vlm_evidence_evidence_aware": 14,
+        "vlm_evidence_evidence_conservative": 15,
+        "vlm_evidence_evidence_rescue_present": 16,
     }
     rows.sort(key=lambda row: (order.get(row["model"], 99), variant_order.get(row["variant"], 99)))
     return rows
@@ -306,6 +316,15 @@ def main():
             if vlm_eval_path.name.endswith("_filtered_status_eval.json"):
                 continue
             prefix = f"vlm_presence_predictions_{model}_"
+            suffix = "_status_eval"
+            variant = vlm_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
+            if not args.include_pilots and re.search(r"_n\d+$", variant):
+                continue
+            report["absent_status"][f"{model}_{variant}"] = read_json(vlm_eval_path)
+        for vlm_eval_path in sorted(outputs.glob(f"vlm_evidence_predictions_{model}_vlm_evidence*_status_eval.json")):
+            if vlm_eval_path.name.endswith("_filtered_status_eval.json"):
+                continue
+            prefix = f"vlm_evidence_predictions_{model}_"
             suffix = "_status_eval"
             variant = vlm_eval_path.stem.removeprefix(prefix).removesuffix(suffix)
             if not args.include_pilots and re.search(r"_n\d+$", variant):

@@ -450,6 +450,11 @@ Takeaways:
 
 ## Pending Results
 
+- Evidence-aware VLM verifier:
+  - New code feeds the screenshot plus combined scanpath/OCR evidence into the VLM.
+  - Variants: `evidence_aware`, `evidence_conservative`, `evidence_rescue_present`.
+  - Main comparison: OCR-aware VLM vs combined AND vs evidence-aware VLM.
+  - Key question: can the VLM use path/OCR evidence to keep OCR-aware accuracy while recovering combined AND's not-found safety?
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
 - Small real/manual absent validation protocol execution.
 
@@ -487,4 +492,9 @@ Code-ready next analysis:
 scripts_research/export_vlm_hard_cases.py
 scripts_research/summarize_vlm_hard_cases.py
 scripts_utah/export_vlm_hard_cases.slurm
+inference/vlm_evidence_presence_baseline.py
+scripts_utah/vlm_evidence_presence.slurm
+scripts_utah/submit_vlm_evidence_ablation.sh
+scripts_greatlakes/vlm_evidence_presence.slurm
+scripts_greatlakes/submit_vlm_evidence_ablation.sh
 ```
