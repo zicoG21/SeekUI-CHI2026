@@ -118,10 +118,15 @@ def best_rows(absent_rows):
 def build_report(work_dir):
     outputs = work_dir / "outputs"
     tables = outputs / "research_summary_tables"
+    comparisons = outputs / "comparisons"
     absent_rows = read_csv(tables / "absent_status_core.csv")
     filtered_rows = read_csv(outputs / "vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv")
     hardcase_rows = read_csv(outputs / "vlm_hard_cases" / "vlm_hard_case_comparison.csv")
     vlm_rows = read_csv(outputs / "paper_tables" / "vlm_ablation_table.csv")
+    image_cue_summary = None
+    image_cue_paths = sorted(comparisons.glob("image_cue_SeekUI_vs_SeekUI_sft_*.json"))
+    if image_cue_paths:
+        image_cue_summary = read_json(image_cue_paths[-1])
     followup = compact_status(read_json(outputs / "followup_status.json"))
 
     ranked, best_by_model = best_rows(absent_rows)
@@ -145,6 +150,8 @@ def build_report(work_dir):
         "ranked_absent_status": ranked,
         "selected_absent_status": chosen,
         "vlm_ablation_rows": vlm_rows,
+        "image_cue_proxy": image_cue_summary,
+        "image_cue_proxy_path": str(image_cue_paths[-1]) if image_cue_paths else "",
         "evidence_filtered_rows": filtered_rows,
         "hardcase_comparison_rows": hardcase_rows,
         "followup_status": followup,
@@ -196,6 +203,29 @@ def md_table_hardcases(rows):
     return lines
 
 
+def md_image_cue(summary, source_path):
+    if not summary:
+        return ["Pending: missing `outputs/comparisons/image_cue_SeekUI_vs_SeekUI_sft_*.json`."]
+    a_last = as_float(summary.get("mean_a_last_to_target"))
+    b_last = as_float(summary.get("mean_b_last_to_target"))
+    delta = b_last - a_last if a_last is not None and b_last is not None else None
+    lines = [
+        f"- Source: `{source_path}`",
+        f"- Matched examples: {summary.get('num_matched', '')}",
+        f"- SeekUI mean length: {fmt(summary.get('mean_a_len'))}",
+        f"- SeekUI-SFT mean length: {fmt(summary.get('mean_b_len'))}",
+        f"- Mean length delta SFT-SeekUI: {fmt(summary.get('mean_len_delta_b_minus_a'))}",
+        f"- SeekUI last-to-target: {fmt(summary.get('mean_a_last_to_target'))}",
+        f"- SeekUI-SFT last-to-target: {fmt(summary.get('mean_b_last_to_target'))}",
+        f"- Last-to-target delta SFT-SeekUI: {delta:+.4f}" if delta is not None else "- Last-to-target delta SFT-SeekUI: n/a",
+        f"- SFT closer count: {summary.get('b_closer_to_target_count', '')}",
+        f"- SeekUI closer count: {summary.get('a_closer_to_target_count', '')}",
+        "",
+        "Interpretation: target-crop image cues are a weak multimodal proxy. Use this section as feasibility evidence, not as proof of native non-text target support.",
+    ]
+    return lines
+
+
 def write_md(path, report):
     headline = report.get("headline") or {}
     lines = [
@@ -234,6 +264,10 @@ def write_md(path, report):
         "## VLM vs Combined Hard-Case Comparison",
         "",
         *md_table_hardcases(report["hardcase_comparison_rows"]),
+        "",
+        "## Image-Cue Multimodal Proxy",
+        "",
+        *md_image_cue(report["image_cue_proxy"], report["image_cue_proxy_path"]),
         "",
         "## Follow-Up Status",
         "",

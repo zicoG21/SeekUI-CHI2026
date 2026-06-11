@@ -28,7 +28,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | OCR verifier diagnosis | completed | Optional rerun after pulling latest polish so OCR outcomes are non-overlapping |
 | P1 | Combined verifier error taxonomy | completed | Rerun after pulling latest fix so summary separates total cases from selected tagged rows |
 | P1 | Behavioral search metrics | completed | Optional rerun after pulling latest polish so zero-N target-distance rows display `n/a` |
-| P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases; v3 semantic association results are now available |
+| P1 | Non-text / image-cue analysis | partial | Paper checkpoint now includes image-cue comparison summary when comparison JSON exists; next inspect image-cue failure cases if needed |
 | P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
 | P1 | VLM hard-case analysis | completed | Direct and OCR-aware VLM hard-case overlap summaries are recorded in `rolling_results.md` |
 | P1 | Evidence-aware filtered sensitivity | code ready | Run `sbatch scripts_utah/evaluate_evidence_filtered_status.slurm` |
