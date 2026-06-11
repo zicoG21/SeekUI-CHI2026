@@ -30,7 +30,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases; v3 semantic association results are now available |
 | P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
 | P1 | VLM hard-case analysis | completed | Direct and OCR-aware VLM hard-case overlap summaries are recorded in `rolling_results.md` |
-| P1 | Evidence-aware filtered sensitivity | pending | Run filtered eval for `vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware.json` |
+| P1 | Evidence-aware filtered sensitivity | code ready | Run `sbatch scripts_utah/evaluate_evidence_filtered_status.slurm` |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
@@ -136,14 +136,8 @@ cat "$SEEKUI_WORK/outputs/vlm_hard_cases/vlm_hard_case_comparison.md"
 Run filtered sensitivity for evidence-aware VLM:
 
 ```bash
-python scripts_research/evaluate_absent_status_filtered.py \
-  --filter-csv "$SEEKUI_WORK/outputs/absent_benchmark_sanity/absent_examples_sanity.csv" \
-  --exclude-flag annotation_conflict_flag \
-  --exclude-flag ocr_leak_flag \
-  --prediction "SeekUI_vlm_evidence_evidence_aware=$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware.json" \
-  --output-json "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.json" \
-  --output-csv "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv" \
-  --excluded-output "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_excluded.csv"
+sbatch scripts_utah/evaluate_evidence_filtered_status.slurm
+cat "$SEEKUI_WORK/outputs/vlm_evidence_predictions_SeekUI_vlm_evidence_evidence_aware_filtered_status_eval.csv"
 ```
 
 Run evidence-aware VLM for SFT as a secondary-model GPU check:

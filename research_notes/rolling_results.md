@@ -464,7 +464,7 @@ Takeaways:
 ## Pending Results
 
 - Evidence-aware VLM verifier for SeekUI-SFT as a secondary-model check.
-- Filtered sensitivity for evidence-aware VLM after `evaluate_absent_status_filtered.py` is run on the evidence-aware prediction output.
+- Filtered sensitivity for evidence-aware VLM after `scripts_utah/evaluate_evidence_filtered_status.slurm` is run on the evidence-aware prediction output.
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
 - Small real/manual absent validation protocol execution.
 
@@ -512,4 +512,5 @@ scripts_utah/export_vlm_ablation_table.slurm
 scripts_greatlakes/export_vlm_ablation_table.slurm
 scripts_research/export_vlm_hard_case_comparison.py
 scripts_utah/export_vlm_hard_case_comparison.slurm
+scripts_utah/evaluate_evidence_filtered_status.slurm
 ```
