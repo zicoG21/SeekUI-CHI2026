@@ -287,6 +287,16 @@ def build_items(limit, variants):
             "command": "sbatch scripts_utah/export_tradeoff_utility.slurm",
         },
         {
+            "id": "gui_evaluation_case_study",
+            "title": "GUI evaluation case-study candidates",
+            "required": [
+                "{outputs}/gui_evaluation_case_study/SeekUI_combined_and_present_only_best_f1/case_study_summary.md",
+                "{outputs}/gui_evaluation_case_study/SeekUI_combined_and_present_only_best_f1/case_study_index.csv",
+                "{outputs}/gui_evaluation_case_study/SeekUI_combined_and_present_only_best_f1/case_study_manifest.json",
+            ],
+            "command": "sbatch scripts_utah/export_gui_evaluation_case_study.slurm",
+        },
+        {
             "id": "vlm_ablation_table",
             "title": "VLM/evidence ablation table",
             "required": [

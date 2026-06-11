@@ -202,6 +202,37 @@ def table_tradeoff_utility(rows):
     return lines
 
 
+def read_gui_case_study_rows(work_dir):
+    manifest_path = (
+        work_dir / "outputs" / "gui_evaluation_case_study" /
+        "SeekUI_combined_and_present_only_best_f1" / "case_study_manifest.json"
+    )
+    if not manifest_path.exists():
+        return []
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def table_gui_case_study(rows):
+    if not rows:
+        return ["Pending: run `sbatch scripts_utah/export_gui_evaluation_case_study.slurm`."]
+    uses = {
+        "forced_choice_overestimate_corrected": "Prompt-only overestimates findability; verifier reports absence.",
+        "forced_choice_overestimate_kept": "Residual overestimate; useful failure case.",
+        "conservative_cost_present_rejected": "Visible target rejected; use to show method cost.",
+    }
+    lines = [
+        "| Case Type | Count | Selected | Paper Use |",
+        "|---|---:|---:|---|",
+    ]
+    for row in rows:
+        case_type = row.get("case_type", "")
+        lines.append(
+            f"| {case_type} | {row.get('count', '')} | {row.get('selected', '')} | {uses.get(case_type, '')} |"
+        )
+    return lines
+
+
 def read_target_disjoint_rows(work_dir):
     out_dir = work_dir / "outputs" / "devtest_status"
     rows = []
@@ -244,6 +275,7 @@ def revision_route(summary):
     has_filtered = bool(summary.get("filtered_sensitivity_rows"))
     has_real_absent = bool(summary.get("real_absent_rows"))
     has_tradeoff = bool(summary.get("tradeoff_utility_rows"))
+    has_case_study = bool(summary.get("gui_case_study_rows"))
     has_annotation_free = any(
         row.get("variant") == "annotation_free_combined_and_present_only_best_f1"
         for row in summary.get("selected_rows", [])
@@ -284,9 +316,13 @@ def revision_route(summary):
         {
             "priority": "5",
             "item": "GUI evaluation case study",
-            "status": "pending",
+            "status": "done" if has_case_study else "pending",
             "why": "HCI relevance: demonstrates how a forced-choice synthetic user can overestimate screen findability.",
-            "next_step": "Select several screens where prompt-only grounds to a plausible element but uncertainty-aware verification flags absence or weak evidence.",
+            "next_step": (
+                "Pick one large visual example from each generated case type for the main paper figure."
+                if has_case_study
+                else "Select several screens where prompt-only grounds to a plausible element but uncertainty-aware verification flags absence or weak evidence."
+            ),
         },
     ]
 
@@ -441,6 +477,10 @@ def write_md(path, summary):
         "",
         *table_tradeoff_utility(summary["tradeoff_utility_rows"]),
         "",
+        "## GUI Evaluation Case Study",
+        "",
+        *table_gui_case_study(summary["gui_case_study_rows"]),
+        "",
         "## Original 3+1 Direction Coverage",
         "",
         *table_directions(summary["directions_summary"]),
@@ -482,6 +522,7 @@ def main():
     real_rows = read_csv(real_dir / "real_absent_results.csv")
     filtered_sensitivity_rows = read_filtered_sensitivity_rows(work_dir)
     tradeoff_utility_rows = read_tradeoff_utility_rows(work_dir)
+    gui_case_study_rows = read_gui_case_study_rows(work_dir)
     target_disjoint_rows = read_target_disjoint_rows(work_dir)
     indexed = row_index(absent_rows)
     seekui_prompt = indexed.get(("SeekUI", "prompt_only"), {})
@@ -543,6 +584,7 @@ def main():
         "real_absent_rows": real_selected,
         "filtered_sensitivity_rows": filtered_sensitivity_rows,
         "tradeoff_utility_rows": tradeoff_utility_rows,
+        "gui_case_study_rows": gui_case_study_rows,
         "target_disjoint_rows": target_disjoint_rows,
     }
     summary["directions_summary"] = directions_summary(summary)

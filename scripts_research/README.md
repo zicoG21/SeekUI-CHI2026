@@ -643,3 +643,12 @@ threshold sweeps. This is the main artifact for explaining the `P->A` versus
 sbatch scripts_utah/export_tradeoff_utility.slurm
 cat "$SEEKUI_WORK/outputs/tradeoff_utility/tradeoff_summary.md"
 ```
+
+Export GUI evaluation case-study candidates. These cases are intended to show
+how forced-choice synthetic users can overestimate findability, plus the
+conservative-rejection cost introduced by uncertainty-aware verification:
+
+```bash
+sbatch scripts_utah/export_gui_evaluation_case_study.slurm
+cat "$SEEKUI_WORK/outputs/gui_evaluation_case_study/SeekUI_combined_and_present_only_best_f1/case_study_summary.md"
+```
