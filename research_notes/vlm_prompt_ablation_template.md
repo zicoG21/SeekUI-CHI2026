@@ -43,6 +43,12 @@ The GL prompt ablation shows that prompt design matters substantially:
 
 This changes the framing: the strongest generic VLM prompt can outperform combined AND on full-benchmark absent F1/accuracy, while combined AND remains a scanpath-grounded, interpretable safety layer with stronger absent recall and complementary hard cases.
 
+Hard-case overlap supports this revised framing:
+
+- OCR-aware VLM still has 100 capped absent cases where VLM is wrong and combined AND is correct; these have low mean path evidence (0.0373) and low-to-moderate OCR score (0.3613).
+- OCR-aware VLM also corrects 100 capped present cases where combined AND is wrong; these have weak path/OCR evidence, suggesting VLM can preserve visible targets that the scanpath verifier over-rejects.
+- Both-wrong absent cases have high OCR scores (0.7750), indicating strong distractors or OCR-leak cases.
+
 ## Interpretation Guide
 
 If conservative improves absent recall but causes many present false-absent errors:

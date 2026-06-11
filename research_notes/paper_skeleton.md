@@ -50,6 +50,12 @@ The full benchmark shows that prompt design strongly affects generic VLM yes/no 
 
 The OCR-aware VLM prompt is the strongest full-benchmark classifier so far, while combined AND has higher absent recall and is grounded in the predicted scanpath. This suggests a revised framing: target-absent GUI search needs both strong presence classification and interpretable search-evidence analysis.
 
+Hard-case overlap supports complementarity:
+
+- OCR-aware VLM still has many absent cases where it predicts present but combined AND is correct; these have very low path evidence.
+- Combined AND has many present cases where it over-rejects but OCR-aware VLM is correct; these have weak path/OCR evidence but are visually recoverable.
+- Both-wrong absent cases have high OCR scores, suggesting strong distractors or synthetic OCR-leak cases.
+
 ## Evidence Beyond the Main Table
 
 Sanity checks:
@@ -90,6 +96,6 @@ Qualitative taxonomy:
 
 ## Next Validation
 
-1. Run hard-case analysis for examples where VLM and combined AND disagree.
-2. Design a small manually verified realistic absent benchmark.
-3. Evaluate whether VLM presence classification and scanpath-grounded stopping can be combined.
+1. Design a small manually verified realistic absent benchmark.
+2. Evaluate whether OCR-aware VLM and scanpath-grounded stopping can be combined.
+3. Test the hybrid on hard absent distractors and small/edge present targets.

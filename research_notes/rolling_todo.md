@@ -26,7 +26,7 @@ This is the short working TODO. Update every 1-2 days; keep only active or recen
 | P1 | Behavioral search metrics | completed | Optional rerun after pulling latest polish so zero-N target-distance rows display `n/a` |
 | P1 | Non-text / image-cue analysis | pending | Compare image-cue metrics and failure cases; v3 semantic association results are now available |
 | P1 | Simple VLM/OCR verifier baselines | completed | Direct/conservative/OCR-aware/search-behavior VLM baselines are recorded in `rolling_results.md` |
-| P1 | VLM hard-case analysis | in progress | Direct VLM hard-case manifest generated; summary script is ready; repeat for OCR-aware VLM after copying GL output to CHPC |
+| P1 | VLM hard-case analysis | completed | Direct and OCR-aware VLM hard-case overlap summaries are recorded in `rolling_results.md` |
 | P1 | Great Lakes setup | active backup | Data/models/prep are ready; current GL jobs use `jaabell0` on `spgpu` A40 |
 | P2 | Better non-oracle verifier | pending | Add OCR + icon/UI proposal or VLM verifier if OCR-only underperforms |
 | P2 | Candidate-crop VLM verifier | pending | Test crop-level yes/no verifier only after full VLM prompt ablations finish |
@@ -186,6 +186,7 @@ scp 'u6076267@notchpeak.chpc.utah.edu:/scratch/general/vast/u6076267/seekui/outp
 - Added a one-page paper skeleton, paper asset checklist, VLM prompt-ablation template, manual validation protocol, and VLM hard-case export script.
 - Completed GL VLM prompt ablation: OCR-aware VLM reaches absent F1 0.8939 and accuracy 0.8924.
 - Completed v3 semantic association-first summaries; association prompts have much higher predicted-absent rates.
+- Completed direct and OCR-aware VLM hard-case overlap analysis; results support VLM/combined complementarity.
 
 ## Decision Log
 

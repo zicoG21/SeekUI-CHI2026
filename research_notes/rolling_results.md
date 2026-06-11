@@ -414,10 +414,43 @@ The v3 association-first semantic query set increases the association-mapping su
 
 Takeaway: association-style prompts trigger much higher predicted-absent rates than exact or functional-template prompts. This supports treating associative search as a distinct robustness challenge, not merely a paraphrase of text-target grounding.
 
+## VLM vs Combined Hard-Case Overlap
+
+Hard-case overlap confirms that OCR-aware VLM and combined AND are complementary rather than redundant.
+
+Direct VLM vs combined AND:
+
+| Case Source | Case Type | Count | Mean Path Evidence | Mean OCR Score |
+|---|---|---:|---:|---:|
+| both_wrong | absent_case | 29 | 0.1127 | 0.6954 |
+| both_wrong | present_case | 45 | 0.2655 | 0.5502 |
+| combined_wrong_vlm_correct | absent_case | 16 | 0.1556 | 0.5415 |
+| combined_wrong_vlm_correct | present_case | 100 | 0.1643 | 0.4497 |
+| vlm_wrong_combined_correct | absent_case | 100 | 0.0428 | 0.3604 |
+| vlm_wrong_combined_correct | present_case | 54 | 0.4993 | 0.6753 |
+
+OCR-aware VLM vs combined AND:
+
+| Case Source | Case Type | Count | Mean Path Evidence | Mean OCR Score |
+|---|---|---:|---:|---:|
+| both_wrong | absent_case | 22 | 0.0919 | 0.7750 |
+| both_wrong | present_case | 78 | 0.1828 | 0.4381 |
+| combined_wrong_vlm_correct | absent_case | 23 | 0.1624 | 0.5122 |
+| combined_wrong_vlm_correct | present_case | 100 | 0.1545 | 0.4569 |
+| vlm_wrong_combined_correct | absent_case | 100 | 0.0373 | 0.3613 |
+| vlm_wrong_combined_correct | present_case | 87 | 0.5223 | 0.6821 |
+
+Takeaways:
+
+- Even the strongest OCR-aware VLM has at least 100 capped absent cases where VLM predicts present but combined AND is correct. These have very low path evidence and low-to-moderate OCR score, matching the not-found safety role of combined AND.
+- VLM corrects at least 100 capped present cases where combined AND over-rejects. These have weak path/OCR evidence, so VLM appears better at preserving visible targets when the scanpath verifier is too conservative.
+- Both-wrong absent cases have high OCR scores, suggesting strong text/semantic distractors or OCR-leak cases.
+- Both-wrong present cases remain difficult and may include small, ambiguous, low-visibility, or annotation-noisy targets.
+- This motivates a hybrid future model: use OCR-aware VLM as a strong presence classifier, but retain scanpath/path-evidence signals for not-found safety and interpretability.
+
 ## Pending Results
 
 - Optional rerun of OCR diagnosis after pulling the non-overlapping outcome-table polish.
-- VLM hard-case overlap analysis between combined AND and direct/best VLM prompts.
 - Small real/manual absent validation protocol execution.
 
 ## Files To Check

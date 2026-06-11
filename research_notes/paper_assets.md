@@ -135,3 +135,21 @@ GUI + target cue
 Message:
 
 The method is a post-hoc interpretable safety layer, not a retrained model.
+
+## Table 4: VLM vs Combined Hard-Case Overlap
+
+Purpose:
+
+Show that OCR-aware VLM and combined AND are complementary.
+
+| Comparison | Case Source | Case Type | Count | Mean Path Evidence | Mean OCR Score |
+|---|---|---|---:|---:|---:|
+| Direct VLM vs combined | vlm wrong, combined correct | absent | 100 capped | 0.0428 | 0.3604 |
+| Direct VLM vs combined | combined wrong, VLM correct | present | 100 capped | 0.1643 | 0.4497 |
+| OCR-aware VLM vs combined | vlm wrong, combined correct | absent | 100 capped | 0.0373 | 0.3613 |
+| OCR-aware VLM vs combined | combined wrong, VLM correct | present | 100 capped | 0.1545 | 0.4569 |
+| OCR-aware VLM vs combined | both wrong | absent | 22 | 0.0919 | 0.7750 |
+
+Message:
+
+OCR-aware VLM is the stronger full-benchmark classifier, but combined AND catches low-evidence absent cases that VLM still misclassifies as present. VLM, in turn, rescues visible present targets that combined AND over-rejects.
