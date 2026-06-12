@@ -10,7 +10,7 @@ STATUS_RE = re.compile(
     r"^(?P<family>vlm_presence|vlm_evidence)_predictions_(?P<label>.+)_status_eval\.json$"
 )
 SEEKUI_STATUS_RE = re.compile(
-    r"^present_absent_predictions_(?P<label>.+_real_absent(?:_combined_.+)?)_status_eval\.json$"
+    r"^present_absent_predictions_(?P<label>.+_real_absent(?:\d+)?(?:_combined_.+)?)_status_eval\.json$"
 )
 
 
@@ -58,6 +58,8 @@ def model_and_variant(label):
 
 
 def row_from_eval(path):
+    if "_filtered_status_eval" in path.name:
+        return None
     match = STATUS_RE.match(path.name)
     if not match or "real_absent" not in match.group("label"):
         return None
@@ -84,6 +86,8 @@ def row_from_eval(path):
 
 
 def row_from_seekui_eval(path):
+    if "_filtered_status_eval" in path.name:
+        return None
     match = SEEKUI_STATUS_RE.match(path.name)
     if not match:
         return None
@@ -93,12 +97,13 @@ def row_from_seekui_eval(path):
     confusion = metrics.get("confusion", {})
     label = match.group("label")
     model, variant = model_and_variant(label)
-    if variant == "real_absent":
+    real_match = re.match(r"^(real_absent\d*)(?:_(combined_.+))?$", variant)
+    if real_match and not real_match.group(2):
         family = "seekui_prompt"
-        variant = "prompt_only_real_absent"
-    elif variant.startswith("real_absent_combined_"):
+        variant = f"prompt_only_{real_match.group(1)}"
+    elif real_match and real_match.group(2):
         family = "combined"
-        variant = variant.replace("real_absent_", "", 1)
+        variant = real_match.group(2)
     else:
         family = "seekui"
     return {
@@ -222,10 +227,30 @@ def main():
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--output-csv", required=True)
     parser.add_argument("--output-md", required=True)
+    parser.add_argument(
+        "--real-absent-dir",
+        default="",
+        help="Directory containing the real_absent_validation_prep.md for this validation set.",
+    )
+    parser.add_argument(
+        "--label-contains",
+        default="",
+        help="Optional substring filter for labels, e.g. real_absent500.",
+    )
     args = parser.parse_args()
 
     work_dir = Path(args.work_dir)
     outputs = work_dir / "outputs"
+    real_absent_dir = Path(args.real_absent_dir) if args.real_absent_dir else None
+    if real_absent_dir is None:
+        output_parent = Path(args.output_md).parent
+        if output_parent.name.startswith("real_absent_validation"):
+            real_absent_dir = output_parent
+        else:
+            real_absent_dir = outputs / "real_absent_validation"
+    label_filter = args.label_contains
+    if not label_filter and real_absent_dir.name == "real_absent_validation_500":
+        label_filter = "real_absent500"
     rows = []
     for pattern in [
         "present_absent_predictions_*real_absent*_status_eval.json",
@@ -237,10 +262,10 @@ def main():
                 row = row_from_seekui_eval(path)
             else:
                 row = row_from_eval(path)
-            if row:
+            if row and (not label_filter or label_filter in row.get("label", "")):
                 rows.append(row)
     rows = sort_rows(rows)
-    prep_summary = parse_prep_md(outputs / "real_absent_validation" / "real_absent_validation_prep.md")
+    prep_summary = parse_prep_md(real_absent_dir / "real_absent_validation_prep.md")
 
     payload = {
         "work_dir": str(work_dir),

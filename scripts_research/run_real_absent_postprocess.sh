@@ -14,6 +14,9 @@ INPUT_JSON="${INPUT_JSON:-$REALABS_DIR/real_absent_validation_eval.json}"
 OCR_CANDIDATES="${OCR_CANDIDATES:-$REALABS_DIR/ocr_candidates_tesseract.json}"
 EVIDENCE_DIR="${EVIDENCE_DIR:-$REALABS_DIR/stopping_evidence}"
 MIN_OCR_CONF="${MIN_OCR_CONF:-35}"
+prediction_base="$(basename "$PREDICTIONS")"
+prediction_base="${prediction_base%.json}"
+prediction_label="${PREDICTION_LABEL:-${prediction_base#present_absent_predictions_}}"
 
 python scripts_research/evaluate_absent_status.py \
   --predictions "$PREDICTIONS" \
@@ -40,11 +43,11 @@ python scripts_research/analyze_prediction_stopping_evidence.py \
   --target2text "$DATA_DIR/target2text.json" \
   --image-root "$DATA_DIR" \
   --out-dir "$EVIDENCE_DIR" \
-  --prediction "${MODEL_NAME}_real_absent=$PREDICTIONS"
+  --prediction "${prediction_label}=$PREDICTIONS"
 
 python scripts_research/apply_combined_verifier.py \
   --predictions "$PREDICTIONS" \
-  --evidence "$EVIDENCE_DIR/${MODEL_NAME}_real_absent_stopping_evidence.csv" \
+  --evidence "$EVIDENCE_DIR/${prediction_label}_stopping_evidence.csv" \
   --ocr-candidates "$OCR_CANDIDATES" \
   --target2text "$DATA_DIR/target2text.json" \
   --rule and \
@@ -55,14 +58,14 @@ python scripts_research/apply_combined_verifier.py \
   --cognitive-threshold-max "${COGNITIVE_THRESHOLD_MAX:-0.30}" \
   --ocr-threshold-max "${OCR_THRESHOLD_MAX:-0.80}" \
   --min-ocr-conf "$MIN_OCR_CONF" \
-  --output "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_real_absent_combined_and_present_only.json" \
-  --metrics-output "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_real_absent_combined_and_present_only_status_eval.json" \
-  --detail-output "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_real_absent_combined_and_present_only_details.csv" \
-  --sweep-output "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_real_absent_combined_and_present_only_threshold_sweep.csv"
+  --output "$OUTPUT_DIR/present_absent_predictions_${prediction_label}_combined_and_present_only.json" \
+  --metrics-output "$OUTPUT_DIR/present_absent_predictions_${prediction_label}_combined_and_present_only_status_eval.json" \
+  --detail-output "$OUTPUT_DIR/present_absent_predictions_${prediction_label}_combined_and_present_only_details.csv" \
+  --sweep-output "$OUTPUT_DIR/present_absent_predictions_${prediction_label}_combined_and_present_only_threshold_sweep.csv"
 
 python scripts_research/apply_combined_verifier.py \
   --predictions "$PREDICTIONS" \
-  --evidence "$EVIDENCE_DIR/${MODEL_NAME}_real_absent_stopping_evidence.csv" \
+  --evidence "$EVIDENCE_DIR/${prediction_label}_stopping_evidence.csv" \
   --ocr-candidates "$OCR_CANDIDATES" \
   --target2text "$DATA_DIR/target2text.json" \
   --rule and \
@@ -70,9 +73,9 @@ python scripts_research/apply_combined_verifier.py \
   --cognitive-threshold "${BEST_F1_COGNITIVE_THRESHOLD:-0.2}" \
   --ocr-threshold "${BEST_F1_OCR_THRESHOLD:-0.6}" \
   --min-ocr-conf "$MIN_OCR_CONF" \
-  --output "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_real_absent_combined_and_present_only_best_f1.json" \
-  --metrics-output "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_real_absent_combined_and_present_only_best_f1_status_eval.json" \
-  --detail-output "$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_real_absent_combined_and_present_only_best_f1_details.csv"
+  --output "$OUTPUT_DIR/present_absent_predictions_${prediction_label}_combined_and_present_only_best_f1.json" \
+  --metrics-output "$OUTPUT_DIR/present_absent_predictions_${prediction_label}_combined_and_present_only_best_f1_status_eval.json" \
+  --detail-output "$OUTPUT_DIR/present_absent_predictions_${prediction_label}_combined_and_present_only_best_f1_details.csv"
 
 python scripts_research/summarize_real_absent_results.py \
   --work-dir "$SEEKUI_WORK" \
