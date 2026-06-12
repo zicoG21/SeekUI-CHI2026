@@ -96,16 +96,33 @@ def best_practical(rows):
 
 
 def real_absent_key_rows(rows):
-    wanted = {
-        ("SeekUI", "seekui_prompt", "prompt_only_real_absent"),
-        ("SeekUI", "combined", "combined_and_present_only_best_f1"),
-        ("SeekUI", "vlm_presence", "vlm_presence_real_absent_conservative"),
-        ("SeekUI", "vlm_presence", "vlm_presence_real_absent_ocr_aware"),
+    wanted_variants = {
+        "prompt_only_real_absent",
+        "prompt_only_real_absent500",
+        "combined_and_present_only_best_f1",
+        "combined_and_present_only",
+        "vlm_presence_real_absent",
+        "vlm_presence_real_absent_conservative",
+        "vlm_presence_real_absent_ocr_aware",
+        "vlm_presence_real_absent_search_behavior",
+        "vlm_presence_real_absent500",
+        "vlm_presence_real_absent500_conservative",
+        "vlm_presence_real_absent500_ocr_aware",
+        "vlm_presence_real_absent500_search_behavior",
+        "vlm_evidence_real_absent500_evidence_aware",
     }
-    return [
+    selected = [
         row for row in rows
-        if (row.get("model"), row.get("family"), row.get("variant")) in wanted
+        if row.get("model") == "SeekUI" and row.get("variant") in wanted_variants
     ]
+    selected.sort(
+        key=lambda row: (
+            0 if "real_absent500" in row.get("variant", "") or row.get("num_examples") == "500" else 1,
+            {"seekui_prompt": 0, "combined": 1, "vlm_presence": 2, "vlm_evidence": 3}.get(row.get("family", ""), 9),
+            -as_float(row.get("absent_f1")),
+        )
+    )
+    return selected
 
 
 def table_status(rows):
@@ -269,11 +286,20 @@ def large_real_absent_status(work_dir):
     package_md = base / "review_package" / "real_absent_review_package.md"
     starter = base / "real_absent_validation_starter.csv"
     review = base / "review_package" / "real_absent_rows_to_fill.csv"
+    filled = base / "real_absent_validation_filled.csv"
+    eval_json = base / "real_absent_validation_eval.json"
+    results = base / "real_absent_results.csv"
     return {
         "exists": starter.exists() and review.exists() and package_md.exists(),
+        "filled": filled.exists(),
+        "eval_exists": eval_json.exists(),
+        "results_exist": results.exists(),
         "base_dir": str(base),
         "starter_csv": str(starter),
         "review_csv": str(review),
+        "filled_csv": str(filled),
+        "eval_json": str(eval_json),
+        "results_csv": str(results),
         "review_package_md": str(package_md),
     }
 
@@ -353,7 +379,9 @@ def table_target_disjoint(rows):
 def revision_route(summary):
     has_filtered = bool(summary.get("filtered_sensitivity_rows"))
     has_real_absent = bool(summary.get("real_absent_rows"))
-    has_large_real_absent = summary.get("large_real_absent_status", {}).get("exists", False)
+    large_real_status = summary.get("large_real_absent_status", {})
+    has_large_real_absent = large_real_status.get("exists", False)
+    has_large_real_results = large_real_status.get("results_exist", False)
     has_tradeoff = bool(summary.get("tradeoff_utility_rows"))
     has_case_study = bool(summary.get("gui_case_study_rows"))
     visual_status = summary.get("visual_inventory_status", {})
@@ -379,12 +407,20 @@ def revision_route(summary):
         {
             "priority": "2",
             "item": "Larger realistic absent validation",
-            "status": "500-row starter ready" if has_large_real_absent else ("started" if has_real_absent else "pending"),
+            "status": "500-row evaluated" if has_large_real_results else ("500-row eval ready" if large_real_status.get("eval_exists") else ("500-row starter ready" if has_large_real_absent else ("started" if has_real_absent else "pending"))),
             "why": "External validity: moves the result beyond synthetic absent target swaps.",
             "next_step": (
-                "Fill/review the 500-row package and convert it into eval JSON."
-                if has_large_real_absent
-                else "Expand the reviewed set from 100 rows to at least 300-500 stratified rows."
+                "Use the 500-row results as the main realistic-validation evidence and add confidence intervals/error analysis."
+                if has_large_real_results
+                else (
+                    "Run VLM/SeekUI baselines on the prepared 500-row eval JSON."
+                    if large_real_status.get("eval_exists")
+                    else (
+                        "Fill/review the 500-row package and convert it into eval JSON."
+                        if has_large_real_absent
+                        else "Expand the reviewed set from 100 rows to at least 300-500 stratified rows."
+                    )
+                )
             ),
         },
         {
@@ -433,7 +469,13 @@ def table_revision_route(rows):
 
 def directions_summary(summary):
     has_target = bool(summary.get("target_disjoint_rows"))
-    has_real_absent = bool(summary.get("real_absent_rows"))
+    real_rows = summary.get("real_absent_rows", [])
+    real_index = {
+        (row.get("model"), row.get("family"), row.get("variant")): row
+        for row in real_rows
+    }
+    real500_prompt = real_index.get(("SeekUI", "seekui_prompt", "prompt_only_real_absent500"), {})
+    real500_combined = real_index.get(("SeekUI", "combined", "combined_and_present_only_best_f1"), {})
     indexed = row_index(summary.get("selected_rows", []))
     ocr_free = indexed.get(("SeekUI", "annotation_free_combined_and_present_only_best_f1"), {})
     visual_free = indexed.get(("SeekUI", "annotation_free_visual_combined_and_present_only_best_f1"), {})
@@ -473,14 +515,20 @@ def directions_summary(summary):
             "direction": "3. Target absent handling",
             "status": "strong",
             "paper_role": "main paper core",
-            "what_we_have": "Synthetic present/absent benchmark, filtered sensitivity, held-out splits, target-disjoint split, and 100-row realistic validation.",
+            "what_we_have": "Synthetic present/absent benchmark, filtered sensitivity, held-out splits, target-disjoint split, and 500-row realistic validation.",
             "evidence": (
-                "Realistic validation improves F1 from 0.7907 to 0.9159; "
+                (
+                    "500-row realistic validation improves F1 from "
+                    f"{fmt(real500_prompt.get('absent_f1'))} to {fmt(real500_combined.get('absent_f1'))}; "
+                    if real500_prompt and real500_combined
+                    else "Realistic validation is prepared; "
+                )
                 + ("target-disjoint validation is positive." if has_target else "target-disjoint validation is pending.")
             ),
-            "next_step": "Fill/review the 500-row realistic validation package and keep annotation-free candidate inventory in the main defensibility story.",
+            "next_step": "Use 500-row realistic validation as the main external-validity result; add confidence intervals/error analysis if needed.",
             "remaining": (
-                "Finish and evaluate the 500-row realistic validation set." if has_real_absent
+                "Broaden/stratify realistic validation only if reviewers need more external-validity evidence."
+                if real500_prompt and real500_combined
                 else "Complete realistic validation."
             ),
         },
@@ -539,11 +587,19 @@ def strong_accept_priorities(summary):
         {
             "priority": "Larger realistic validation",
             "why": "Directly addresses the main external-validity risk of the synthetic absent benchmark.",
-            "status": "500-row starter ready" if large_real.get("exists") else "started",
+            "status": "500-row evaluated" if large_real.get("results_exist") else ("500-row eval ready" if large_real.get("eval_exists") else ("500-row starter ready" if large_real.get("exists") else "started")),
             "next_step": (
-                "Fill/review the 500-row package and convert it into eval JSON."
-                if large_real.get("exists")
-                else "Scale the current 100-row set to 200-400 stratified present/absent rows."
+                "Use the 500-row result in the main paper narrative; optionally add CI/error slices."
+                if large_real.get("results_exist")
+                else (
+                    "Run models on the prepared 500-row eval JSON."
+                    if large_real.get("eval_exists")
+                    else (
+                        "Fill/review the 500-row package and convert it into eval JSON."
+                        if large_real.get("exists")
+                        else "Scale the current 100-row set to 200-400 stratified present/absent rows."
+                    )
+                )
             ),
         },
         {
@@ -628,7 +684,7 @@ def write_md(path, summary):
         "- Annotation-free OCR candidates recover part of the gain, supporting deployability, but they underperform stronger UI/VLM evidence.",
         "- Naive OCR+edge visual proposals underperform OCR-only annotation-free evidence, suggesting simple visual regions add noise; stronger UI detectors or crop-level VLM proposals are the right next deployable inventory path.",
         "- Evidence-aware VLM gives the strongest practical synthetic result, while combined AND remains the most transparent verifier.",
-        "- The 100-row realistic validation is an external-validity smoke test; the prepared 500-row review package is the next data-facing priority.",
+        "- The 500-row realistic validation is now the main external-validity check; use the 100-row version only as an earlier smoke test.",
         "- The most important revision gaps are deployability and validity: annotation-free evidence plus larger realistic validation matter more than further prompt tuning.",
         "- Add PR/ROC/cost-sensitive utility before submission so the P->A versus A->P tradeoff is explicitly argued rather than hidden inside F1.",
         "- Keep the paper focused: target absence is the core problem, cognitive stopping is the mechanism, multimodal/non-text is secondary generalization, and associative search is future work.",
@@ -647,7 +703,8 @@ def main():
 
     work_dir = Path(args.work_dir)
     tables = work_dir / "outputs" / "research_summary_tables"
-    real_dir = work_dir / "outputs" / "real_absent_validation"
+    real_dir_500 = work_dir / "outputs" / "real_absent_validation_500"
+    real_dir = real_dir_500 if (real_dir_500 / "real_absent_results.csv").exists() else work_dir / "outputs" / "real_absent_validation"
     absent_rows = read_csv(tables / "absent_status_core.csv")
     real_rows = read_csv(real_dir / "real_absent_results.csv")
     filtered_sensitivity_rows = read_filtered_sensitivity_rows(work_dir)
@@ -698,11 +755,15 @@ def main():
         (row.get("model"), row.get("family"), row.get("variant")): row
         for row in real_selected
     }
-    real_prompt = real_index.get(("SeekUI", "seekui_prompt", "prompt_only_real_absent"), {})
+    real_prompt = (
+        real_index.get(("SeekUI", "seekui_prompt", "prompt_only_real_absent500"), {})
+        or real_index.get(("SeekUI", "seekui_prompt", "prompt_only_real_absent"), {})
+    )
     real_combined = real_index.get(("SeekUI", "combined", "combined_and_present_only_best_f1"), {})
     if real_prompt and real_combined:
+        real_n = real_prompt.get("num_examples", "")
         claims.append(
-            "On the 100-row realistic absent validation set, combined best-F1 improves F1 from "
+            f"On the {real_n}-row realistic absent validation set, combined best-F1 improves F1 from "
             f"{fmt(real_prompt.get('absent_f1'))} to {fmt(real_combined.get('absent_f1'))}."
         )
     for row in filtered_sensitivity_rows:
