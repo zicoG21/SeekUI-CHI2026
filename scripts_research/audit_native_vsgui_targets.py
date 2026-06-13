@@ -148,21 +148,33 @@ def has_image_target_field(fields):
 
 def modality_guess(fields, target_id, target_text):
     prefix = target_prefix(target_id).casefold()
+    cue = (
+        first_field(fields, ["cue_type", "native_cue", "cue"])
+        or find_by_suffix(fields, ["cue_type", "native_cue", "cue"])
+    ).casefold()
+    if cue in {"i", "image", "img", "visual"}:
+        return "image", "cue", cue
+    if cue in {"tc", "text+color", "text_color", "text-color", "text and color"}:
+        return "text+color", "cue", cue
+    if cue in {"t", "text", "txt"}:
+        return "text", "cue", cue
+
     image_field, image_value = has_image_target_field(fields)
-    colors = color_fields(fields)
     target_text_low = target_text.casefold()
     has_color_word = any(re.search(rf"\\b{re.escape(color)}\\b", target_text_low) for color in COLOR_WORDS)
 
-    if prefix in {"img", "image", "icon", "ico", "visual"} or image_field:
-        if colors:
-            return "image+color", image_field, "; ".join(colors)
+    if prefix in {"i", "img", "image", "icon", "ico", "visual"} or image_field:
+        if has_color_word:
+            return "image+color", image_field, "color_word_in_target"
         return "image", image_field, image_value
-    if prefix in {"txt", "text"}:
-        if colors or has_color_word:
-            return "text+color", "", "; ".join(colors) if colors else "color_word_in_target"
+    if prefix in {"t", "txt", "text"}:
+        if has_color_word:
+            return "text+color", "", "color_word_in_target"
         return "text", "", ""
-    if colors or has_color_word:
-        return "unknown+color", "", "; ".join(colors) if colors else "color_word_in_target"
+    if prefix in {"tc", "text+color", "text_color"}:
+        return "text+color", "", "prefix"
+    if has_color_word:
+        return "unknown+color", "", "color_word_in_target"
     if prefix in {"btn", "button", "component", "ui", "elt", "element"}:
         return "ui_component", "", ""
     return "unknown", "", ""
