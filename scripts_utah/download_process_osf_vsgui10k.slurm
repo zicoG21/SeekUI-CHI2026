@@ -37,8 +37,15 @@ python scripts_research/audit_native_vsgui_targets.py \
   --input "$OSF_DIR/extracted/data/vsgui10k_targets.csv" \
   --out-dir "$OUT_DIR/native_target_audit"
 
+python scripts_research/export_native_vsgui10k_eval_splits.py \
+  --trials-json "$OUT_DIR/native_vsgui10k_trials.json" \
+  --out-dir "$OUT_DIR/eval_splits"
+
 echo "Native VSGUI10K summary: $OUT_DIR/native_vsgui10k_trial_summary.md"
 cat "$OUT_DIR/native_vsgui10k_trial_summary.md"
+
+echo "Native VSGUI10K eval splits: $OUT_DIR/eval_splits/native_eval_splits_summary.md"
+cat "$OUT_DIR/eval_splits/native_eval_splits_summary.md"
 
 echo "Native target audit summary: $OUT_DIR/native_target_audit/native_vsgui_target_audit_summary.md"
 cat "$OUT_DIR/native_target_audit/native_vsgui_target_audit_summary.md"
