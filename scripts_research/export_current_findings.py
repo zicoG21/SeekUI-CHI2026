@@ -684,6 +684,7 @@ def write_md(path, summary):
         "- Annotation-free OCR candidates recover part of the gain, supporting deployability, but they underperform stronger UI/VLM evidence.",
         "- Naive OCR+edge visual proposals underperform OCR-only annotation-free evidence, suggesting simple visual regions add noise; stronger UI detectors or crop-level VLM proposals are the right next deployable inventory path.",
         "- Evidence-aware VLM gives the strongest practical synthetic result, while combined AND remains the most transparent verifier.",
+        "- On the 500-row realistic validation set, evidence-aware VLM over-rejects present targets; combined AND and OCR-aware VLM are the stronger realistic-validation results.",
         "- The 500-row realistic validation is now the main external-validity check; use the 100-row version only as an earlier smoke test.",
         "- The most important revision gaps are deployability and validity: annotation-free evidence plus larger realistic validation matter more than further prompt tuning.",
         "- Add PR/ROC/cost-sensitive utility before submission so the P->A versus A->P tradeoff is explicitly argued rather than hidden inside F1.",
@@ -760,11 +761,19 @@ def main():
         or real_index.get(("SeekUI", "seekui_prompt", "prompt_only_real_absent"), {})
     )
     real_combined = real_index.get(("SeekUI", "combined", "combined_and_present_only_best_f1"), {})
+    real_ocr_aware = real_index.get(("SeekUI", "vlm_presence", "vlm_presence_real_absent500_ocr_aware"), {})
+    real_evidence = real_index.get(("SeekUI", "vlm_evidence", "vlm_evidence_real_absent500_evidence_aware"), {})
     if real_prompt and real_combined:
         real_n = real_prompt.get("num_examples", "")
         claims.append(
             f"On the {real_n}-row realistic absent validation set, combined best-F1 improves F1 from "
             f"{fmt(real_prompt.get('absent_f1'))} to {fmt(real_combined.get('absent_f1'))}."
+        )
+    if real_ocr_aware and real_evidence:
+        claims.append(
+            "On the 500-row realistic validation set, OCR-aware VLM remains competitive "
+            f"(F1 {fmt(real_ocr_aware.get('absent_f1'))}), while evidence-aware VLM over-rejects "
+            f"present targets (P->A {real_evidence.get('present_absent')}, F1 {fmt(real_evidence.get('absent_f1'))})."
         )
     for row in filtered_sensitivity_rows:
         if row.get("name") == "SeekUI_combined_best_f1":
