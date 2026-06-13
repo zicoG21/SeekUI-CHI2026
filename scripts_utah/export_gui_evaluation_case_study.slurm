@@ -26,6 +26,8 @@ conda activate seekui
 
 prompt="$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}.json"
 adjusted="$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_${ADJUSTED_VARIANT}.json"
+prompt="${PROMPT_PREDICTIONS:-$prompt}"
+adjusted="${ADJUSTED_PREDICTIONS:-$adjusted}"
 
 python scripts_research/export_gui_evaluation_case_study.py \
   --prompt-predictions "$prompt" \
