@@ -16,6 +16,12 @@ SWEEP_GLOBS = [
     "cognitive_process/cognitive_process_threshold_sweep.csv",
 ]
 
+STATUS_EVAL_GLOBS = [
+    "*_status_eval.json",
+    "real_absent_validation*/**/*_status_eval.json",
+    "candidate_crop_verifier/**/status_eval.json",
+]
+
 THRESHOLD_FIELDS = [
     "threshold",
     "cognitive_threshold",
@@ -114,6 +120,21 @@ def discover_sweeps(outputs):
     return paths
 
 
+def discover_status_evals(outputs):
+    paths = []
+    seen = set()
+    for pattern in STATUS_EVAL_GLOBS:
+        for path in sorted(outputs.glob(pattern)):
+            if path in seen:
+                continue
+            name = path.name
+            if "_filtered_status_eval" in name:
+                continue
+            seen.add(path)
+            paths.append(path)
+    return paths
+
+
 def infer_method(path, outputs):
     rel = path.relative_to(outputs)
     stem = path.name.removesuffix("_threshold_sweep.csv")
@@ -134,6 +155,37 @@ def infer_method(path, outputs):
         variant = stem
     else:
         variant = stem
+    return {
+        "model": model,
+        "variant": variant,
+        "method": f"{model}_{variant}" if model else variant,
+        "sweep_path": str(rel),
+    }
+
+
+def infer_status_eval_method(path, outputs):
+    rel = path.relative_to(outputs)
+    parent = path.parent.name
+    stem = path.name.removesuffix("_status_eval.json")
+    if stem == "status_eval":
+        stem = parent
+    if stem.startswith("present_absent_predictions_"):
+        stem = stem.removeprefix("present_absent_predictions_")
+    elif stem.startswith("vlm_presence_predictions_"):
+        stem = stem.removeprefix("vlm_presence_predictions_")
+    elif stem.startswith("vlm_evidence_predictions_"):
+        stem = stem.removeprefix("vlm_evidence_predictions_")
+
+    model = ""
+    if stem.startswith("SeekUI_sft_"):
+        model = "SeekUI_sft"
+        variant = stem.removeprefix("SeekUI_sft_")
+    elif stem.startswith("SeekUI_"):
+        model = "SeekUI"
+        variant = stem.removeprefix("SeekUI_")
+    else:
+        variant = stem
+
     return {
         "model": model,
         "variant": variant,
@@ -170,6 +222,7 @@ def point_from_row(method_info, row):
     )
     return {
         **method_info,
+        "point_type": method_info.get("point_type", "threshold"),
         "threshold_spec": threshold_spec(row),
         "accuracy": accuracy,
         "absent_precision": absent_precision,
@@ -192,6 +245,24 @@ def point_from_row(method_info, row):
     }
 
 
+def point_from_status_eval(method_info, summary):
+    confusion = summary.get("confusion", {})
+    row = {
+        "present_present": confusion.get("present->present", 0),
+        "present_absent": confusion.get("present->absent", 0),
+        "absent_present": confusion.get("absent->present", 0),
+        "absent_absent": confusion.get("absent->absent", 0),
+        "accuracy": summary.get("accuracy", ""),
+        "absent_precision": summary.get("absent_precision", ""),
+        "absent_recall": summary.get("absent_recall", ""),
+        "absent_f1": summary.get("absent_f1", ""),
+    }
+    info = {**method_info, "point_type": "fixed_status_eval"}
+    point = point_from_row(info, row)
+    point["threshold_spec"] = "fixed"
+    return point
+
+
 def collect_points(outputs):
     points = []
     for path in discover_sweeps(outputs):
@@ -200,6 +271,22 @@ def collect_points(outputs):
             point = point_from_row(method_info, row)
             if point["total"] <= 0:
                 continue
+            points.append(point)
+    return points
+
+
+def collect_status_eval_points(outputs):
+    points = []
+    for path in discover_status_evals(outputs):
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                summary = json.load(f)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if "confusion" not in summary:
+            continue
+        point = point_from_status_eval(infer_status_eval_method(path, outputs), summary)
+        if point["total"] > 0:
             points.append(point)
     return points
 
@@ -256,6 +343,7 @@ def utility_rows(points, ratios):
 
 def compact_row(row):
     keep = [
+        "point_type",
         "method",
         "model",
         "variant",
@@ -289,23 +377,26 @@ def compact_utility_row(row):
 
 
 def write_markdown(path, points, best_rows, utilities, ratios):
+    threshold_count = sum(1 for row in points if row.get("point_type") == "threshold")
+    fixed_count = sum(1 for row in points if row.get("point_type") == "fixed_status_eval")
     lines = [
         "# PR/ROC and Cost-Sensitive Utility",
         "",
-        f"- Threshold points: {len(points)}",
-        f"- Methods with threshold sweeps: {len({row['method'] for row in points})}",
+        f"- Threshold points: {threshold_count}",
+        f"- Fixed status-eval points: {fixed_count}",
+        f"- Methods included: {len({row['method'] for row in points})}",
         f"- Cost ratios: {', '.join(ratio['label'] for ratio in ratios)}",
         "",
         "Interpretation: `P->A` is a visible target rejected as absent; `A->P` is a missing target incorrectly grounded as present.",
         "",
         "## Best by Absent F1",
         "",
-        "| Method | Thresholds | Acc | Precision | Recall | F1 | FPR | P->A | A->P |",
-        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Method | Type | Thresholds | Acc | Precision | Recall | F1 | FPR | P->A | A->P |",
+        "|---|---|---|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for row in best_rows[:12]:
         lines.append(
-            f"| {row['method']} | {row['threshold_spec']} | {fmt(row['accuracy'])} | "
+            f"| {row['method']} | {row.get('point_type', '')} | {row['threshold_spec']} | {fmt(row['accuracy'])} | "
             f"{fmt(row['absent_precision'])} | {fmt(row['absent_recall'])} | {fmt(row['absent_f1'])} | "
             f"{fmt(row['roc_fpr'])} | {row['present_absent']} | {row['absent_present']} |"
         )
@@ -339,9 +430,10 @@ def write_markdown(path, points, best_rows, utilities, ratios):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Export PR/ROC points and cost-sensitive utility summaries from threshold sweeps.")
+    parser = argparse.ArgumentParser(description="Export PR/ROC points and cost-sensitive utility summaries.")
     parser.add_argument("--work-dir", required=True)
     parser.add_argument("--out-dir", required=True)
+    parser.add_argument("--include-status-evals", action="store_true", default=True)
     parser.add_argument(
         "--cost-ratios",
         default="1:1,2:1,5:1,10:1,1:2,1:5,1:10",
@@ -354,6 +446,8 @@ def main():
     outputs = work_dir / "outputs"
     ratios = parse_cost_ratios(args.cost_ratios)
     points = collect_points(outputs)
+    if args.include_status_evals:
+        points.extend(collect_status_eval_points(outputs))
     best_rows = best_by_f1(points)
     utilities = utility_rows(points, ratios) if points else []
 
