@@ -249,6 +249,39 @@ def table_second_pass_audit(audit):
     return lines
 
 
+def read_second_pass_robustness(work_dir):
+    path = (
+        work_dir / "outputs" / "real_absent_validation_500" /
+        "second_pass_audit_hardcases" / "analysis" / "second_pass_audit_robustness.csv"
+    )
+    return {
+        "exists": path.exists(),
+        "path": str(path),
+        "rows": read_csv(path),
+    }
+
+
+def table_second_pass_robustness(robustness):
+    rows = robustness.get("rows", [])
+    if not rows:
+        return ["Pending: run `sbatch scripts_utah/analyze_second_pass_audit.slurm`."]
+    lines = [
+        f"- Source CSV: `{robustness.get('path', '')}`",
+        "- Metrics are computed only on rows with a prediction for the given method; audit-label rows marked `exclude` are removed.",
+        "",
+        "| Label Set | Method | N | Acc | F1 | Delta F1 | P->A | A->P | Missing |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row.get('label_set', '')} | {row.get('method', '')} | {row.get('num_examples', '')} | "
+            f"{fmt(row.get('accuracy'))} | {fmt(row.get('absent_f1'))} | "
+            f"{fmt(row.get('delta_absent_f1'))} | {row.get('present_absent', '')} | "
+            f"{row.get('absent_present', '')} | {row.get('missing_predictions', '')} |"
+        )
+    return lines
+
+
 def read_filtered_sensitivity_rows(work_dir):
     outputs = work_dir / "outputs"
     rows = []
@@ -772,6 +805,10 @@ def write_md(path, summary):
         "",
         *table_second_pass_audit(summary["second_pass_audit"]),
         "",
+        "## Audit-Adjusted Robustness",
+        "",
+        *table_second_pass_robustness(summary["second_pass_robustness"]),
+        "",
         "## Filtered Sensitivity",
         "",
         *table_filtered_sensitivity(summary["filtered_sensitivity_rows"]),
@@ -835,6 +872,7 @@ def main():
     gui_case_study_rows = read_gui_case_study_rows(work_dir)
     large_real_status = large_real_absent_status(work_dir)
     second_pass_audit = read_second_pass_audit(work_dir)
+    second_pass_robustness = read_second_pass_robustness(work_dir)
     visual_status = visual_inventory_status(work_dir)
     target_disjoint_rows = read_target_disjoint_rows(work_dir)
     indexed = row_index(absent_rows)
@@ -903,6 +941,19 @@ def main():
             "A 117-row second-pass audit covers random rows and hard cases from the 500-row realistic validation; "
             f"{len(second_pass_audit.get('changed_rows', []))} rows were corrected or excluded, mostly visible equivalent links/icons or ambiguous single-character queries."
         )
+    audit_robust_rows = {
+        (row.get("label_set"), row.get("method")): row
+        for row in second_pass_robustness.get("rows", [])
+    }
+    audit_combined = audit_robust_rows.get(("audit_gold_status", "combined"), {})
+    audit_ocr = audit_robust_rows.get(("audit_gold_status", "ocr_aware_vlm"), {})
+    audit_evidence = audit_robust_rows.get(("audit_gold_status", "evidence_aware_vlm"), {})
+    if audit_combined and audit_ocr and audit_evidence:
+        claims.append(
+            "On the audited hard-case subset, combined AND and OCR-aware VLM remain useful "
+            f"(F1 {fmt(audit_combined.get('absent_f1'))} and {fmt(audit_ocr.get('absent_f1'))}), "
+            f"while evidence-aware VLM remains over-conservative (P->A {audit_evidence.get('present_absent')})."
+        )
     for row in filtered_sensitivity_rows:
         if row.get("name") == "SeekUI_combined_best_f1":
             claims.append(
@@ -926,6 +977,7 @@ def main():
         "top_practical_rows": best_practical(absent_rows),
         "real_absent_rows": real_selected,
         "second_pass_audit": second_pass_audit,
+        "second_pass_robustness": second_pass_robustness,
         "filtered_sensitivity_rows": filtered_sensitivity_rows,
         "tradeoff_utility_rows": tradeoff_utility_rows,
         "gui_case_study_rows": gui_case_study_rows,
