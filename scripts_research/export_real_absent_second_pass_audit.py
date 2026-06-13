@@ -49,6 +49,24 @@ def row_key(row):
     ])
 
 
+def row_aliases(row):
+    aliases = []
+    for field in ("review_id", "img_usr_tgt", "key", "id"):
+        value = row.get(field)
+        if value not in {"", None}:
+            aliases.append(str(value))
+    review_id = str(row.get("review_id", "") or "")
+    gold = str(row.get("gold_status", "") or "").casefold()
+    if review_id:
+        aliases.extend([
+            f"manual_real_absent_{review_id}_{gold}",
+            f"manual_real_absent_{review_id}_absent",
+            f"manual_real_absent_{review_id}_present",
+        ])
+    aliases.append(row_key(row))
+    return [alias for idx, alias in enumerate(aliases) if alias and alias not in aliases[:idx]]
+
+
 def resolve_image(image_root, image):
     image = str(image or "")
     candidates = [
@@ -134,20 +152,24 @@ def sample_rows(rows, predicate, n, rng):
     return candidates[:n], len(candidates)
 
 
-def load_case_keys(cases_dir, case_type):
-    keys = []
-    for row in read_csv(cases_dir / f"{case_type}.csv"):
-        key = row_key(row)
-        if key:
-            keys.append(key)
-    return keys
+def load_case_rows(cases_dir, case_type):
+    return read_csv(cases_dir / f"{case_type}.csv")
 
 
 def rows_by_key(rows):
     mapping = {}
     for row in rows:
-        mapping[row_key(row)] = row
+        for alias in row_aliases(row):
+            mapping[alias] = row
     return mapping
+
+
+def merge_case_row(base_row, case_row):
+    merged = dict(base_row)
+    for key, value in case_row.items():
+        if value not in {"", None}:
+            merged[key] = value
+    return merged
 
 
 def add_selected(selected, seen, source, rows, limit):
@@ -269,10 +291,18 @@ def main():
         "combined_vs_ocr_aware_disagreement",
         "evidence_overreject_present",
     ]:
-        case_keys = load_case_keys(cases_dir, case_type)
-        case_rows = [by_key[key] for key in case_keys if key in by_key]
+        raw_case_rows = load_case_rows(cases_dir, case_type)
+        case_rows = []
+        for case_row in raw_case_rows:
+            match = None
+            for alias in row_aliases(case_row):
+                if alias in by_key:
+                    match = by_key[alias]
+                    break
+            if match:
+                case_rows.append(merge_case_row(match, case_row))
         added = add_selected(selected, seen, case_type, case_rows, args.case_limit)
-        counts.append({"source": case_type, "selected": added, "candidate_pool": len(case_rows)})
+        counts.append({"source": case_type, "selected": added, "candidate_pool": len(raw_case_rows)})
 
     for audit_id, row in enumerate(selected):
         row["audit_id"] = audit_id
