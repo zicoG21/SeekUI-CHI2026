@@ -157,6 +157,98 @@ def table_real_absent(rows):
     return lines
 
 
+def read_second_pass_audit(work_dir):
+    path = (
+        work_dir / "outputs" / "real_absent_validation_500" /
+        "second_pass_audit_hardcases" / "real_absent_second_pass_audit_filled_by_codex.csv"
+    )
+    rows = read_csv(path)
+    if not rows:
+        return {
+            "exists": False,
+            "path": str(path),
+            "rows": [],
+            "status_counts": {},
+            "ambiguity_counts": {},
+            "source_rows": [],
+            "changed_rows": [],
+        }
+
+    def count_by(field):
+        counts = {}
+        for row in rows:
+            key = row.get(field, "")
+            counts[key] = counts.get(key, 0) + 1
+        return counts
+
+    source_counts = {}
+    changed_by_source = {}
+    changed_rows = []
+    for row in rows:
+        source = row.get("case_source", "")
+        source_counts[source] = source_counts.get(source, 0) + 1
+        original = row.get("gold_status", "")
+        audit = row.get("audit_gold_status", "")
+        if audit != original:
+            changed_by_source[source] = changed_by_source.get(source, 0) + 1
+            changed_rows.append(row)
+
+    source_rows = [
+        {
+            "source": source,
+            "rows": count,
+            "changed_or_excluded": changed_by_source.get(source, 0),
+        }
+        for source, count in sorted(source_counts.items())
+    ]
+    return {
+        "exists": True,
+        "path": str(path),
+        "rows": rows,
+        "num_rows": len(rows),
+        "status_counts": count_by("audit_gold_status"),
+        "ambiguity_counts": count_by("audit_ambiguity_level"),
+        "source_rows": source_rows,
+        "changed_rows": changed_rows,
+    }
+
+
+def table_second_pass_audit(audit):
+    if not audit.get("exists"):
+        return ["Pending: filled second-pass audit CSV not found."]
+    lines = [
+        f"- Reviewed rows: {audit.get('num_rows', 0)}",
+        f"- Filled CSV: `{audit.get('path', '')}`",
+        "",
+        "| Source | Rows | Corrected / Excluded |",
+        "|---|---:|---:|",
+    ]
+    for row in audit.get("source_rows", []):
+        lines.append(
+            f"| {row.get('source', '')} | {row.get('rows', 0)} | {row.get('changed_or_excluded', 0)} |"
+        )
+    lines.extend([
+        "",
+        "| Audit Status | Count |",
+        "|---|---:|",
+    ])
+    for status, count in sorted(audit.get("status_counts", {}).items()):
+        lines.append(f"| {status} | {count} |")
+    lines.extend([
+        "",
+        "| Ambiguity | Count |",
+        "|---|---:|",
+    ])
+    for ambiguity, count in sorted(audit.get("ambiguity_counts", {}).items()):
+        lines.append(f"| {ambiguity} | {count} |")
+    if audit.get("changed_rows"):
+        lines.extend([
+            "",
+            "Changed/excluded rows are mostly visible equivalent links/icons or single-character ambiguous queries.",
+        ])
+    return lines
+
+
 def read_filtered_sensitivity_rows(work_dir):
     outputs = work_dir / "outputs"
     rows = []
@@ -380,6 +472,7 @@ def revision_route(summary):
     has_filtered = bool(summary.get("filtered_sensitivity_rows"))
     has_real_absent = bool(summary.get("real_absent_rows"))
     large_real_status = summary.get("large_real_absent_status", {})
+    second_pass_audit = summary.get("second_pass_audit", {})
     has_large_real_absent = large_real_status.get("exists", False)
     has_large_real_results = large_real_status.get("results_exist", False)
     has_tradeoff = bool(summary.get("tradeoff_utility_rows"))
@@ -407,18 +500,30 @@ def revision_route(summary):
         {
             "priority": "2",
             "item": "Larger realistic absent validation",
-            "status": "500-row evaluated" if has_large_real_results else ("500-row eval ready" if large_real_status.get("eval_exists") else ("500-row starter ready" if has_large_real_absent else ("started" if has_real_absent else "pending"))),
+            "status": (
+                "500-row evaluated + second-pass audit"
+                if has_large_real_results and second_pass_audit.get("exists")
+                else (
+                    "500-row evaluated"
+                    if has_large_real_results
+                    else ("500-row eval ready" if large_real_status.get("eval_exists") else ("500-row starter ready" if has_large_real_absent else ("started" if has_real_absent else "pending")))
+                )
+            ),
             "why": "External validity: moves the result beyond synthetic absent target swaps.",
             "next_step": (
-                "Use the 500-row results as the main realistic-validation evidence and add confidence intervals/error analysis."
-                if has_large_real_results
+                "Use the 500-row results plus the hard-case second-pass audit as the main realistic-validation evidence."
+                if has_large_real_results and second_pass_audit.get("exists")
                 else (
-                    "Run VLM/SeekUI baselines on the prepared 500-row eval JSON."
-                    if large_real_status.get("eval_exists")
+                    "Use the 500-row results as the main realistic-validation evidence and add confidence intervals/error analysis."
+                    if has_large_real_results
                     else (
-                        "Fill/review the 500-row package and convert it into eval JSON."
-                        if has_large_real_absent
-                        else "Expand the reviewed set from 100 rows to at least 300-500 stratified rows."
+                        "Run VLM/SeekUI baselines on the prepared 500-row eval JSON."
+                        if large_real_status.get("eval_exists")
+                        else (
+                            "Fill/review the 500-row package and convert it into eval JSON."
+                            if has_large_real_absent
+                            else "Expand the reviewed set from 100 rows to at least 300-500 stratified rows."
+                        )
                     )
                 )
             ),
@@ -559,6 +664,7 @@ def table_directions(rows):
 
 def strong_accept_priorities(summary):
     large_real = summary.get("large_real_absent_status", {})
+    second_pass_audit = summary.get("second_pass_audit", {})
     visual_status = summary.get("visual_inventory_status", {})
     has_case_study = bool(summary.get("gui_case_study_rows"))
     indexed = row_index(summary.get("selected_rows", []))
@@ -587,17 +693,29 @@ def strong_accept_priorities(summary):
         {
             "priority": "Larger realistic validation",
             "why": "Directly addresses the main external-validity risk of the synthetic absent benchmark.",
-            "status": "500-row evaluated" if large_real.get("results_exist") else ("500-row eval ready" if large_real.get("eval_exists") else ("500-row starter ready" if large_real.get("exists") else "started")),
-            "next_step": (
-                "Use the 500-row result in the main paper narrative; optionally add CI/error slices."
-                if large_real.get("results_exist")
+            "status": (
+                "500-row evaluated + second-pass audit"
+                if large_real.get("results_exist") and second_pass_audit.get("exists")
                 else (
-                    "Run models on the prepared 500-row eval JSON."
-                    if large_real.get("eval_exists")
+                    "500-row evaluated"
+                    if large_real.get("results_exist")
+                    else ("500-row eval ready" if large_real.get("eval_exists") else ("500-row starter ready" if large_real.get("exists") else "started"))
+                )
+            ),
+            "next_step": (
+                "Use the 500-row result and the 117-row hard-case audit in the main paper narrative."
+                if large_real.get("results_exist") and second_pass_audit.get("exists")
+                else (
+                    "Use the 500-row result in the main paper narrative; optionally add CI/error slices."
+                    if large_real.get("results_exist")
                     else (
-                        "Fill/review the 500-row package and convert it into eval JSON."
-                        if large_real.get("exists")
-                        else "Scale the current 100-row set to 200-400 stratified present/absent rows."
+                        "Run models on the prepared 500-row eval JSON."
+                        if large_real.get("eval_exists")
+                        else (
+                            "Fill/review the 500-row package and convert it into eval JSON."
+                            if large_real.get("exists")
+                            else "Scale the current 100-row set to 200-400 stratified present/absent rows."
+                        )
                     )
                 )
             ),
@@ -649,6 +767,10 @@ def write_md(path, summary):
         "## Realistic Absent Validation",
         "",
         *table_real_absent(summary["real_absent_rows"]),
+        "",
+        "## Second-Pass Realistic Validation Audit",
+        "",
+        *table_second_pass_audit(summary["second_pass_audit"]),
         "",
         "## Filtered Sensitivity",
         "",
@@ -712,6 +834,7 @@ def main():
     tradeoff_utility_rows = read_tradeoff_utility_rows(work_dir)
     gui_case_study_rows = read_gui_case_study_rows(work_dir)
     large_real_status = large_real_absent_status(work_dir)
+    second_pass_audit = read_second_pass_audit(work_dir)
     visual_status = visual_inventory_status(work_dir)
     target_disjoint_rows = read_target_disjoint_rows(work_dir)
     indexed = row_index(absent_rows)
@@ -775,6 +898,11 @@ def main():
             f"(F1 {fmt(real_ocr_aware.get('absent_f1'))}), while evidence-aware VLM over-rejects "
             f"present targets (P->A {real_evidence.get('present_absent')}, F1 {fmt(real_evidence.get('absent_f1'))})."
         )
+    if second_pass_audit.get("exists"):
+        claims.append(
+            "A 117-row second-pass audit covers random rows and hard cases from the 500-row realistic validation; "
+            f"{len(second_pass_audit.get('changed_rows', []))} rows were corrected or excluded, mostly visible equivalent links/icons or ambiguous single-character queries."
+        )
     for row in filtered_sensitivity_rows:
         if row.get("name") == "SeekUI_combined_best_f1":
             claims.append(
@@ -797,6 +925,7 @@ def main():
         "selected_rows": select_rows(absent_rows),
         "top_practical_rows": best_practical(absent_rows),
         "real_absent_rows": real_selected,
+        "second_pass_audit": second_pass_audit,
         "filtered_sensitivity_rows": filtered_sensitivity_rows,
         "tradeoff_utility_rows": tradeoff_utility_rows,
         "gui_case_study_rows": gui_case_study_rows,
