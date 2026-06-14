@@ -5,6 +5,16 @@ SEEKUI_WORK="${SEEKUI_WORK:-${SCRATCH:-$(pwd)/.scratch}/seekui}"
 OUTPUT_DIR="$SEEKUI_WORK/outputs"
 NATIVE_V2_DIR="${NATIVE_V2_DIR:-$OUTPUT_DIR/native_vsgui10k/processed_v2}"
 MODEL_NAME="${MODEL_NAME:-SeekUI}"
+PYTHON_BIN="${PYTHON_BIN:-python}"
+
+if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
+  if command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN=python3
+  else
+    echo "Could not find python. Activate the seekui env first, or set PYTHON_BIN=/path/to/python." >&2
+    exit 1
+  fi
+fi
 
 SPLITS=(${NATIVE_V2_SPLITS:-native_v2_main_text native_v2_main_text_color native_v2_clean_text_all})
 RUN_VLM_PRESENCE="${RUN_VLM_PRESENCE:-1}"
@@ -53,12 +63,12 @@ for split in "${SPLITS[@]}"; do
     exit 1
   fi
 
-  n_rows="$(python - <<PY
+  n_rows="$("$PYTHON_BIN" - <<PY
 import json
 print(len(json.load(open("$input_json"))))
 PY
 )"
-  n_absent="$(python - <<PY
+  n_absent="$("$PYTHON_BIN" - <<PY
 import json
 rows=json.load(open("$input_json"))
 print(sum(1 for r in rows if r.get("status") == "absent" or r.get("target_present") is False))
