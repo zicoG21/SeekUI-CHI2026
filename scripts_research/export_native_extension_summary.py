@@ -13,6 +13,7 @@ KEY_VARIANTS = [
     "native_text_color_balanced_color_aware_native_tuned_absent_f1",
     "native_text_color_balanced_color_aware_filtered_tuned_absent_f1",
     "native_text_color_balanced_crop_ocr_vlm",
+    "native_text_color_balanced_context_crop_ocr_vlm",
 ]
 
 
@@ -99,6 +100,10 @@ def add_takeaways(rows):
     if ("raw", "native_text_color_balanced_crop_ocr_vlm") in by_key:
         by_key[("raw", "native_text_color_balanced_crop_ocr_vlm")]["takeaway"] = (
             "Negative result: OCR-only crops lose too much context for native text+color."
+        )
+    if ("raw", "native_text_color_balanced_context_crop_ocr_vlm") in by_key:
+        by_key[("raw", "native_text_color_balanced_context_crop_ocr_vlm")]["takeaway"] = (
+            "Tests whether full screenshot context rescues the crop-level VLM verifier."
         )
     return rows
 

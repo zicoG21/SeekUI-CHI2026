@@ -28,7 +28,13 @@ conda activate seekui
 MODEL_NAME="${MODEL_NAME:-SeekUI}"
 MODEL_PATH="${MODEL_PATH:-$SEEKUI_WORK/models/$MODEL_NAME}"
 SPLIT_NAME="${SPLIT_NAME:-native_text_color_balanced}"
-MODEL_LABEL="${MODEL_LABEL:-${MODEL_NAME}_${SPLIT_NAME}_crop_ocr_vlm}"
+CROP_INCLUDE_CONTEXT="${CROP_INCLUDE_CONTEXT:-0}"
+if [[ "$CROP_INCLUDE_CONTEXT" == "1" ]]; then
+  DEFAULT_MODEL_LABEL="${MODEL_NAME}_${SPLIT_NAME}_context_crop_ocr_vlm"
+else
+  DEFAULT_MODEL_LABEL="${MODEL_NAME}_${SPLIT_NAME}_crop_ocr_vlm"
+fi
+MODEL_LABEL="${MODEL_LABEL:-$DEFAULT_MODEL_LABEL}"
 INPUT_JSON="${INPUT_JSON:-$NATIVE_DIR/eval_splits/${SPLIT_NAME}.json}"
 POST_LABEL="${POST_LABEL:-${MODEL_NAME}_${SPLIT_NAME}}"
 POST_DIR="${POST_DIR:-$NATIVE_DIR/postprocess/${POST_LABEL}}"
@@ -48,6 +54,10 @@ CROP_JSON="$OUT_DIR/candidate_crops.json"
 CROP_PREDICTIONS="$OUT_DIR/candidate_crop_vlm_predictions.json"
 EXAMPLE_PREDICTIONS="$OUTPUT_DIR/present_absent_predictions_${MODEL_LABEL}${limit_suffix}.json"
 SUMMARY_JSON="${EXAMPLE_PREDICTIONS%.json}_status_eval.json"
+context_args=()
+if [[ "$CROP_INCLUDE_CONTEXT" == "1" ]]; then
+  context_args+=(--include_context_image)
+fi
 
 python scripts_research/export_candidate_crop_dataset.py \
   --input-json "$INPUT_JSON" \
@@ -68,6 +78,7 @@ python inference/vlm_candidate_crop_verifier.py \
   --output "$CROP_PREDICTIONS" \
   --max_new_tokens "${MAX_NEW_TOKENS:-48}" \
   --save_every "${SAVE_EVERY:-50}" \
+  "${context_args[@]}" \
   --resume
 
 python scripts_research/evaluate_candidate_crop_verifier.py \

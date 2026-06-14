@@ -73,6 +73,8 @@ def family_from_path_and_variant(path, variant):
         return "vlm_presence"
     if name.startswith("vlm_evidence_predictions_"):
         return "vlm_evidence"
+    if "context_crop_ocr_vlm" in variant:
+        return "context_crop_vlm"
     if "crop_ocr_vlm" in variant or "candidate_crop" in variant:
         return "crop_vlm"
     if "color_aware" in variant:

@@ -128,6 +128,11 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
             outputs / f"present_absent_predictions_{model}_{split}_crop_ocr_vlm.json",
         ),
         (
+            "context_crop_vlm",
+            f"{split}_context_crop_ocr_vlm",
+            outputs / f"present_absent_predictions_{model}_{split}_context_crop_ocr_vlm.json",
+        ),
+        (
             "vlm_presence",
             f"vlm_presence_{split}_{vlm_variant}",
             outputs / f"vlm_presence_predictions_{model}_vlm_presence_{split}_{vlm_variant}.json",

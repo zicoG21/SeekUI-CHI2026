@@ -20,6 +20,7 @@ def parse_args():
     parser.add_argument("--save_every", type=int, default=50)
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--include_context_image", action="store_true", help="Include the full screenshot before the crop image.")
     parser.add_argument("--attn_implementation", default="auto", choices=["auto", "flash_attention_2", "sdpa"])
     return parser.parse_args()
 
@@ -66,15 +67,23 @@ def load_model(args):
     raise RuntimeError(f"Failed to load model. Last error: {last_error}") from last_error
 
 
-def build_prompt(row):
+def build_prompt(row, include_context_image=False):
     target = row.get("query_text", "")
     candidate_text = row.get("candidate_text", "")
     source = row.get("candidate_source", "")
+    image_instruction = (
+        "You will see the full UI screenshot first and the candidate crop second. Use the full screenshot for "
+        "screen context, color/instance disambiguation, and nearby labels; use the crop to inspect the proposed "
+        "candidate region. "
+        if include_context_image else
+        "Use the crop image as primary evidence. "
+    )
     return (
         "You are verifying whether a cropped UI region contains a requested target.\n"
         f'Target cue: "{target}".\n'
         f'Candidate source: {source}. Candidate OCR text, if any: "{candidate_text}".\n'
-        "Use the crop image as primary evidence. If the crop clearly contains the exact target, a near text variant, "
+        f"{image_instruction}"
+        "If the candidate clearly contains the exact target, a near text variant, "
         "or an unambiguous icon/action equivalent, answer present. Otherwise answer absent.\n"
         "Answer only in this format: <answer>status: present</answer> or <answer>status: absent</answer>."
     )
@@ -119,16 +128,12 @@ def main():
         uid = row.get("candidate_uid")
         if uid in completed:
             continue
-        prompt = build_prompt(row)
-        messages = [
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image", "image": row["crop_image"]},
-                ],
-            }
-        ]
+        prompt = build_prompt(row, args.include_context_image)
+        content = [{"type": "text", "text": prompt}]
+        if args.include_context_image:
+            content.append({"type": "image", "image": row["original_image_path"]})
+        content.append({"type": "image", "image": row["crop_image"]})
+        messages = [{"role": "user", "content": content}]
         text = processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         image_inputs, video_inputs = process_vision_info(messages)
         inputs = processor(
@@ -152,6 +157,7 @@ def main():
         result = dict(row)
         result["predicted_status"] = status
         result["crop_vlm_answer"] = answer
+        result["include_context_image"] = bool(args.include_context_image)
         result["raw_output"] = content
         results.append(result)
         newly_processed += 1
