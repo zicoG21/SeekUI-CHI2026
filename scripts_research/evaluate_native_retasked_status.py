@@ -138,6 +138,10 @@ def candidate_prediction_files(outputs, model, split):
         if path.name.endswith(("_status_eval.json", "_selected_profile.json")):
             continue
         rows.append(("task_routed", path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json"), path))
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_native_bucket_router_*.json")):
+        if path.name.endswith(("_status_eval.json", "_mapping.json")):
+            continue
+        rows.append(("bucket_router", path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json"), path))
     return rows
 
 

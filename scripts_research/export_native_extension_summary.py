@@ -26,6 +26,12 @@ KEY_VARIANTS = [
     "native_text_color_balanced_native_task_routed_clean_vs_color",
     "native_text_color_balanced_native_task_routed_conflict_present_guard",
     "native_text_color_balanced_native_task_routed_color_instance_focus",
+    "native_text_color_balanced_native_bucket_router_native_original_absent_f1",
+    "native_text_color_balanced_native_bucket_router_clean_absent_only_absent_f1",
+    "native_text_color_balanced_native_bucket_router_visible_text_as_present_absent_f1",
+    "native_text_color_balanced_native_bucket_router_color_instance_as_present_absent_f1",
+    "native_text_color_balanced_native_bucket_router_all_visible_conflicts_as_present_absent_f1",
+    "native_text_color_balanced_native_bucket_router_color_instance_only_absent_f1",
 ]
 
 
@@ -149,6 +155,18 @@ def add_takeaways(rows):
         if ("raw", variant) in by_key:
             by_key[("raw", variant)]["takeaway"] = (
                 "Routes native cases by OCR-visible text/color-instance bucket."
+            )
+    for variant in [
+        "native_text_color_balanced_native_bucket_router_native_original_absent_f1",
+        "native_text_color_balanced_native_bucket_router_clean_absent_only_absent_f1",
+        "native_text_color_balanced_native_bucket_router_visible_text_as_present_absent_f1",
+        "native_text_color_balanced_native_bucket_router_color_instance_as_present_absent_f1",
+        "native_text_color_balanced_native_bucket_router_all_visible_conflicts_as_present_absent_f1",
+        "native_text_color_balanced_native_bucket_router_color_instance_only_absent_f1",
+    ]:
+        if ("raw", variant) in by_key:
+            by_key[("raw", variant)]["takeaway"] = (
+                "Bucket-tuned router over all available native verifiers; use as an analysis upper bound, not a deployed model."
             )
     return rows
 
