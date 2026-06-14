@@ -41,6 +41,19 @@ python scripts_research/export_native_vsgui10k_eval_splits.py \
   --trials-json "$OUT_DIR/native_vsgui10k_trials.json" \
   --out-dir "$OUT_DIR/eval_splits"
 
+audit_json="$OUT_DIR/processed_v2/visibility_audit/native_vsgui10k_visibility_audit.json"
+v2_args=()
+if [[ -f "$audit_json" ]]; then
+  v2_args+=(--audit-json "$audit_json")
+else
+  echo "Full-trials visibility audit not found yet; exporting processed v2 with unverified absent rows."
+fi
+
+python scripts_research/export_processed_native_vsgui10k.py \
+  --trials-json "$OUT_DIR/native_vsgui10k_trials.json" \
+  --out-dir "$OUT_DIR/processed_v2" \
+  "${v2_args[@]}"
+
 echo "Native VSGUI10K summary: $OUT_DIR/native_vsgui10k_trial_summary.md"
 cat "$OUT_DIR/native_vsgui10k_trial_summary.md"
 
@@ -49,3 +62,6 @@ cat "$OUT_DIR/eval_splits/native_eval_splits_summary.md"
 
 echo "Native target audit summary: $OUT_DIR/native_target_audit/native_vsgui_target_audit_summary.md"
 cat "$OUT_DIR/native_target_audit/native_vsgui_target_audit_summary.md"
+
+echo "Processed Native VSGUI10K v2 summary: $OUT_DIR/processed_v2/native_vsgui10k_v2_summary.md"
+cat "$OUT_DIR/processed_v2/native_vsgui10k_v2_summary.md"
