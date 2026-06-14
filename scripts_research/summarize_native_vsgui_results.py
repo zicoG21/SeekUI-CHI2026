@@ -57,6 +57,13 @@ def model_from_label(label):
 
 def split_from_variant(variant):
     for split in [
+        "native_v2_main_text_color",
+        "native_v2_clean_text_all",
+        "native_v2_visible_conflicts",
+        "native_v2_color_instance",
+        "native_v2_unverified_absent",
+        "native_v2_main_text",
+        "native_v2_image_cue",
         "native_text_color_balanced",
         "native_text_balanced",
         "native_image_balanced",
@@ -161,6 +168,7 @@ def write_md(path, rows):
         "",
         "- `native_text_balanced` is the closest native counterpart to the current text-target absent setting.",
         "- `native_text_color_balanced` adds target color as part of the query cue.",
+        "- `native_v2_*` splits are processed VSGUI10K task splits after OCR visibility stratification.",
         "- `native_image_balanced` requires image-cue aware prompting before it should be treated as a main result.",
         "",
     ])
