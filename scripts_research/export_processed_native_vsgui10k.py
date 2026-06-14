@@ -53,7 +53,7 @@ def task_family(example, audit_row):
         if cue == "text+color":
             return "present_text_color"
         if cue == "image":
-            return "present_image"
+            return "present_image_unresolved"
         return "present_other"
 
     if cue == "text":
@@ -75,7 +75,7 @@ def task_family(example, audit_row):
         return "text_color_absent_uncertain"
 
     if cue == "image":
-        return "image_absent"
+        return "image_absent_unresolved"
     return "absent_other"
 
 
@@ -86,8 +86,8 @@ def eval_role(task):
         return "candidate_needs_ocr_audit"
     if task in {"visible_text_conflict", "text_instance_conflict", "text_color_instance_absent"}:
         return "ambiguity_or_instance_eval"
-    if task in {"present_image", "image_absent"}:
-        return "image_cue_eval"
+    if task in {"present_image_unresolved", "image_absent_unresolved"}:
+        return "image_cue_unresolved"
     return "audit_or_exclude"
 
 
@@ -126,9 +126,9 @@ def split_specs():
             "tasks": {"present_text_color", "text_color_instance_absent"},
             "description": "Text+color/instance matching stress test.",
         },
-        "native_v2_image_cue": {
-            "tasks": {"present_image", "image_absent"},
-            "description": "Native image-cue target-present/target-absent split.",
+        "native_v2_image_cue_unresolved": {
+            "tasks": {"present_image_unresolved", "image_absent_unresolved"},
+            "description": "Native image-cue rows; cue-image assets/target definitions need resolution before headline evaluation.",
         },
         "native_v2_unverified_absent": {
             "tasks": {"text_absent_unverified", "text_color_absent_unverified"},
@@ -222,7 +222,7 @@ def write_summary_md(path, examples, splits, specs, audit_json):
         "- Main text absent: compare prompt-only, combined AND, evidence-aware VLM, and CV bucket router.",
         "- Text+color clean absent: add color-aware verifier and context-crop VLM.",
         "- Visible conflict / instance subsets: report separately as target-definition ambiguity, not clean absence.",
-        "- Image-cue subset: do not use OCR-only text verifier as a main method; use image-aware or crop-based methods.",
+        "- Image-cue subset: currently unresolved because released fixation rows reference cue-image names that are not available as direct image files; do not use it as a headline absent benchmark yet.",
         "- Unverified absent rows: run OCR/visibility audit before using them for headline metrics.",
         "",
     ])
