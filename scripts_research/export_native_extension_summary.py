@@ -14,6 +14,8 @@ KEY_VARIANTS = [
     "native_text_color_balanced_color_aware_filtered_tuned_absent_f1",
     "native_text_color_balanced_crop_ocr_vlm",
     "native_text_color_balanced_context_crop_ocr_vlm",
+    "vlm_evidence_native_text_color_balanced_evidence_aware",
+    "vlm_evidence_native_text_color_balanced_evidence_rescue_present",
 ]
 
 
@@ -104,6 +106,14 @@ def add_takeaways(rows):
     if ("raw", "native_text_color_balanced_context_crop_ocr_vlm") in by_key:
         by_key[("raw", "native_text_color_balanced_context_crop_ocr_vlm")]["takeaway"] = (
             "Tests whether full screenshot context rescues the crop-level VLM verifier."
+        )
+    if ("raw", "vlm_evidence_native_text_color_balanced_evidence_aware") in by_key:
+        by_key[("raw", "vlm_evidence_native_text_color_balanced_evidence_aware")]["takeaway"] = (
+            "Tests whether screenshot reasoning can use path/OCR/color-aware evidence on native text+color."
+        )
+    if ("raw", "vlm_evidence_native_text_color_balanced_evidence_rescue_present") in by_key:
+        by_key[("raw", "vlm_evidence_native_text_color_balanced_evidence_rescue_present")]["takeaway"] = (
+            "Tests whether VLM evidence can reduce conservative present-target over-rejection."
         )
     return rows
 

@@ -155,6 +155,13 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
         item = ("vlm_presence", variant, path)
         if item not in rows:
             rows.append(item)
+    for path in sorted(outputs.glob(f"vlm_evidence_predictions_{model}_vlm_evidence_{split}_*.json")):
+        if path.name.endswith("_status_eval.json"):
+            continue
+        variant = path.name.removeprefix(f"vlm_evidence_predictions_{model}_").removesuffix(".json")
+        item = ("vlm_evidence", variant, path)
+        if item not in rows:
+            rows.append(item)
     return rows
 
 

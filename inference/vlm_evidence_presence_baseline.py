@@ -119,20 +119,31 @@ def normalize_status(value, default="present"):
 
 def evidence_summary(example):
     path_score = safe_float(example.get("path_best_evidence"), default=-1.0)
-    ocr_score = safe_float(example.get("ocr_candidate_verifier_score"), default=-1.0)
-    ocr_text = str(example.get("ocr_candidate_verifier_text", "") or "").strip()
+    ocr_score = safe_float(
+        example.get("ocr_candidate_verifier_score", example.get("color_aware_score")),
+        default=-1.0,
+    )
+    ocr_text = str(
+        example.get("ocr_candidate_verifier_text", example.get("color_aware_ocr_text", "")) or ""
+    ).strip()
+    color_score = safe_float(example.get("color_aware_color_score"), default=-1.0)
+    text_score = safe_float(example.get("color_aware_text_score"), default=-1.0)
+    requested_color = str(example.get("color_aware_requested_color", "") or "").strip()
     combined = normalize_status(example.get("predicted_status"), default="present")
     original = normalize_status(example.get("original_predicted_status"), default=combined)
-    rule = str(example.get("combined_verifier_rule", "") or "")
+    rule = str(example.get("combined_verifier_rule", "") or example.get("color_aware_verifier_rule", "") or "")
     mode = str(example.get("combined_verifier_mode", "") or "")
-    cog_threshold = example.get("combined_cognitive_threshold", "")
-    ocr_threshold = example.get("combined_ocr_threshold", "")
+    cog_threshold = example.get("combined_cognitive_threshold", example.get("color_aware_cognitive_threshold", ""))
+    ocr_threshold = example.get("combined_ocr_threshold", example.get("color_aware_score_threshold", ""))
     if not ocr_text:
         ocr_text = "none"
     return {
         "path_score": path_score,
         "ocr_score": ocr_score,
         "ocr_text": ocr_text,
+        "color_score": color_score,
+        "text_score": text_score,
+        "requested_color": requested_color,
         "combined": combined,
         "original": original,
         "rule": rule,
@@ -153,6 +164,12 @@ def build_prompt(variant, target, width, height, evidence):
         f"- OCR target-match score: {evidence['ocr_score']:.4f}\n"
         f"- Best OCR text match: \"{evidence['ocr_text']}\"\n"
     )
+    if evidence.get("requested_color") or evidence.get("color_score", -1.0) >= 0 or evidence.get("text_score", -1.0) >= 0:
+        common += (
+            f"- Requested color, if parsed: \"{evidence['requested_color'] or 'none'}\"\n"
+            f"- Color-aware text score: {evidence['text_score']:.4f}\n"
+            f"- Color-aware color score: {evidence['color_score']:.4f}\n"
+        )
     if evidence["rule"]:
         common += (
             f"- Combined rule: {evidence['rule']} / {evidence['mode']} "
