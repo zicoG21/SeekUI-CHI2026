@@ -16,7 +16,7 @@ if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   fi
 fi
 
-SPLITS=(${NATIVE_V2_SPLITS:-native_v2_main_text native_v2_main_text_color native_v2_clean_text_all})
+SPLITS=(${NATIVE_V2_SPLITS:-native_v2_main_text_balanced native_v2_main_text_color_balanced native_v2_clean_text_all_balanced})
 RUN_VLM_PRESENCE="${RUN_VLM_PRESENCE:-1}"
 RUN_COLOR_AWARE="${RUN_COLOR_AWARE:-1}"
 RUN_CONTEXT_CROP="${RUN_CONTEXT_CROP:-1}"

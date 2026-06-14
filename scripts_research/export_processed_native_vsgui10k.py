@@ -110,13 +110,28 @@ def split_specs():
             "tasks": {"present_text", "clean_text_absent"},
             "description": "Clean native text target-present/target-absent split.",
         },
+        "native_v2_main_text_balanced": {
+            "tasks": {"present_text", "clean_text_absent"},
+            "balance_status": True,
+            "description": "Balanced clean native text split with equal present/absent rows.",
+        },
         "native_v2_main_text_color": {
             "tasks": {"present_text_color", "clean_text_color_absent"},
             "description": "Clean native text+color target-present/target-absent split.",
         },
+        "native_v2_main_text_color_balanced": {
+            "tasks": {"present_text_color", "clean_text_color_absent"},
+            "balance_status": True,
+            "description": "Balanced clean native text+color split with equal present/absent rows.",
+        },
         "native_v2_clean_text_all": {
             "tasks": {"present_text", "present_text_color", "clean_text_absent", "clean_text_color_absent"},
             "description": "Clean text and text+color target absence, excluding visible-text conflicts.",
+        },
+        "native_v2_clean_text_all_balanced": {
+            "tasks": {"present_text", "present_text_color", "clean_text_absent", "clean_text_color_absent"},
+            "balance_status": True,
+            "description": "Balanced clean text/text+color split with equal present/absent rows.",
         },
         "native_v2_visible_conflicts": {
             "tasks": {"visible_text_conflict", "text_instance_conflict"},
@@ -125,6 +140,11 @@ def split_specs():
         "native_v2_color_instance": {
             "tasks": {"present_text_color", "text_color_instance_absent"},
             "description": "Text+color/instance matching stress test.",
+        },
+        "native_v2_color_instance_balanced": {
+            "tasks": {"present_text_color", "text_color_instance_absent"},
+            "balance_status": True,
+            "description": "Balanced text+color/instance matching stress test.",
         },
         "native_v2_image_cue_unresolved": {
             "tasks": {"present_image_unresolved", "image_absent_unresolved"},
@@ -185,6 +205,17 @@ def split_rows(examples, specs):
     out = {}
     for name, spec in specs.items():
         rows = [ex for ex in examples if ex["native_v2_task"] in spec["tasks"]]
+        if spec.get("balance_status"):
+            present = sorted(
+                [row for row in rows if row.get("status") == "present"],
+                key=lambda row: str(row.get("img_usr_tgt", "")),
+            )
+            absent = sorted(
+                [row for row in rows if row.get("status") == "absent"],
+                key=lambda row: str(row.get("img_usr_tgt", "")),
+            )
+            keep = min(len(present), len(absent))
+            rows = sorted(present[:keep] + absent[:keep], key=lambda row: str(row.get("img_usr_tgt", "")))
         out[name] = rows
     return out
 
@@ -221,6 +252,7 @@ def write_summary_md(path, examples, splits, specs, audit_json):
         "",
         "- Main text absent: compare prompt-only, combined AND, evidence-aware VLM, and CV bucket router.",
         "- Text+color clean absent: add color-aware verifier and context-crop VLM.",
+        "- Balanced v2 splits are exported for method comparison because the full clean native text splits are strongly present-heavy.",
         "- Visible conflict / instance subsets: report separately as target-definition ambiguity, not clean absence.",
         "- Image-cue subset: currently unresolved because released fixation rows reference cue-image names that are not available as direct image files; do not use it as a headline absent benchmark yet.",
         "- Unverified absent rows: run OCR/visibility audit before using them for headline metrics.",
