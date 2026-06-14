@@ -96,6 +96,8 @@ def family_from_path_and_variant(path, variant):
         return "task_routed"
     if "native_cv_bucket_router" in variant:
         return "cv_bucket_router"
+    if "native_v2_cv_vote_router" in variant:
+        return "cv_vote_router"
     if "native_bucket_router" in variant:
         return "bucket_router"
     if "color_aware" in variant:
@@ -213,8 +215,9 @@ def main():
                 "task_routed": 5,
                 "bucket_router": 6,
                 "cv_bucket_router": 7,
-                "vlm_presence": 8,
-                "vlm_evidence": 9,
+                "cv_vote_router": 8,
+                "vlm_presence": 9,
+                "vlm_evidence": 10,
             }.get(row["family"], 9),
             -as_float(row["absent_f1"]),
         )

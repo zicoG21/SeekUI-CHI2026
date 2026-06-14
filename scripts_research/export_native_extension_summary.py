@@ -138,6 +138,8 @@ def add_takeaways(rows):
             row["takeaway"] = "Crop/context VLM verifier; tests whether localized visual evidence helps."
         elif family == "ensemble":
             row["takeaway"] = "Simple rule ensemble over v2 verifier decisions."
+        elif family == "cv_vote_router":
+            row["takeaway"] = "Cross-validated vote router over already-run v2 verifier decisions; use to test method complementarity."
         elif "image_cue_unresolved" in variant:
             row["takeaway"] = "Diagnostic only; image-cue assets are unresolved."
     if ("raw", "native_text_balanced_combined_and_present_only_native_tuned_absent_f1") in by_key:

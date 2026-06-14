@@ -23,6 +23,7 @@ METHOD_SPECS = [
     ("vlm_presence_ocr_aware", "vlm_presence", "vlm_presence_predictions_{model}_vlm_presence_{split}_ocr_aware.json"),
     ("vlm_evidence", "vlm_evidence", "vlm_evidence_predictions_{model}_vlm_evidence_{split}_evidence_aware.json"),
     ("ensemble", "ensemble", "present_absent_predictions_{model}_{split}_status_ensemble_absent_f1.json"),
+    ("cv_vote_router", "cv_vote_router", "present_absent_predictions_{model}_{split}_native_v2_cv_vote_router.json"),
 ]
 
 
