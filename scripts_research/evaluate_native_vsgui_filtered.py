@@ -101,7 +101,7 @@ def conflict_indices(audit_json):
 
 
 def candidate_prediction_files(outputs, model, split, vlm_variant):
-    return [
+    rows = [
         (
             "seekui_prompt",
             split,
@@ -114,6 +114,11 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
         ),
         (
             "combined",
+            f"{split}_combined_and_present_only_native_tuned_absent_f1",
+            outputs / f"present_absent_predictions_{model}_{split}_combined_and_present_only_native_tuned_absent_f1.json",
+        ),
+        (
+            "combined",
             f"{split}_combined_and_present_only",
             outputs / f"present_absent_predictions_{model}_{split}_combined_and_present_only.json",
         ),
@@ -123,6 +128,14 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
             outputs / f"vlm_presence_predictions_{model}_vlm_presence_{split}_{vlm_variant}.json",
         ),
     ]
+    for path in sorted(outputs.glob(f"vlm_presence_predictions_{model}_vlm_presence_{split}_*.json")):
+        if path.name.endswith("_status_eval.json"):
+            continue
+        variant = path.name.removeprefix(f"vlm_presence_predictions_{model}_").removesuffix(".json")
+        item = ("vlm_presence", variant, path)
+        if item not in rows:
+            rows.append(item)
+    return rows
 
 
 def row_for(split, model, family, variant, path, excluded, excluded_absent_conflicts):
