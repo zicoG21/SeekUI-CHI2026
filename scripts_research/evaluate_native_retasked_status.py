@@ -130,6 +130,14 @@ def candidate_prediction_files(outputs, model, split):
         if path.name.endswith("_status_eval.json"):
             continue
         rows.append(("vlm_evidence", path.name.removeprefix(f"vlm_evidence_predictions_{model}_").removesuffix(".json"), path))
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_native_supervised_calibrated_*.json")):
+        if path.name.endswith(("_status_eval.json", "_selected_threshold.json")):
+            continue
+        rows.append(("supervised_calibrated", path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json"), path))
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_native_task_routed_*.json")):
+        if path.name.endswith(("_status_eval.json", "_selected_profile.json")):
+            continue
+        rows.append(("task_routed", path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json"), path))
     return rows
 
 

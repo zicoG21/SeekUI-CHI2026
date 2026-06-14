@@ -79,6 +79,10 @@ def family_from_path_and_variant(path, variant):
         return "crop_vlm"
     if "status_ensemble" in variant:
         return "ensemble"
+    if "native_supervised_calibrated" in variant:
+        return "supervised_calibrated"
+    if "native_task_routed" in variant:
+        return "task_routed"
     if "color_aware" in variant:
         return "color_aware"
     if "combined_" in variant:
@@ -184,7 +188,16 @@ def main():
         key=lambda row: (
             row["split"],
             row["model"],
-            {"seekui_prompt": 0, "combined": 1, "vlm_presence": 2, "vlm_evidence": 3}.get(row["family"], 9),
+            {
+                "seekui_prompt": 0,
+                "combined": 1,
+                "color_aware": 2,
+                "ensemble": 3,
+                "supervised_calibrated": 4,
+                "task_routed": 5,
+                "vlm_presence": 6,
+                "vlm_evidence": 7,
+            }.get(row["family"], 9),
             -as_float(row["absent_f1"]),
         )
     )

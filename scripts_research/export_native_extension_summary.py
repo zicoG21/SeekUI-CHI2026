@@ -17,6 +17,15 @@ KEY_VARIANTS = [
     "vlm_evidence_native_text_color_balanced_evidence_aware",
     "vlm_evidence_native_text_color_balanced_evidence_rescue_present",
     "native_text_color_balanced_status_ensemble_filtered_absent_f1",
+    "native_text_color_balanced_native_supervised_calibrated_native_original_max_f1",
+    "native_text_color_balanced_native_supervised_calibrated_native_original_precision_ge_0p55",
+    "native_text_color_balanced_native_supervised_calibrated_native_original_pa_le_100",
+    "native_text_color_balanced_native_supervised_calibrated_clean_absent_only_max_f1",
+    "native_text_color_balanced_native_supervised_calibrated_color_instance_only_max_f1",
+    "native_text_color_balanced_native_supervised_calibrated_color_instance_only_precision_ge_0p55",
+    "native_text_color_balanced_native_task_routed_clean_vs_color",
+    "native_text_color_balanced_native_task_routed_conflict_present_guard",
+    "native_text_color_balanced_native_task_routed_color_instance_focus",
 ]
 
 
@@ -120,6 +129,27 @@ def add_takeaways(rows):
         by_key[("raw", "native_text_color_balanced_status_ensemble_filtered_absent_f1")]["takeaway"] = (
             "CPU ensemble over color-aware, context-crop, and evidence-aware status decisions."
         )
+    for variant in [
+        "native_text_color_balanced_native_supervised_calibrated_native_original_max_f1",
+        "native_text_color_balanced_native_supervised_calibrated_native_original_precision_ge_0p55",
+        "native_text_color_balanced_native_supervised_calibrated_native_original_pa_le_100",
+        "native_text_color_balanced_native_supervised_calibrated_clean_absent_only_max_f1",
+        "native_text_color_balanced_native_supervised_calibrated_color_instance_only_max_f1",
+        "native_text_color_balanced_native_supervised_calibrated_color_instance_only_precision_ge_0p55",
+    ]:
+        if ("raw", variant) in by_key:
+            by_key[("raw", variant)]["takeaway"] = (
+                "Applies cross-validated supervised calibration as a real status verifier."
+            )
+    for variant in [
+        "native_text_color_balanced_native_task_routed_clean_vs_color",
+        "native_text_color_balanced_native_task_routed_conflict_present_guard",
+        "native_text_color_balanced_native_task_routed_color_instance_focus",
+    ]:
+        if ("raw", variant) in by_key:
+            by_key[("raw", variant)]["takeaway"] = (
+                "Routes native cases by OCR-visible text/color-instance bucket."
+            )
     return rows
 
 
