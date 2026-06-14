@@ -138,8 +138,7 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
     return rows
 
 
-def row_for(split, model, family, variant, path, excluded, excluded_absent_conflicts):
-    data = load_json(path)
+def row_for(split, model, family, variant, path, data, excluded, excluded_absent_conflicts):
     kept = [example for idx, example in enumerate(data) if idx not in excluded]
     metrics = evaluate(kept)
     confusion = metrics["confusion"]
@@ -168,7 +167,7 @@ def fmt(value):
         return ""
 
 
-def write_md(path, rows, audit_json):
+def write_md(path, rows, audit_json, skipped_partial):
     lines = [
         "# Filtered Native VSGUI Evaluation",
         "",
@@ -188,6 +187,21 @@ def write_md(path, rows, audit_json):
         )
     lines.extend([
         "",
+    ])
+    if skipped_partial:
+        lines.extend([
+            "## Skipped Partial Prediction Files",
+            "",
+            "| Variant | Rows | Expected Rows | Source |",
+            "|---|---:|---:|---|",
+        ])
+        for item in skipped_partial:
+            lines.append(
+                f"| {item.get('variant', '')} | {item.get('rows', '')} | "
+                f"{item.get('expected_rows', '')} | `{item.get('source', '')}` |"
+            )
+        lines.append("")
+    lines.extend([
         "## Interpretation",
         "",
         "- If filtered scores rise substantially, the raw native split is partly measuring target-definition conflicts rather than simple absence.",
@@ -208,9 +222,12 @@ def main():
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--output-csv", required=True)
     parser.add_argument("--output-md", required=True)
+    parser.add_argument("--include-partial", action="store_true", help="Include prediction files whose row count does not match the split.")
     args = parser.parse_args()
 
     outputs = Path(args.work_dir) / "outputs"
+    split_json = outputs / "native_vsgui10k" / "eval_splits" / f"{args.split_name}.json"
+    expected_rows = len(load_json(split_json)) if split_json.exists() else 0
     audit_json = Path(args.audit_json) if args.audit_json else (
         outputs / "native_vsgui10k" / "label_conflict_audit" /
         f"{args.split_name}_combined_and_present_only_best_f1.json"
@@ -218,9 +235,19 @@ def main():
     excluded = conflict_indices(audit_json)
     rows = []
     missing = []
+    skipped_partial = []
     for family, variant, path in candidate_prediction_files(outputs, args.model_name, args.split_name, args.vlm_prompt_variant):
         if path.exists():
-            rows.append(row_for(args.split_name, args.model_name, family, variant, path, excluded, len(excluded)))
+            data = load_json(path)
+            if expected_rows and len(data) != expected_rows and not args.include_partial:
+                skipped_partial.append({
+                    "variant": variant,
+                    "rows": len(data),
+                    "expected_rows": expected_rows,
+                    "source": str(path),
+                })
+                continue
+            rows.append(row_for(args.split_name, args.model_name, family, variant, path, data, excluded, len(excluded)))
         else:
             missing.append(str(path))
 
@@ -230,15 +257,17 @@ def main():
         "audit_json": str(audit_json),
         "excluded_indices": sorted(excluded),
         "missing_prediction_files": missing,
+        "skipped_partial_prediction_files": skipped_partial,
         "rows": rows,
     })
     write_csv(Path(args.output_csv), rows)
-    write_md(Path(args.output_md), rows, audit_json)
+    write_md(Path(args.output_md), rows, audit_json, skipped_partial)
     print(json.dumps({
         "split": args.split_name,
         "rows": len(rows),
         "excluded": len(excluded),
         "missing": len(missing),
+        "skipped_partial": len(skipped_partial),
         "output_md": args.output_md,
     }, indent=2))
 
