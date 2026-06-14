@@ -77,6 +77,8 @@ def family_from_path_and_variant(path, variant):
         return "context_crop_vlm"
     if "crop_ocr_vlm" in variant or "candidate_crop" in variant:
         return "crop_vlm"
+    if "status_ensemble" in variant:
+        return "ensemble"
     if "color_aware" in variant:
         return "color_aware"
     if "combined_" in variant:

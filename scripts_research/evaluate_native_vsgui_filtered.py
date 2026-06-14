@@ -148,6 +148,16 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
         item = ("color_aware", variant, path)
         if item not in rows:
             rows.append(item)
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_status_ensemble_*.json")):
+        if (
+            path.name.endswith("_status_eval.json")
+            or path.name.endswith("_selected_rule.json")
+        ):
+            continue
+        variant = path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json")
+        item = ("ensemble", variant, path)
+        if item not in rows:
+            rows.append(item)
     for path in sorted(outputs.glob(f"vlm_presence_predictions_{model}_vlm_presence_{split}_*.json")):
         if path.name.endswith("_status_eval.json"):
             continue

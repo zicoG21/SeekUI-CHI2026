@@ -16,6 +16,7 @@ KEY_VARIANTS = [
     "native_text_color_balanced_context_crop_ocr_vlm",
     "vlm_evidence_native_text_color_balanced_evidence_aware",
     "vlm_evidence_native_text_color_balanced_evidence_rescue_present",
+    "native_text_color_balanced_status_ensemble_filtered_absent_f1",
 ]
 
 
@@ -114,6 +115,10 @@ def add_takeaways(rows):
     if ("raw", "vlm_evidence_native_text_color_balanced_evidence_rescue_present") in by_key:
         by_key[("raw", "vlm_evidence_native_text_color_balanced_evidence_rescue_present")]["takeaway"] = (
             "Tests whether VLM evidence can reduce conservative present-target over-rejection."
+        )
+    if ("raw", "native_text_color_balanced_status_ensemble_filtered_absent_f1") in by_key:
+        by_key[("raw", "native_text_color_balanced_status_ensemble_filtered_absent_f1")]["takeaway"] = (
+            "CPU ensemble over color-aware, context-crop, and evidence-aware status decisions."
         )
     return rows
 
