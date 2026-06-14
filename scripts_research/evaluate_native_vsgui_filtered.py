@@ -158,6 +158,26 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
         item = ("ensemble", variant, path)
         if item not in rows:
             rows.append(item)
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_native_supervised_calibrated_*.json")):
+        if (
+            path.name.endswith("_status_eval.json")
+            or path.name.endswith("_selected_threshold.json")
+        ):
+            continue
+        variant = path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json")
+        item = ("supervised_calibrated", variant, path)
+        if item not in rows:
+            rows.append(item)
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_native_task_routed_*.json")):
+        if (
+            path.name.endswith("_status_eval.json")
+            or path.name.endswith("_selected_profile.json")
+        ):
+            continue
+        variant = path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json")
+        item = ("task_routed", variant, path)
+        if item not in rows:
+            rows.append(item)
     for path in sorted(outputs.glob(f"vlm_presence_predictions_{model}_vlm_presence_{split}_*.json")):
         if path.name.endswith("_status_eval.json"):
             continue
