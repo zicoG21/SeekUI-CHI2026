@@ -188,6 +188,13 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
         item = ("bucket_router", variant, path)
         if item not in rows:
             rows.append(item)
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_native_cv_bucket_router_*.json")):
+        if path.name.endswith("_status_eval.json"):
+            continue
+        variant = path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json")
+        item = ("cv_bucket_router", variant, path)
+        if item not in rows:
+            rows.append(item)
     for path in sorted(outputs.glob(f"vlm_presence_predictions_{model}_vlm_presence_{split}_*.json")):
         if path.name.endswith("_status_eval.json"):
             continue

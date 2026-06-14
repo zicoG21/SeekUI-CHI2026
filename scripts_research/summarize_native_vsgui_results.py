@@ -83,6 +83,8 @@ def family_from_path_and_variant(path, variant):
         return "supervised_calibrated"
     if "native_task_routed" in variant:
         return "task_routed"
+    if "native_cv_bucket_router" in variant:
+        return "cv_bucket_router"
     if "native_bucket_router" in variant:
         return "bucket_router"
     if "color_aware" in variant:
@@ -198,8 +200,9 @@ def main():
                 "supervised_calibrated": 4,
                 "task_routed": 5,
                 "bucket_router": 6,
-                "vlm_presence": 7,
-                "vlm_evidence": 8,
+                "cv_bucket_router": 7,
+                "vlm_presence": 8,
+                "vlm_evidence": 9,
             }.get(row["family"], 9),
             -as_float(row["absent_f1"]),
         )

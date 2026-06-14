@@ -32,6 +32,11 @@ KEY_VARIANTS = [
     "native_text_color_balanced_native_bucket_router_color_instance_as_present_absent_f1",
     "native_text_color_balanced_native_bucket_router_all_visible_conflicts_as_present_absent_f1",
     "native_text_color_balanced_native_bucket_router_color_instance_only_absent_f1",
+    "native_text_color_balanced_native_cv_bucket_router_native_original_absent_f1",
+    "native_text_color_balanced_native_cv_bucket_router_clean_absent_only_absent_f1",
+    "native_text_color_balanced_native_cv_bucket_router_color_instance_as_present_absent_f1",
+    "native_text_color_balanced_native_cv_bucket_router_all_visible_conflicts_as_present_absent_f1",
+    "native_text_color_balanced_native_cv_bucket_router_color_instance_only_absent_f1",
 ]
 
 
@@ -167,6 +172,17 @@ def add_takeaways(rows):
         if ("raw", variant) in by_key:
             by_key[("raw", variant)]["takeaway"] = (
                 "Bucket-tuned router over all available native verifiers; use as an analysis upper bound, not a deployed model."
+            )
+    for variant in [
+        "native_text_color_balanced_native_cv_bucket_router_native_original_absent_f1",
+        "native_text_color_balanced_native_cv_bucket_router_clean_absent_only_absent_f1",
+        "native_text_color_balanced_native_cv_bucket_router_color_instance_as_present_absent_f1",
+        "native_text_color_balanced_native_cv_bucket_router_all_visible_conflicts_as_present_absent_f1",
+        "native_text_color_balanced_native_cv_bucket_router_color_instance_only_absent_f1",
+    ]:
+        if ("raw", variant) in by_key:
+            by_key[("raw", variant)]["takeaway"] = (
+                "Cross-validated bucket router; more defensible than the same-data bucket upper bound."
             )
     return rows
 
