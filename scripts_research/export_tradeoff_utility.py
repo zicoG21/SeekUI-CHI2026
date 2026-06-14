@@ -7,6 +7,7 @@ from pathlib import Path
 
 SWEEP_GLOBS = [
     "present_absent_predictions_*_combined_*_threshold_sweep.csv",
+    "present_absent_predictions_*_color_aware_*_threshold_sweep.csv",
     "present_absent_predictions_*_annotation_free_combined_*_threshold_sweep.csv",
     "present_absent_predictions_*_cognitive_stop_*_threshold_sweep.csv",
     "present_absent_predictions_*_ocr_candidate_verifier_*_threshold_sweep.csv",

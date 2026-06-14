@@ -123,6 +123,16 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
             outputs / f"present_absent_predictions_{model}_{split}_combined_and_present_only.json",
         ),
         (
+            "color_aware",
+            f"{split}_color_aware_native_tuned_absent_f1",
+            outputs / f"present_absent_predictions_{model}_{split}_color_aware_native_tuned_absent_f1.json",
+        ),
+        (
+            "crop_vlm",
+            f"{split}_crop_ocr_vlm",
+            outputs / f"present_absent_predictions_{model}_{split}_crop_ocr_vlm.json",
+        ),
+        (
             "vlm_presence",
             f"vlm_presence_{split}_{vlm_variant}",
             outputs / f"vlm_presence_predictions_{model}_vlm_presence_{split}_{vlm_variant}.json",
