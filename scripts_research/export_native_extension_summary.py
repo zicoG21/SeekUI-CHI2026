@@ -40,6 +40,16 @@ KEY_VARIANTS = [
 ]
 
 
+def is_key_row(row):
+    variant = row.get("variant", "")
+    split = row.get("split", "")
+    if variant in KEY_VARIANTS:
+        return True
+    if split.startswith("native_v2_"):
+        return True
+    return False
+
+
 def read_csv(path):
     if not path.exists():
         return []
@@ -108,6 +118,28 @@ def normalize_row(row, view):
 
 def add_takeaways(rows):
     by_key = {(row["view"], row["variant"]): row for row in rows}
+    for row in rows:
+        split = row.get("split", "")
+        variant = row.get("variant", "")
+        family = row.get("family", "")
+        if not split.startswith("native_v2_"):
+            continue
+        if family == "seekui_prompt":
+            row["takeaway"] = "Processed VSGUI v2 prompt-only baseline for this task split."
+        elif family == "combined":
+            row["takeaway"] = "Interpretable scanpath/OCR verifier on processed VSGUI v2."
+        elif family == "vlm_presence":
+            row["takeaway"] = "Generic screenshot-level VLM presence baseline on processed VSGUI v2."
+        elif family == "vlm_evidence":
+            row["takeaway"] = "Evidence-aware VLM using processed VSGUI v2 verifier evidence."
+        elif family == "color_aware":
+            row["takeaway"] = "Color-aware text verifier; most relevant for text+color v2 splits."
+        elif family in {"context_crop_vlm", "crop_vlm"}:
+            row["takeaway"] = "Crop/context VLM verifier; tests whether localized visual evidence helps."
+        elif family == "ensemble":
+            row["takeaway"] = "Simple rule ensemble over v2 verifier decisions."
+        elif "image_cue_unresolved" in variant:
+            row["takeaway"] = "Diagnostic only; image-cue assets are unresolved."
     if ("raw", "native_text_balanced_combined_and_present_only_native_tuned_absent_f1") in by_key:
         by_key[("raw", "native_text_balanced_combined_and_present_only_native_tuned_absent_f1")]["takeaway"] = (
             "Best native text verifier; large gain over prompt-only."
@@ -208,6 +240,7 @@ def write_md(path, rows):
         "## Reading",
         "",
         "- Native VSGUI is not a clean target-absent benchmark: many gold-absent rows contain visible target text or color/instance conflicts.",
+        "- Processed `native_v2_*` rows should be read as stratified task splits, not as one pooled benchmark.",
         "- The native-tuned combined verifier is the strongest raw native result.",
         "- On the filtered text+color subset, the filtered-tuned color-aware verifier is strongest, which suggests color-aware evidence is useful once obvious label/text conflicts are removed.",
         "- The current crop-level VLM verifier is not competitive; OCR candidate crops likely lose screenshot context and color/instance semantics.",
@@ -231,10 +264,10 @@ def main():
 
     rows = []
     for row in raw_rows:
-        if row.get("variant") in KEY_VARIANTS:
+        if is_key_row(row):
             rows.append(normalize_row(row, "raw"))
     for row in filtered_rows:
-        if row.get("variant") in KEY_VARIANTS:
+        if is_key_row(row):
             rows.append(normalize_row(row, "filtered"))
     rows = add_takeaways(rows)
 

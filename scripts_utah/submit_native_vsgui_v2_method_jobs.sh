@@ -12,6 +12,7 @@ RUN_COLOR_AWARE="${RUN_COLOR_AWARE:-1}"
 RUN_CONTEXT_CROP="${RUN_CONTEXT_CROP:-1}"
 RUN_EVIDENCE_VLM="${RUN_EVIDENCE_VLM:-1}"
 RUN_ENSEMBLE="${RUN_ENSEMBLE:-1}"
+RUN_SUMMARY="${RUN_SUMMARY:-1}"
 
 SBATCH_GPU_ARGS=()
 if [[ -n "${SBATCH_ACCOUNT:-}" ]]; then
@@ -173,9 +174,18 @@ PY
   fi
 done
 
+summary_job=""
+if [[ "$RUN_SUMMARY" == "1" && "${#jobs[@]}" -gt 0 ]]; then
+  dependency="$(IFS=:; echo "${jobs[*]}")"
+  summary_job="$(
+    sbatch --parsable --dependency="afterany:$dependency" scripts_utah/summarize_native_vsgui_results.slurm
+  )"
+fi
+
 cat <<EOF
 Submitted native VSGUI v2 method jobs:
   ${jobs[*]:-none}
+  summary: ${summary_job:-skipped}
 
 Queue:
   squeue -u "\$USER" -o "%.18i %.12a %.18P %.28j %.8T %.10M %.12l %.20b %.30R"

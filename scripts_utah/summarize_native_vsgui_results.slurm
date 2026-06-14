@@ -25,4 +25,13 @@ python scripts_research/summarize_native_vsgui_results.py \
   --output-csv "$NATIVE_DIR/native_vsgui_results.csv" \
   --output-md "$NATIVE_DIR/native_vsgui_results.md"
 
+python scripts_research/export_native_extension_summary.py \
+  --work-dir "$SEEKUI_WORK" \
+  --output-json "$NATIVE_DIR/native_extension_summary.json" \
+  --output-csv "$NATIVE_DIR/native_extension_summary.csv" \
+  --output-md "$NATIVE_DIR/native_extension_summary.md"
+
 cat "$NATIVE_DIR/native_vsgui_results.md"
+echo
+echo "Native extension summary:"
+cat "$NATIVE_DIR/native_extension_summary.md"
