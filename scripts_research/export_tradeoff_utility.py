@@ -376,11 +376,11 @@ def compact_utility_row(row):
     return data
 
 
-def write_markdown(path, points, best_rows, utilities, ratios):
+def write_markdown(path, points, best_rows, utilities, ratios, title="PR/ROC and Cost-Sensitive Utility"):
     threshold_count = sum(1 for row in points if row.get("point_type") == "threshold")
     fixed_count = sum(1 for row in points if row.get("point_type") == "fixed_status_eval")
     lines = [
-        "# PR/ROC and Cost-Sensitive Utility",
+        f"# {title}",
         "",
         f"- Threshold points: {threshold_count}",
         f"- Fixed status-eval points: {fixed_count}",
@@ -439,6 +439,8 @@ def main():
         default="1:1,2:1,5:1,10:1,1:2,1:5,1:10",
         help="Comma-separated P->A:A->P error costs. Example: 2:1,1:5",
     )
+    parser.add_argument("--method-contains", default="", help="Keep only methods whose name contains this substring.")
+    parser.add_argument("--title", default="PR/ROC and Cost-Sensitive Utility")
     args = parser.parse_args()
 
     work_dir = Path(args.work_dir)
@@ -448,6 +450,8 @@ def main():
     points = collect_points(outputs)
     if args.include_status_evals:
         points.extend(collect_status_eval_points(outputs))
+    if args.method_contains:
+        points = [point for point in points if args.method_contains in point.get("method", "")]
     best_rows = best_by_f1(points)
     utilities = utility_rows(points, ratios) if points else []
 
@@ -462,7 +466,7 @@ def main():
         "best_by_f1": [compact_row(row) for row in best_rows[:20]],
         "utility_rows": [compact_utility_row(row) for row in utilities[:80]],
     })
-    write_markdown(out_dir / "tradeoff_summary.md", points, best_rows, utilities, ratios)
+    write_markdown(out_dir / "tradeoff_summary.md", points, best_rows, utilities, ratios, args.title)
     print(json.dumps({
         "threshold_points": len(points),
         "methods": len({row["method"] for row in points}),
