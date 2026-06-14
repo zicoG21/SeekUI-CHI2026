@@ -42,7 +42,10 @@ python scripts_research/train_native_status_calibrator.py \
   --audit-json "$AUDIT_JSON" \
   --output-json "$OUT_DIR/${SPLIT_NAME}_supervised_calibration.json" \
   --output-csv "$OUT_DIR/${SPLIT_NAME}_supervised_calibration.csv" \
-  --output-md "$OUT_DIR/${SPLIT_NAME}_supervised_calibration.md"
+  --output-md "$OUT_DIR/${SPLIT_NAME}_supervised_calibration.md" \
+  --prediction-output-csv "$OUT_DIR/${SPLIT_NAME}_supervised_calibration_predictions.csv" \
+  --sweep-output-csv "$OUT_DIR/${SPLIT_NAME}_supervised_calibration_threshold_sweep.csv" \
+  --constraint-output-md "$OUT_DIR/${SPLIT_NAME}_supervised_calibration_threshold_tradeoff.md"
 
 sbatch scripts_utah/apply_native_status_ensemble.slurm
 
@@ -51,3 +54,6 @@ cat "$OUT_DIR/${SPLIT_NAME}_retasked_status.md"
 echo
 echo "Native supervised calibration:"
 cat "$OUT_DIR/${SPLIT_NAME}_supervised_calibration.md"
+echo
+echo "Native supervised calibration threshold tradeoff:"
+cat "$OUT_DIR/${SPLIT_NAME}_supervised_calibration_threshold_tradeoff.md"

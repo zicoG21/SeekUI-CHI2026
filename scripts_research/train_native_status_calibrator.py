@@ -288,7 +288,64 @@ def cross_validate(rows, folds, seed, epochs, lr, l2):
         "present_absent": fp,
         "absent_present": fn,
     })
-    return metrics, fold_summaries
+    return metrics, fold_summaries, predictions
+
+
+def sweep_rows_for_predictions(view, predictions):
+    y_true = [row["y"] for row in predictions]
+    probs = [row["prob_absent"] for row in predictions]
+    rows = []
+    for step in range(0, 101):
+        metrics = metric_for_threshold(y_true, probs, step / 100)
+        rows.append({"view": view, **metrics})
+    return rows
+
+
+def compact_prediction_rows(view, predictions):
+    rows = []
+    for row in sorted(predictions, key=lambda item: int(item["index"])):
+        rows.append({
+            "view": view,
+            "index": row["index"],
+            "gold": row["gold"],
+            "bucket": row["bucket"],
+            "fold": row["fold"],
+            "fold_threshold": row["threshold"],
+            "prob_absent": row["prob_absent"],
+            "predicted_status": "absent" if row["pred"] else "present",
+        })
+    return rows
+
+
+def constraint_summary_rows(sweep_rows):
+    constraints = [
+        ("max_f1", lambda row: True),
+        ("precision_ge_0.55", lambda row: row["absent_precision"] >= 0.55),
+        ("precision_ge_0.60", lambda row: row["absent_precision"] >= 0.60),
+        ("precision_ge_0.65", lambda row: row["absent_precision"] >= 0.65),
+        ("pa_le_150", lambda row: row["present_absent"] <= 150),
+        ("pa_le_100", lambda row: row["present_absent"] <= 100),
+        ("pa_le_75", lambda row: row["present_absent"] <= 75),
+    ]
+    views = sorted({row["view"] for row in sweep_rows})
+    out = []
+    for view in views:
+        view_rows = [row for row in sweep_rows if row["view"] == view]
+        for name, keep in constraints:
+            candidates = [row for row in view_rows if keep(row)]
+            if not candidates:
+                continue
+            best = max(
+                candidates,
+                key=lambda row: (
+                    row["absent_f1"],
+                    row["accuracy"],
+                    row["absent_precision"],
+                    -row["present_absent"],
+                ),
+            )
+            out.append({"view": view, "constraint": name, **best})
+    return out
 
 
 def write_md(path, rows):
@@ -310,6 +367,26 @@ def write_md(path, rows):
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def write_constraint_md(path, rows):
+    lines = [
+        "# Native Supervised Calibration Threshold Tradeoff",
+        "",
+        "Rows are selected from cross-validated calibrated probabilities. This shows whether the high-F1 calibrator is still useful under precision or present-rejection constraints.",
+        "",
+        "| View | Constraint | Threshold | Acc | Prec. | Rec. | F1 | P->A | A->P |",
+        "|---|---|---:|---:|---:|---:|---:|---:|---:|",
+    ]
+    for row in rows:
+        lines.append(
+            f"| {row['view']} | {row['constraint']} | {row['threshold']:.2f} | "
+            f"{row['accuracy']:.4f} | {row['absent_precision']:.4f} | "
+            f"{row['absent_recall']:.4f} | {row['absent_f1']:.4f} | "
+            f"{row['present_absent']} | {row['absent_present']} |"
+        )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Train/evaluate a CPU supervised native status calibrator.")
     parser.add_argument("--base-predictions", required=True)
@@ -325,6 +402,9 @@ def main():
     parser.add_argument("--output-json", required=True)
     parser.add_argument("--output-csv", required=True)
     parser.add_argument("--output-md", required=True)
+    parser.add_argument("--prediction-output-csv", default="")
+    parser.add_argument("--sweep-output-csv", default="")
+    parser.add_argument("--constraint-output-md", default="")
     args = parser.parse_args()
 
     base = load_json(Path(args.base_predictions))
@@ -344,16 +424,27 @@ def main():
     ]
     rows = []
     details = {}
+    all_predictions = []
+    all_sweeps = []
     for view in views:
         dataset = build_dataset(base, primary, secondary, tertiary, audit_rows, view)
-        metrics, folds = cross_validate(dataset, args.folds, args.seed, args.epochs, args.lr, args.l2)
+        metrics, folds, predictions = cross_validate(dataset, args.folds, args.seed, args.epochs, args.lr, args.l2)
         metrics["view"] = view
         rows.append(metrics)
         details[view] = {"folds": folds, "num_rows": len(dataset)}
+        all_predictions.extend(compact_prediction_rows(view, predictions))
+        all_sweeps.extend(sweep_rows_for_predictions(view, predictions))
     rows.sort(key=lambda row: (-row["absent_f1"], -row["accuracy"], row["view"]))
     write_json(Path(args.output_json), {"rows": rows, "details": details})
     write_csv(Path(args.output_csv), rows)
     write_md(Path(args.output_md), rows)
+    constraint_rows = constraint_summary_rows(all_sweeps)
+    if args.prediction_output_csv:
+        write_csv(Path(args.prediction_output_csv), all_predictions)
+    if args.sweep_output_csv:
+        write_csv(Path(args.sweep_output_csv), all_sweeps)
+    if args.constraint_output_md:
+        write_constraint_md(Path(args.constraint_output_md), constraint_rows)
     print(json.dumps({"rows": len(rows), "output_md": args.output_md}, indent=2))
 
 
