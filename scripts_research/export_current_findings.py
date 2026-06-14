@@ -501,6 +501,100 @@ def table_target_disjoint(rows):
     return lines
 
 
+def read_native_results(work_dir):
+    base = work_dir / "outputs" / "native_vsgui10k"
+    return read_csv(base / "native_vsgui_results.csv")
+
+
+def read_native_filtered_rows(work_dir):
+    rows = []
+    base = work_dir / "outputs" / "native_vsgui10k" / "filtered_eval"
+    for path in sorted(base.glob("*.csv")):
+        for row in read_csv(path):
+            rows.append({"source_file": str(path), **row})
+    return rows
+
+
+def read_native_label_conflicts(work_dir):
+    rows = []
+    base = work_dir / "outputs" / "native_vsgui10k" / "label_conflict_audit"
+    for path in sorted(base.glob("*.json")):
+        data = read_json(path)
+        if not data:
+            continue
+        name = path.stem
+        rows.append({
+            "split": name.removesuffix("_combined_and_present_only_best_f1"),
+            "num_rows": data.get("num_rows", ""),
+            "num_absent": data.get("num_absent", ""),
+            "num_absent_visible_conflicts": data.get("num_absent_visible_conflicts", ""),
+            "conflict_rate": (
+                data.get("num_absent_visible_conflicts", 0) / data.get("num_absent", 1)
+                if data.get("num_absent") else ""
+            ),
+            "source": str(path),
+        })
+    return rows
+
+
+def table_native_results(rows, filtered_rows, conflict_rows):
+    if not rows and not filtered_rows and not conflict_rows:
+        return ["Pending: native VSGUI outputs not found."]
+    lines = []
+    if conflict_rows:
+        lines.extend([
+            "Label/text-visibility audit:",
+            "",
+            "| Split | Rows | Absent Rows | Absent Visible-Text Conflicts | Conflict Rate |",
+            "|---|---:|---:|---:|---:|",
+        ])
+        for row in conflict_rows:
+            lines.append(
+                f"| {row.get('split', '')} | {row.get('num_rows', '')} | {row.get('num_absent', '')} | "
+                f"{row.get('num_absent_visible_conflicts', '')} | {fmt(row.get('conflict_rate'))} |"
+            )
+        lines.append("")
+    if rows:
+        lines.extend([
+            "Raw native status results:",
+            "",
+            "| Split | Family | Variant | N | Acc | Precision | Recall | F1 | P->A | A->P |",
+            "|---|---|---|---:|---:|---:|---:|---:|---:|---:|",
+        ])
+        for row in rows:
+            if row.get("model") != "SeekUI":
+                continue
+            lines.append(
+                f"| {row.get('split', '')} | {row.get('family', '')} | {row.get('variant', '')} | "
+                f"{row.get('num_examples', '')} | {fmt(row.get('accuracy'))} | "
+                f"{fmt(row.get('absent_precision'))} | {fmt(row.get('absent_recall'))} | "
+                f"{fmt(row.get('absent_f1'))} | {row.get('present_absent', '')} | {row.get('absent_present', '')} |"
+            )
+        lines.append("")
+    if filtered_rows:
+        lines.extend([
+            "Filtered native results after excluding OCR-visible gold-absent conflicts:",
+            "",
+            "| Split | Family | Variant | N | Excluded | Acc | Precision | Recall | F1 | P->A | A->P |",
+            "|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        ])
+        for row in filtered_rows:
+            if row.get("model") != "SeekUI":
+                continue
+            lines.append(
+                f"| {row.get('split', '')} | {row.get('family', '')} | {row.get('variant', '')} | "
+                f"{row.get('num_examples', '')} | {row.get('excluded_examples', '')} | "
+                f"{fmt(row.get('accuracy'))} | {fmt(row.get('absent_precision'))} | "
+                f"{fmt(row.get('absent_recall'))} | {fmt(row.get('absent_f1'))} | "
+                f"{row.get('present_absent', '')} | {row.get('absent_present', '')} |"
+            )
+    lines.extend([
+        "",
+        "Interpretation: native VSGUI is useful as an external stress test, but not as a clean text-absence benchmark without relabeling.",
+    ])
+    return lines
+
+
 def revision_route(summary):
     has_filtered = bool(summary.get("filtered_sensitivity_rows"))
     has_real_absent = bool(summary.get("real_absent_rows"))
@@ -817,6 +911,14 @@ def write_md(path, summary):
         "",
         *table_target_disjoint(summary["target_disjoint_rows"]),
         "",
+        "## Native VSGUI External Stress Test",
+        "",
+        *table_native_results(
+            summary["native_vsgui_rows"],
+            summary["native_filtered_rows"],
+            summary["native_label_conflicts"],
+        ),
+        "",
         "## PR/ROC and Cost-Sensitive Utility",
         "",
         *table_tradeoff_utility(summary["tradeoff_utility_rows"]),
@@ -875,6 +977,9 @@ def main():
     second_pass_robustness = read_second_pass_robustness(work_dir)
     visual_status = visual_inventory_status(work_dir)
     target_disjoint_rows = read_target_disjoint_rows(work_dir)
+    native_vsgui_rows = read_native_results(work_dir)
+    native_filtered_rows = read_native_filtered_rows(work_dir)
+    native_label_conflicts = read_native_label_conflicts(work_dir)
     indexed = row_index(absent_rows)
     seekui_prompt = indexed.get(("SeekUI", "prompt_only"), {})
     seekui_combined = indexed.get(("SeekUI", "combined_and_present_only_best_f1"), {})
@@ -969,6 +1074,26 @@ def main():
                 f"with CI [{fmt(row.get('delta_absent_f1_ci_low'))}, {fmt(row.get('delta_absent_f1_ci_high'))}]."
             )
             break
+    for row in native_label_conflicts:
+        if row.get("split") == "native_text_balanced":
+            claims.append(
+                "Native VSGUI text absent rows are not clean text-absence labels: "
+                f"{row.get('num_absent_visible_conflicts')} / {row.get('num_absent')} gold-absent rows "
+                f"({fmt(row.get('conflict_rate'))}) have strong OCR-visible target-text evidence."
+            )
+            break
+    for row in native_filtered_rows:
+        if (
+            row.get("split") == "native_text_balanced"
+            and row.get("family") == "combined"
+            and row.get("variant") == "native_text_balanced_combined_and_present_only_best_f1"
+        ):
+            claims.append(
+                "After excluding native OCR-visible absent conflicts, combined AND still raises native text absent F1 "
+                f"to {fmt(row.get('absent_f1'))} versus prompt-only F1 0.1951, but accuracy drops, "
+                "so native VSGUI is best treated as a noisy external stress test."
+            )
+            break
 
     summary = {
         "work_dir": str(work_dir),
@@ -984,6 +1109,9 @@ def main():
         "large_real_absent_status": large_real_status,
         "visual_inventory_status": visual_status,
         "target_disjoint_rows": target_disjoint_rows,
+        "native_vsgui_rows": native_vsgui_rows,
+        "native_filtered_rows": native_filtered_rows,
+        "native_label_conflicts": native_label_conflicts,
     }
     summary["directions_summary"] = directions_summary(summary)
     summary["strong_accept_priorities"] = strong_accept_priorities(summary)
