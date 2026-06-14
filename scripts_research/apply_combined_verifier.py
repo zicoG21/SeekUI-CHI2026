@@ -285,6 +285,24 @@ def sweep(records, rule, mode, cog_values, ocr_values):
     return rows
 
 
+def select_best_threshold(rows, metric):
+    if not rows:
+        raise ValueError("Cannot select threshold from an empty sweep.")
+    if metric not in rows[0]:
+        raise ValueError(f"Unknown threshold-selection metric: {metric}")
+
+    def key(row):
+        return (
+            safe_float(row.get(metric), -1.0),
+            safe_float(row.get("accuracy"), -1.0),
+            safe_float(row.get("absent_precision"), -1.0),
+            -safe_float(row.get("present_absent"), 0.0),
+            -safe_float(row.get("absent_present"), 0.0),
+        )
+
+    return max(rows, key=key)
+
+
 def main():
     parser = argparse.ArgumentParser(description="Combine cognitive stopping and OCR candidate verification.")
     parser.add_argument("--predictions", required=True)
@@ -299,6 +317,13 @@ def main():
     parser.add_argument("--threshold-step", type=float, default=0.05)
     parser.add_argument("--cognitive-threshold-max", type=float, default=0.3)
     parser.add_argument("--ocr-threshold-max", type=float, default=0.8)
+    parser.add_argument(
+        "--select-threshold-metric",
+        default="",
+        choices=["", "accuracy", "absent_precision", "absent_recall", "absent_f1"],
+        help="If set, select cognitive/OCR thresholds from the generated sweep before applying.",
+    )
+    parser.add_argument("--selected-threshold-output", default="")
     parser.add_argument("--output", default="")
     parser.add_argument("--metrics-output", default="")
     parser.add_argument("--detail-output", default="")
@@ -326,6 +351,23 @@ def main():
             threshold_values(0.0, args.ocr_threshold_max, args.threshold_step),
         )
         write_csv(Path(args.sweep_output), rows)
+        if args.select_threshold_metric:
+            selected = select_best_threshold(rows, args.select_threshold_metric)
+            args.cognitive_threshold = safe_float(selected.get("cognitive_threshold"), args.cognitive_threshold)
+            args.ocr_threshold = safe_float(selected.get("ocr_threshold"), args.ocr_threshold)
+            selected = {
+                **selected,
+                "selected_metric": args.select_threshold_metric,
+            }
+            if args.selected_threshold_output:
+                write_json(Path(args.selected_threshold_output), selected)
+            print(json.dumps({
+                "selected_metric": args.select_threshold_metric,
+                "cognitive_threshold": args.cognitive_threshold,
+                "ocr_threshold": args.ocr_threshold,
+                "selected_absent_f1": selected.get("absent_f1"),
+                "selected_accuracy": selected.get("accuracy"),
+            }, indent=2))
 
     if args.output or args.metrics_output or args.detail_output:
         adjusted, metrics, details = apply_thresholds(
