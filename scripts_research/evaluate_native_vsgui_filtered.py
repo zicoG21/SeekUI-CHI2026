@@ -123,11 +123,6 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
             outputs / f"present_absent_predictions_{model}_{split}_combined_and_present_only.json",
         ),
         (
-            "color_aware",
-            f"{split}_color_aware_native_tuned_absent_f1",
-            outputs / f"present_absent_predictions_{model}_{split}_color_aware_native_tuned_absent_f1.json",
-        ),
-        (
             "crop_vlm",
             f"{split}_crop_ocr_vlm",
             outputs / f"present_absent_predictions_{model}_{split}_crop_ocr_vlm.json",
@@ -138,6 +133,13 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
             outputs / f"vlm_presence_predictions_{model}_vlm_presence_{split}_{vlm_variant}.json",
         ),
     ]
+    for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_color_aware_*.json")):
+        if path.name.endswith("_status_eval.json"):
+            continue
+        variant = path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json")
+        item = ("color_aware", variant, path)
+        if item not in rows:
+            rows.append(item)
     for path in sorted(outputs.glob(f"vlm_presence_predictions_{model}_vlm_presence_{split}_*.json")):
         if path.name.endswith("_status_eval.json"):
             continue

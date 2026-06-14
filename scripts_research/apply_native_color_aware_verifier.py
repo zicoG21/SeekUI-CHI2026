@@ -249,6 +249,29 @@ def evaluate(examples):
     }
 
 
+def conflict_indices(audit_json):
+    if not audit_json:
+        return set()
+    data = load_json(Path(audit_json))
+    return {int(row["index"]) for row in data.get("conflict_rows", [])}
+
+
+def filtered_metrics(examples, excluded):
+    if not excluded:
+        return {}
+    kept = [example for idx, example in enumerate(examples) if idx not in excluded]
+    metrics = evaluate(kept)
+    return {
+        "filtered_num_examples": metrics["num_examples"],
+        "filtered_accuracy": metrics["accuracy"],
+        "filtered_absent_precision": metrics["absent_precision"],
+        "filtered_absent_recall": metrics["absent_recall"],
+        "filtered_absent_f1": metrics["absent_f1"],
+        "filtered_present_absent": metrics["confusion"]["present->absent"],
+        "filtered_absent_present": metrics["confusion"]["absent->present"],
+    }
+
+
 def threshold_values(start, stop, step):
     values = []
     value = start
@@ -299,7 +322,7 @@ def score_records(predictions, target2text, evidence, ocr_by_image, image_root, 
     return records, missing_evidence, missing_images
 
 
-def apply_thresholds(records, cog_threshold, score_threshold, mode):
+def apply_thresholds(records, cog_threshold, score_threshold, mode, selection_excluded=None):
     adjusted = []
     details = []
     changed = 0
@@ -343,6 +366,7 @@ def apply_thresholds(records, cog_threshold, score_threshold, mode):
             "changed": int(new_status != original),
         })
     metrics = evaluate(adjusted)
+    metrics.update(filtered_metrics(adjusted, selection_excluded or set()))
     metrics.update({
         "mode": mode,
         "cognitive_threshold": cog_threshold,
@@ -352,13 +376,13 @@ def apply_thresholds(records, cog_threshold, score_threshold, mode):
     return adjusted, metrics, details
 
 
-def sweep(records, mode, cog_values, score_values):
+def sweep(records, mode, cog_values, score_values, selection_excluded=None):
     rows = []
     for cog_threshold in cog_values:
         for score_threshold in score_values:
-            _, metrics, _ = apply_thresholds(records, cog_threshold, score_threshold, mode)
+            _, metrics, _ = apply_thresholds(records, cog_threshold, score_threshold, mode, selection_excluded)
             confusion = metrics["confusion"]
-            rows.append({
+            row = {
                 "mode": mode,
                 "cognitive_threshold": cog_threshold,
                 "score_threshold": score_threshold,
@@ -371,7 +395,19 @@ def sweep(records, mode, cog_values, score_values):
                 "present_absent": confusion["present->absent"],
                 "absent_present": confusion["absent->present"],
                 "absent_absent": confusion["absent->absent"],
-            })
+            }
+            for key in [
+                "filtered_num_examples",
+                "filtered_accuracy",
+                "filtered_absent_precision",
+                "filtered_absent_recall",
+                "filtered_absent_f1",
+                "filtered_present_absent",
+                "filtered_absent_present",
+            ]:
+                if key in metrics:
+                    row[key] = metrics[key]
+            rows.append(row)
     return rows
 
 
@@ -400,7 +436,22 @@ def main():
     parser.add_argument("--threshold-step", type=float, default=0.025)
     parser.add_argument("--cognitive-threshold-max", type=float, default=0.6)
     parser.add_argument("--score-threshold-max", type=float, default=1.0)
-    parser.add_argument("--select-threshold-metric", choices=["", "accuracy", "absent_f1", "absent_precision", "absent_recall"], default="")
+    parser.add_argument(
+        "--select-threshold-metric",
+        choices=[
+            "",
+            "accuracy",
+            "absent_f1",
+            "absent_precision",
+            "absent_recall",
+            "filtered_accuracy",
+            "filtered_absent_f1",
+            "filtered_absent_precision",
+            "filtered_absent_recall",
+        ],
+        default="",
+    )
+    parser.add_argument("--selection-audit-json", default="", help="Optional native label-conflict audit JSON used only for threshold selection.")
     parser.add_argument("--min-ocr-conf", type=float, default=35.0)
     parser.add_argument("--color-pad", type=int, default=2)
     parser.add_argument("--output", required=True)
@@ -423,11 +474,13 @@ def main():
         args.min_ocr_conf,
         args.color_pad,
     )
+    selection_excluded = conflict_indices(args.selection_audit_json)
     sweep_rows = sweep(
         records,
         args.mode,
         threshold_values(0.0, args.cognitive_threshold_max, args.threshold_step),
         threshold_values(0.0, args.score_threshold_max, args.threshold_step),
+        selection_excluded,
     )
     write_csv(Path(args.sweep_output), sweep_rows)
     if args.select_threshold_metric:
@@ -442,10 +495,18 @@ def main():
             "score_threshold": args.score_threshold,
         }
     write_json(Path(args.selected_threshold_output), selected)
-    adjusted, metrics, details = apply_thresholds(records, args.cognitive_threshold, args.score_threshold, args.mode)
+    adjusted, metrics, details = apply_thresholds(
+        records,
+        args.cognitive_threshold,
+        args.score_threshold,
+        args.mode,
+        selection_excluded,
+    )
     metrics.update({
         "missing_evidence": missing_evidence,
         "missing_images": missing_images,
+        "selection_audit_json": args.selection_audit_json,
+        "selection_excluded_examples": len(selection_excluded),
         "min_ocr_conf": args.min_ocr_conf,
         "color_pad": args.color_pad,
         "input_predictions": args.predictions,

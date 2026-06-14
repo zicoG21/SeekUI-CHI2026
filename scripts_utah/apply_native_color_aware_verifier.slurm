@@ -25,8 +25,22 @@ PREDICTIONS="${PREDICTIONS:-$OUTPUT_DIR/present_absent_predictions_${MODEL_LABEL
 EVIDENCE="${EVIDENCE:-$POST_DIR/stopping_evidence/${MODEL_LABEL}_stopping_evidence.csv}"
 OCR_CANDIDATES="${OCR_CANDIDATES:-$POST_DIR/ocr_candidates_tesseract.json}"
 THRESHOLD_METRIC="${THRESHOLD_METRIC:-absent_f1}"
-VARIANT_SUFFIX="${VARIANT_SUFFIX:-color_aware_native_tuned_${THRESHOLD_METRIC}}"
+if [[ "$THRESHOLD_METRIC" == filtered_* ]]; then
+  DEFAULT_VARIANT_SUFFIX="color_aware_filtered_tuned_${THRESHOLD_METRIC#filtered_}"
+else
+  DEFAULT_VARIANT_SUFFIX="color_aware_native_tuned_${THRESHOLD_METRIC}"
+fi
+VARIANT_SUFFIX="${VARIANT_SUFFIX:-$DEFAULT_VARIANT_SUFFIX}"
 OUT_BASE="$OUTPUT_DIR/present_absent_predictions_${MODEL_LABEL}_${VARIANT_SUFFIX}"
+SELECTION_AUDIT_JSON="${SELECTION_AUDIT_JSON:-}"
+if [[ -z "$SELECTION_AUDIT_JSON" && "$THRESHOLD_METRIC" == filtered_* ]]; then
+  SELECTION_AUDIT_JSON="$NATIVE_DIR/label_conflict_audit/${SPLIT_NAME}_combined_and_present_only_best_f1.json"
+fi
+
+selection_args=()
+if [[ -n "$SELECTION_AUDIT_JSON" ]]; then
+  selection_args+=(--selection-audit-json "$SELECTION_AUDIT_JSON")
+fi
 
 module load miniconda3/25.9.1
 source "$(conda info --base)/etc/profile.d/conda.sh"
@@ -43,6 +57,7 @@ python scripts_research/apply_native_color_aware_verifier.py \
   --cognitive-threshold-max "${COGNITIVE_THRESHOLD_MAX:-0.6}" \
   --score-threshold-max "${SCORE_THRESHOLD_MAX:-1.0}" \
   --select-threshold-metric "$THRESHOLD_METRIC" \
+  "${selection_args[@]}" \
   --min-ocr-conf "${MIN_OCR_CONF:-35}" \
   --color-pad "${COLOR_PAD:-2}" \
   --output "${OUT_BASE}.json" \
