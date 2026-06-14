@@ -23,6 +23,7 @@ RUN_CONTEXT_CROP="${RUN_CONTEXT_CROP:-1}"
 RUN_EVIDENCE_VLM="${RUN_EVIDENCE_VLM:-1}"
 RUN_ENSEMBLE="${RUN_ENSEMBLE:-1}"
 RUN_SUMMARY="${RUN_SUMMARY:-1}"
+REUSE_EXISTING="${REUSE_EXISTING:-1}"
 
 SBATCH_GPU_ARGS=()
 if [[ -n "${SBATCH_ACCOUNT:-}" ]]; then
@@ -47,11 +48,33 @@ fi
 submit_cpu_after() {
   local dependency="$1"
   shift
+  local clean_env=(
+    env
+    -u SBATCH_ACCOUNT
+    -u SBATCH_PARTITION
+    -u SBATCH_GRES
+    -u SBATCH_CPUS_PER_TASK
+    -u SBATCH_MEM
+    -u SBATCH_TIME
+  )
   if [[ -n "$dependency" ]]; then
-    sbatch --parsable --dependency="afterok:$dependency" "$@"
+    "${clean_env[@]}" sbatch --parsable --dependency="afterok:$dependency" "$@"
   else
-    sbatch --parsable "$@"
+    "${clean_env[@]}" sbatch --parsable "$@"
   fi
+}
+
+submit_cpu_afterany() {
+  local dependency="$1"
+  shift
+  env \
+    -u SBATCH_ACCOUNT \
+    -u SBATCH_PARTITION \
+    -u SBATCH_GRES \
+    -u SBATCH_CPUS_PER_TASK \
+    -u SBATCH_MEM \
+    -u SBATCH_TIME \
+    sbatch --parsable --dependency="afterany:$dependency" "$@"
 }
 
 jobs=()
@@ -81,16 +104,26 @@ PY
 
   label="${MODEL_NAME}_${split}"
   pred="$OUTPUT_DIR/present_absent_predictions_${label}.json"
-  echo "Submitting v2 SeekUI inference: split=$split rows=$n_rows absent=$n_absent"
-  infer_jid="$(
-    SPLIT_NAME="$split" \
-    MODEL_NAME="$MODEL_NAME" \
-    INPUT_JSON="$input_json" \
-    OUTPUT_PATH="$pred" \
-      sbatch --parsable "${SBATCH_GPU_ARGS[@]}" scripts_utah/native_vsgui_seekui_inference.slurm
-  )"
-  echo "  inference: $infer_jid"
-  jobs+=("$infer_jid")
+  is_text_only=0
+  if [[ "$split" == "native_v2_main_text" || "$split" == "native_v2_main_text_balanced" ]]; then
+    is_text_only=1
+  fi
+
+  infer_jid=""
+  if [[ "$REUSE_EXISTING" == "1" && -f "$pred" ]]; then
+    echo "Reusing existing SeekUI predictions: split=$split rows=$n_rows absent=$n_absent"
+  else
+    echo "Submitting v2 SeekUI inference: split=$split rows=$n_rows absent=$n_absent"
+    infer_jid="$(
+      SPLIT_NAME="$split" \
+      MODEL_NAME="$MODEL_NAME" \
+      INPUT_JSON="$input_json" \
+      OUTPUT_PATH="$pred" \
+        sbatch --parsable "${SBATCH_GPU_ARGS[@]}" scripts_utah/native_vsgui_seekui_inference.slurm
+    )"
+    echo "  inference: $infer_jid"
+    jobs+=("$infer_jid")
+  fi
 
   post_jid="$(
     SPLIT_NAME="$split" \
@@ -104,21 +137,27 @@ PY
   jobs+=("$post_jid")
 
   if [[ "$RUN_VLM_PRESENCE" == "1" ]]; then
-    vlm_jid="$(
-      SPLIT_NAME="$split" \
-      MODEL_NAME="$MODEL_NAME" \
-      INPUT_JSON="$input_json" \
-      VLM_PROMPT_VARIANT=ocr_aware \
-      MODEL_LABEL="${MODEL_NAME}_vlm_presence_${split}_ocr_aware" \
-        sbatch --parsable "${SBATCH_GPU_ARGS[@]}" scripts_utah/native_vsgui_vlm_presence.slurm
-    )"
-    echo "  vlm presence: $vlm_jid"
-    jobs+=("$vlm_jid")
+    vlm_label="${MODEL_NAME}_vlm_presence_${split}_ocr_aware"
+    vlm_output="$OUTPUT_DIR/vlm_presence_predictions_${vlm_label}.json"
+    if [[ "$REUSE_EXISTING" == "1" && -f "$vlm_output" ]]; then
+      echo "  reusing VLM presence: $vlm_output"
+    else
+      vlm_jid="$(
+        SPLIT_NAME="$split" \
+        MODEL_NAME="$MODEL_NAME" \
+        INPUT_JSON="$input_json" \
+        VLM_PROMPT_VARIANT=ocr_aware \
+        MODEL_LABEL="$vlm_label" \
+          sbatch --parsable "${SBATCH_GPU_ARGS[@]}" scripts_utah/native_vsgui_vlm_presence.slurm
+      )"
+      echo "  vlm presence: $vlm_jid"
+      jobs+=("$vlm_jid")
+    fi
   fi
 
   color_jid=""
   color_variant="${split}_color_aware_native_tuned_absent_f1"
-  if [[ "$RUN_COLOR_AWARE" == "1" && "$split" != "native_v2_main_text" ]]; then
+  if [[ "$RUN_COLOR_AWARE" == "1" && "$is_text_only" != "1" ]]; then
     color_jid="$(
       SPLIT_NAME="$split" \
       MODEL_NAME="$MODEL_NAME" \
@@ -132,7 +171,7 @@ PY
   fi
 
   crop_jid=""
-  if [[ "$RUN_CONTEXT_CROP" == "1" && "$split" != "native_v2_main_text" ]]; then
+  if [[ "$RUN_CONTEXT_CROP" == "1" && "$is_text_only" != "1" ]]; then
     crop_jid="$(
       SPLIT_NAME="$split" \
       MODEL_NAME="$MODEL_NAME" \
@@ -188,7 +227,7 @@ summary_job=""
 if [[ "$RUN_SUMMARY" == "1" && "${#jobs[@]}" -gt 0 ]]; then
   dependency="$(IFS=:; echo "${jobs[*]}")"
   summary_job="$(
-    sbatch --parsable --dependency="afterany:$dependency" scripts_utah/summarize_native_vsgui_results.slurm
+    submit_cpu_afterany "$dependency" scripts_utah/summarize_native_vsgui_results.slurm
   )"
 fi
 
