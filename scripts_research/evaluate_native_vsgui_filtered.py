@@ -134,7 +134,10 @@ def candidate_prediction_files(outputs, model, split, vlm_variant):
         ),
     ]
     for path in sorted(outputs.glob(f"present_absent_predictions_{model}_{split}_color_aware_*.json")):
-        if path.name.endswith("_status_eval.json"):
+        if (
+            path.name.endswith("_status_eval.json")
+            or path.name.endswith("_selected_threshold.json")
+        ):
             continue
         variant = path.name.removeprefix(f"present_absent_predictions_{model}_").removesuffix(".json")
         item = ("color_aware", variant, path)
