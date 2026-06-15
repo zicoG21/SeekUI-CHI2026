@@ -14,10 +14,13 @@ IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
 CUE_FIELDS = [
     "native_new_img_name",
     "new_img_name",
+    "img_name",
     "target_image",
     "target_crop",
     "cue_image",
     "cue_image_path",
+    "new_image",
+    "new_image_name",
 ]
 
 
@@ -75,6 +78,37 @@ def safe_rel(path, root):
         return str(path)
 
 
+def trial_key(row):
+    return (
+        row.get("pid", ""),
+        row.get("media_id", ""),
+        row.get("img_name", ""),
+        row.get("new_img_name", ""),
+        row.get("tgt_id", ""),
+        row.get("absent", ""),
+        row.get("cue", ""),
+    )
+
+
+def stable_id(row):
+    raw = "_".join(str(part) for part in trial_key(row))
+    return re.sub(r"[^A-Za-z0-9_.-]+", "-", raw).strip("-")
+
+
+def load_raw_fixation_rows(path, visual_img_type="2"):
+    if not path or not Path(path).exists():
+        return {}
+    raw_by_key = {}
+    with open(path, "r", encoding="utf-8-sig", newline="") as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            if str(row.get("img_type", "")) != str(visual_img_type):
+                continue
+            key = stable_id(row)
+            raw_by_key.setdefault(key, dict(row))
+    return raw_by_key
+
+
 def index_files(search_roots, zip_paths):
     records = []
     for root in search_roots:
@@ -124,6 +158,20 @@ def make_indexes(records):
     return by_name, by_stem, by_token
 
 
+def image_like_tokens(value):
+    value = str(value or "").strip()
+    if not value:
+        return []
+    tokens = []
+    if Path(value).suffix.casefold() in IMAGE_SUFFIXES:
+        tokens.append(value)
+    pattern = r"[A-Za-z0-9_.\-/]+(?:png|jpg|jpeg|webp|bmp)(?:_[A-Za-z0-9_.-]+)?"
+    for match in re.findall(pattern, value, flags=re.I):
+        if match not in tokens:
+            tokens.append(match)
+    return tokens
+
+
 def candidate_values(example):
     values = []
     for field in CUE_FIELDS:
@@ -137,6 +185,28 @@ def candidate_values(example):
             piece = piece.strip()
             if piece and piece != native:
                 values.append(("native_new_img_name_piece", piece))
+
+    for field, value in example.items():
+        if value is None or value == "":
+            continue
+        field_l = str(field).casefold()
+        if any(key in field_l for key in ["img", "image", "cue", "target"]):
+            text = str(value).strip()
+            if text and (field, text) not in values:
+                values.append((f"field:{field}", text))
+        for token in image_like_tokens(value):
+            if (f"token:{field}", token) not in values:
+                values.append((f"token:{field}", token))
+
+    deduped = []
+    seen = set()
+    for field, value in values:
+        key = (field, value)
+        if key in seen:
+            continue
+        deduped.append((field, value))
+        seen.add(key)
+    return deduped
     return values
 
 
@@ -173,6 +243,8 @@ def choose_match(matches, screen_image):
         return None, "missing"
     screen_name = Path(str(screen_image or "")).name.casefold()
     non_screen = [m for m in matches if m["name"].casefold() != screen_name]
+    if not non_screen:
+        return matches[0], "screen_only_not_cue"
     candidates = non_screen or matches
     file_matches = [m for m in candidates if m["kind"] == "file"]
     if len(file_matches) == 1:
@@ -229,11 +301,20 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
     status_counts = Counter(row["gold_status"] for row in rows)
     resolution_counts = Counter(row["resolution_status"] for row in rows)
     cue_field_counts = Counter(row["matched_cue_field"] or "(none)" for row in rows)
+    candidate_field_counts = Counter()
+    candidate_rows = 0
+    for row in rows:
+        fields = [field for field in str(row.get("candidate_fields", "")).split(";") if field]
+        if fields:
+            candidate_rows += 1
+        candidate_field_counts.update(fields)
+    missing_samples = [row for row in rows if row["resolution_status"] in {"missing", "screen_only_not_cue"}][:12]
     lines = [
         "# Native VSGUI10K Image-Cue Resolution",
         "",
         f"- Image-cue rows: {len(rows)}",
         f"- Inference-ready rows: {len(eval_rows)}",
+        f"- Rows with any candidate cue value: {candidate_rows}",
         f"- Indexed image files/members: {indexed_files}",
         f"- Search roots: `{'; '.join(str(x) for x in search_roots)}`",
         f"- Zip paths: `{'; '.join(str(x) for x in zip_paths)}`",
@@ -251,6 +332,13 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
     lines.extend(["", "## Matched Cue Fields", "", "| Field | Count |", "|---|---:|"])
     for key, count in cue_field_counts.most_common():
         lines.append(f"| {key} | {count} |")
+    lines.extend(["", "## Candidate Value Fields", "", "| Field | Count |", "|---|---:|"])
+    for key, count in candidate_field_counts.most_common(30):
+        lines.append(f"| {key} | {count} |")
+    lines.extend(["", "## Missing / Screen-Only Samples", "", "| Index | Status | Key | Candidate Preview |", "|---:|---|---|---|"])
+    for row in missing_samples:
+        preview = str(row.get("candidate_values_preview", "")).replace("|", "\\|")
+        lines.append(f"| {row['index']} | {row['gold_status']} | {row['key']} | {preview} |")
     lines.extend([
         "",
         "## Interpretation",
@@ -258,6 +346,7 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
         "- `resolved` rows have a local cue image copied into the exported cue-image directory and can be used for image-cue inference.",
         "- `resolved_zip_only` rows can also be used because the resolver extracted the cue image from the OSF zip.",
         "- `ambiguous_*` rows need manual checking before headline evaluation because multiple assets match the same cue token.",
+        "- `screen_only_not_cue` means the only matched image token was the GUI screenshot itself, not a separate target cue.",
         "- `missing` rows are evidence that the released fixation rows reference cue names not available in the extracted assets currently present on disk.",
         "",
     ])
@@ -272,10 +361,13 @@ def main():
     parser.add_argument("--out-dir", required=True)
     parser.add_argument("--search-root", action="append", default=[])
     parser.add_argument("--zip-path", action="append", default=[])
+    parser.add_argument("--fixations-csv", default="")
+    parser.add_argument("--visual-img-type", default="2")
     parser.add_argument("--include-ambiguous", action="store_true")
     args = parser.parse_args()
 
     trials = load_json(Path(args.trials_json))
+    raw_by_key = load_raw_fixation_rows(args.fixations_csv, args.visual_img_type)
     search_roots = [Path(args.image_root)] + [Path(path) for path in args.search_root]
     zip_paths = [Path(path) for path in args.zip_path]
     records = index_files(search_roots, zip_paths)
@@ -288,7 +380,11 @@ def main():
     for idx, example in enumerate(trials):
         if cue_type(example) not in {"image", "i"}:
             continue
-        values = candidate_values(example)
+        raw_row = raw_by_key.get(str(example.get("img_usr_tgt", "")), {})
+        merged_example = dict(raw_row)
+        for key, value in example.items():
+            merged_example[key] = value
+        values = candidate_values(merged_example)
         matched = []
         matched_field = ""
         matched_value = ""
@@ -317,6 +413,13 @@ def main():
             "query_text": example.get("query_text", ""),
             "native_img_name": example.get("native_img_name", ""),
             "native_new_img_name": example.get("native_new_img_name", ""),
+            "raw_new_img_name": raw_row.get("new_img_name", ""),
+            "raw_img_name": raw_row.get("img_name", ""),
+            "raw_tgt_id": raw_row.get("tgt_id", ""),
+            "raw_available": int(bool(raw_row)),
+            "candidate_value_count": len(values),
+            "candidate_fields": ";".join(field for field, _ in values[:50]),
+            "candidate_values_preview": "; ".join(f"{field}={value}" for field, value in values[:8]),
             "matched_cue_field": matched_field,
             "matched_cue_value": matched_value,
             "resolution_status": resolution,

@@ -33,6 +33,7 @@ args=(
   --trials-json "$TRIALS_JSON"
   --image-root "$IMAGE_ROOT"
   --out-dir "$OUT_DIR"
+  --fixations-csv "$OSF_DIR/extracted/data/vsgui10k_fixations.csv"
   --search-root "$OSF_DIR/extracted"
   --search-root "$SEEKUI_WORK/data"
 )
