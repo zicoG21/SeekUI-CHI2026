@@ -48,6 +48,12 @@ python scripts_research/export_native_v2_case_figure_plan.py \
   --output-csv "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_case_figure_plan.csv" \
   --output-md "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_case_figure_plan.md"
 
+python scripts_research/export_native_v2_case_figure_candidates.py \
+  --case-root "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases" \
+  --data-dir "$SEEKUI_WORK/data" \
+  --out-dir "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/figure_candidates" \
+  --per-panel "${FIGURE_CANDIDATES_PER_PANEL:-3}"
+
 echo "Native v2 balanced analysis: $OUT_DIR/native_v2_balanced_analysis.md"
 cat "$OUT_DIR/native_v2_balanced_analysis.md"
 echo
@@ -59,3 +65,6 @@ cat "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_
 echo
 echo "Native v2 case figure plan:"
 cat "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_case_figure_plan.md"
+echo
+echo "Native v2 main-figure candidates:"
+cat "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/figure_candidates/native_v2_main_figure_candidates.md"

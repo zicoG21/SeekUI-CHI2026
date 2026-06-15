@@ -77,6 +77,12 @@ python scripts_research/export_native_v2_case_figure_plan.py \
   --output-csv "$NATIVE_DIR/processed_v2/recommended_cases/native_v2_case_figure_plan.csv" \
   --output-md "$NATIVE_DIR/processed_v2/recommended_cases/native_v2_case_figure_plan.md"
 
+python scripts_research/export_native_v2_case_figure_candidates.py \
+  --case-root "$NATIVE_DIR/processed_v2/recommended_cases" \
+  --data-dir "$SEEKUI_WORK/data" \
+  --out-dir "$NATIVE_DIR/processed_v2/figure_candidates" \
+  --per-panel "${FIGURE_CANDIDATES_PER_PANEL:-3}"
+
 echo "Native v2 CV vote router complete."
 cat "$NATIVE_DIR/processed_v2/analysis/native_v2_balanced_analysis.md"
 echo
@@ -88,3 +94,6 @@ cat "$NATIVE_DIR/processed_v2/recommended_cases/native_v2_recommended_case_analy
 echo
 echo "Native v2 case figure plan:"
 cat "$NATIVE_DIR/processed_v2/recommended_cases/native_v2_case_figure_plan.md"
+echo
+echo "Native v2 main-figure candidates:"
+cat "$NATIVE_DIR/processed_v2/figure_candidates/native_v2_main_figure_candidates.md"
