@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import argparse
 import csv
+import hashlib
 import json
 import os
 import re
@@ -245,7 +246,37 @@ def match_records(value, indexes):
     return deduped
 
 
-def choose_match(matches, screen_image):
+def record_fingerprint(record, cache):
+    key = (record.get("kind"), record.get("root"), record.get("path"))
+    if key in cache:
+        return cache[key]
+    h = hashlib.sha256()
+    try:
+        if record.get("kind") == "file":
+            path = Path(record["path"])
+            h.update(path.read_bytes())
+            value = (path.stat().st_size, h.hexdigest())
+        else:
+            with zipfile.ZipFile(record["root"]) as zf:
+                data = zf.read(record["path"])
+            h.update(data)
+            value = (len(data), h.hexdigest())
+    except Exception:
+        value = ("error", str(key))
+    cache[key] = value
+    return value
+
+
+def identical_asset_match(candidates, fingerprint_cache):
+    if len(candidates) <= 1:
+        return None
+    fingerprints = {record_fingerprint(record, fingerprint_cache) for record in candidates}
+    if len(fingerprints) == 1:
+        return candidates[0]
+    return None
+
+
+def choose_match(matches, screen_image, fingerprint_cache):
     if not matches:
         return None, "missing"
     screen_name = Path(str(screen_image or "")).name.casefold()
@@ -253,6 +284,9 @@ def choose_match(matches, screen_image):
     if not non_screen:
         return matches[0], "screen_only_not_cue"
     candidates = non_screen or matches
+    duplicate = identical_asset_match(candidates, fingerprint_cache)
+    if duplicate:
+        return duplicate, "resolved_duplicate_asset"
     file_matches = [m for m in candidates if m["kind"] == "file"]
     if len(file_matches) == 1:
         return file_matches[0], "resolved"
@@ -406,6 +440,7 @@ def main():
     indexes = make_indexes(records)
     out_dir = Path(args.out_dir)
     cue_out_dir = out_dir / "resolved_cue_images"
+    fingerprint_cache = {}
 
     rows = []
     eval_rows = []
@@ -427,11 +462,11 @@ def main():
                 matched_field = field
                 matched_value = value
                 break
-        chosen, resolution = choose_match(matched, example.get("image", ""))
+        chosen, resolution = choose_match(matched, example.get("image", ""), fingerprint_cache)
         copied = ""
         cue_side_match = is_cue_side_field(matched_field)
         usable = cue_side_match and (
-            resolution in {"resolved", "resolved_zip_only"} or (
+            resolution.startswith("resolved") or (
                 args.include_ambiguous and resolution.startswith("ambiguous")
             )
         )
