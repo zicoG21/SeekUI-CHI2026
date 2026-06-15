@@ -58,5 +58,14 @@ python scripts_research/analyze_native_v2_balanced.py \
   --model-name "$MODEL_NAME" \
   --out-dir "$NATIVE_DIR/processed_v2/analysis"
 
+python scripts_research/export_native_v2_operating_points.py \
+  --input-csv "$NATIVE_DIR/processed_v2/analysis/native_v2_balanced_metrics_ci.csv" \
+  --output-json "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.json" \
+  --output-csv "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.csv" \
+  --output-md "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.md"
+
 echo "Native v2 CV vote router complete."
 cat "$NATIVE_DIR/processed_v2/analysis/native_v2_balanced_analysis.md"
+echo
+echo "Native v2 operating points:"
+cat "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.md"

@@ -29,5 +29,14 @@ python scripts_research/analyze_native_v2_balanced.py \
   --case-limit "$CASE_LIMIT" \
   --out-dir "$OUT_DIR"
 
+python scripts_research/export_native_v2_operating_points.py \
+  --input-csv "$OUT_DIR/native_v2_balanced_metrics_ci.csv" \
+  --output-json "$OUT_DIR/native_v2_operating_points.json" \
+  --output-csv "$OUT_DIR/native_v2_operating_points.csv" \
+  --output-md "$OUT_DIR/native_v2_operating_points.md"
+
 echo "Native v2 balanced analysis: $OUT_DIR/native_v2_balanced_analysis.md"
 cat "$OUT_DIR/native_v2_balanced_analysis.md"
+echo
+echo "Native v2 operating points: $OUT_DIR/native_v2_operating_points.md"
+cat "$OUT_DIR/native_v2_operating_points.md"
