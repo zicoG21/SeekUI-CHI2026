@@ -120,8 +120,51 @@ def score_row(row):
     return (0, visibility, target_len)
 
 
+def dedupe_key(row, fields):
+    return tuple(str(row.get(field, "")).strip().casefold() for field in fields)
+
+
 def select_rows(rows, limit):
-    return sorted(rows, key=score_row, reverse=True)[:limit]
+    sorted_rows = sorted(rows, key=score_row, reverse=True)
+    selected = []
+    seen_image_target = set()
+    seen_images = set()
+
+    # First pass: maximize visual variety by requiring a unique screenshot.
+    for row in sorted_rows:
+        image_key = dedupe_key(row, ["image"])
+        image_target_key = dedupe_key(row, ["image", "target"])
+        if image_target_key in seen_image_target or image_key in seen_images:
+            continue
+        selected.append(row)
+        seen_image_target.add(image_target_key)
+        seen_images.add(image_key)
+        if len(selected) >= limit:
+            return selected
+
+    # Second pass: allow a repeated screenshot only if the target differs.
+    seen_targets = {dedupe_key(row, ["target"]) for row in selected}
+    for row in sorted_rows:
+        image_target_key = dedupe_key(row, ["image", "target"])
+        target_key = dedupe_key(row, ["target"])
+        if image_target_key in seen_image_target or target_key in seen_targets:
+            continue
+        selected.append(row)
+        seen_image_target.add(image_target_key)
+        seen_targets.add(target_key)
+        if len(selected) >= limit:
+            return selected
+
+    # Last pass: fill with any remaining non-identical screenshot-target pair.
+    for row in sorted_rows:
+        image_target_key = dedupe_key(row, ["image", "target"])
+        if image_target_key in seen_image_target:
+            continue
+        selected.append(row)
+        seen_image_target.add(image_target_key)
+        if len(selected) >= limit:
+            break
+    return selected
 
 
 def case_csv(case_root, spec):
@@ -132,6 +175,9 @@ def copy_images(rows, data_dir, out_dir, panel):
     copied = []
     image_dir = out_dir / "images"
     image_dir.mkdir(parents=True, exist_ok=True)
+    for old in image_dir.glob(f"{panel}_*"):
+        if old.is_file():
+            old.unlink()
     for idx, row in enumerate(rows):
         src = resolve_image(data_dir, row.get("image", ""))
         out_row = dict(row)
