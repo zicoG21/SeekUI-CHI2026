@@ -131,9 +131,14 @@ def role_rows(split, rows):
         )
         reading = "Diagnostic only: color/instance matching remains a separate unresolved task."
     else:
-        eligible = [row for row in rows if row["method"] != "prompt" and as_float(row, "absent_precision") >= 0.60]
+        eligible = [
+            row for row in rows
+            if row["method"] != "prompt"
+            and as_float(row, "absent_precision") >= 0.60
+            and present_absent_rate(row) <= 0.50
+        ]
         recommended = max_by(eligible, lambda row: (as_float(row, "absent_f1"), as_float(row, "accuracy"))) or best_cv or best_single
-        reading = "Recommended paper operating point: strong F1 while keeping absent precision near or above 0.60."
+        reading = "Recommended paper operating point: strong F1 while keeping absent precision near or above 0.60 and limiting present-target over-rejection."
     if recommended:
         selected.append(normalize_row(recommended, "recommended", reading))
 
