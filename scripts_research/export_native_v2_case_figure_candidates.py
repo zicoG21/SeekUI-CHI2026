@@ -275,6 +275,9 @@ def make_contact_sheet(panel_rows, out_path, title):
 
 
 def write_md(path, selected, contact_sheet):
+    def md_cell(value):
+        return str(value or "").replace("|", "\\|").replace("\n", " ")
+
     lines = [
         "# Native VSGUI10K v2 Main-Figure Candidates",
         "",
@@ -285,9 +288,11 @@ def write_md(path, selected, contact_sheet):
     ]
     for row in selected:
         lines.append(
-            f"| {row['panel']} | {row['case_type']} | {row['split']} | {row['method']} | "
-            f"{row.get('target', '')} | {row.get('gold_status', '')} | {row.get('prompt_status', '')} | "
-            f"{row.get('method_status', '')} | {row.get('visibility_bucket', '')} | {row.get('figure_image', '')} |"
+            f"| {md_cell(row['panel'])} | {md_cell(row['case_type'])} | {md_cell(row['split'])} | "
+            f"{md_cell(row['method'])} | {md_cell(row.get('target', ''))} | "
+            f"{md_cell(row.get('gold_status', ''))} | {md_cell(row.get('prompt_status', ''))} | "
+            f"{md_cell(row.get('method_status', ''))} | {md_cell(row.get('visibility_bucket', ''))} | "
+            f"{md_cell(row.get('figure_image', ''))} |"
         )
     lines.extend([
         "",
