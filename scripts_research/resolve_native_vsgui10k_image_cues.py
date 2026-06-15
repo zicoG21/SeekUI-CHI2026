@@ -14,7 +14,6 @@ IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".bmp"}
 CUE_FIELDS = [
     "native_new_img_name",
     "new_img_name",
-    "img_name",
     "target_image",
     "target_crop",
     "cue_image",
@@ -22,6 +21,8 @@ CUE_FIELDS = [
     "new_image",
     "new_image_name",
 ]
+CUE_FIELD_HINTS = {"new", "cue", "target", "crop"}
+SCREEN_FIELD_NAMES = {"img_name", "native_img_name", "image", "screen_image", "screenshot"}
 
 
 def load_json(path):
@@ -178,6 +179,8 @@ def candidate_values(example):
         value = str(example.get(field, "") or "").strip()
         if value:
             values.append((field, value))
+            for token in image_like_tokens(value):
+                values.append((f"token:{field}", token))
     native = str(example.get("native_new_img_name", "") or "").strip()
     if native:
         # OSF rows sometimes contain nested names such as foo.png_123.jpg.
@@ -190,13 +193,17 @@ def candidate_values(example):
         if value is None or value == "":
             continue
         field_l = str(field).casefold()
-        if any(key in field_l for key in ["img", "image", "cue", "target"]):
+        if field_l in SCREEN_FIELD_NAMES:
+            continue
+        if "img_name" in field_l and "new" not in field_l:
+            continue
+        if any(key in field_l for key in CUE_FIELD_HINTS):
             text = str(value).strip()
             if text and (field, text) not in values:
                 values.append((f"field:{field}", text))
-        for token in image_like_tokens(value):
-            if (f"token:{field}", token) not in values:
-                values.append((f"token:{field}", token))
+            for token in image_like_tokens(value):
+                if (f"token:{field}", token) not in values:
+                    values.append((f"token:{field}", token))
 
     deduped = []
     seen = set()
@@ -207,7 +214,22 @@ def candidate_values(example):
         deduped.append((field, value))
         seen.add(key)
     return deduped
-    return values
+
+
+def fuzzy_token_matches(token, indexes):
+    if len(token) < 4:
+        return []
+    _, _, by_token = indexes
+    matches = []
+    for record_token, records in by_token.items():
+        if token == record_token:
+            continue
+        if token in record_token or record_token in token:
+            for record in records:
+                item = dict(record)
+                item["match_source"] = "fuzzy_token"
+                matches.append(item)
+    return matches
 
 
 def match_records(value, indexes):
@@ -226,6 +248,8 @@ def match_records(value, indexes):
             item = dict(record)
             item["match_source"] = source
             matches.append(item)
+    if not matches:
+        matches.extend(fuzzy_token_matches(token, indexes))
 
     deduped = []
     seen = set()
@@ -254,6 +278,15 @@ def choose_match(matches, screen_image):
     if len(candidates) == 1:
         return candidates[0], "resolved_zip_only"
     return candidates[0], "ambiguous_zip"
+
+
+def is_cue_side_field(field):
+    field_l = str(field or "").casefold()
+    if field_l in SCREEN_FIELD_NAMES:
+        return False
+    if "img_name" in field_l and "new" not in field_l:
+        return False
+    return any(hint in field_l for hint in CUE_FIELD_HINTS)
 
 
 def extract_zip_member(record, out_dir):
@@ -301,6 +334,7 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
     status_counts = Counter(row["gold_status"] for row in rows)
     resolution_counts = Counter(row["resolution_status"] for row in rows)
     cue_field_counts = Counter(row["matched_cue_field"] or "(none)" for row in rows)
+    cue_side_counts = Counter(row.get("cue_side_match", 0) for row in rows)
     candidate_field_counts = Counter()
     candidate_rows = 0
     for row in rows:
@@ -314,6 +348,7 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
         "",
         f"- Image-cue rows: {len(rows)}",
         f"- Inference-ready rows: {len(eval_rows)}",
+        f"- Rows with cue-side matched field: {cue_side_counts.get(1, 0)}",
         f"- Rows with any candidate cue value: {candidate_rows}",
         f"- Indexed image files/members: {indexed_files}",
         f"- Search roots: `{'; '.join(str(x) for x in search_roots)}`",
@@ -397,8 +432,11 @@ def main():
                 break
         chosen, resolution = choose_match(matched, example.get("image", ""))
         copied = ""
-        usable = resolution in {"resolved", "resolved_zip_only"} or (
-            args.include_ambiguous and resolution.startswith("ambiguous")
+        cue_side_match = is_cue_side_field(matched_field)
+        usable = cue_side_match and (
+            resolution in {"resolved", "resolved_zip_only"} or (
+                args.include_ambiguous and resolution.startswith("ambiguous")
+            )
         )
         if usable and chosen:
             prefix = f"{idx:05d}_{gold_status(example)}"
@@ -422,6 +460,7 @@ def main():
             "candidate_values_preview": "; ".join(f"{field}={value}" for field, value in values[:8]),
             "matched_cue_field": matched_field,
             "matched_cue_value": matched_value,
+            "cue_side_match": int(cue_side_match),
             "resolution_status": resolution,
             "num_matches": len(matched),
             "chosen_kind": chosen.get("kind", "") if chosen else "",
