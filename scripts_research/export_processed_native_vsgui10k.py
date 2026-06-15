@@ -254,7 +254,7 @@ def write_summary_md(path, examples, splits, specs, audit_json):
         "- Text+color clean absent: add color-aware verifier and context-crop VLM.",
         "- Balanced v2 splits are exported for method comparison because the full clean native text splits are strongly present-heavy.",
         "- Visible conflict / instance subsets: report separately as target-definition ambiguity, not clean absence.",
-        "- Image-cue subset: currently unresolved because released fixation rows reference cue-image names that are not available as direct image files; do not use it as a headline absent benchmark yet.",
+        "- Image-cue subset: run `resolve_native_vsgui10k_image_cues.py` to resolve/copy cue-image assets before any image-cue inference; use resolved rows as diagnostic evidence, not as a headline text-absence benchmark.",
         "- Unverified absent rows: run OCR/visibility audit before using them for headline metrics.",
         "",
     ])
