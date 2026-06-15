@@ -21,8 +21,7 @@ CUE_FIELDS = [
     "new_image",
     "new_image_name",
 ]
-CUE_FIELD_HINTS = {"new", "cue", "target", "crop"}
-SCREEN_FIELD_NAMES = {"img_name", "native_img_name", "image", "screen_image", "screenshot"}
+CUE_FIELD_SET = set(CUE_FIELDS) | {f"token:{field}" for field in CUE_FIELDS} | {"native_new_img_name_piece"}
 
 
 def load_json(path):
@@ -189,22 +188,6 @@ def candidate_values(example):
             if piece and piece != native:
                 values.append(("native_new_img_name_piece", piece))
 
-    for field, value in example.items():
-        if value is None or value == "":
-            continue
-        field_l = str(field).casefold()
-        if field_l in SCREEN_FIELD_NAMES:
-            continue
-        if "img_name" in field_l and "new" not in field_l:
-            continue
-        if any(key in field_l for key in CUE_FIELD_HINTS):
-            text = str(value).strip()
-            if text and (field, text) not in values:
-                values.append((f"field:{field}", text))
-            for token in image_like_tokens(value):
-                if (f"token:{field}", token) not in values:
-                    values.append((f"token:{field}", token))
-
     deduped = []
     seen = set()
     for field, value in values:
@@ -281,12 +264,7 @@ def choose_match(matches, screen_image):
 
 
 def is_cue_side_field(field):
-    field_l = str(field or "").casefold()
-    if field_l in SCREEN_FIELD_NAMES:
-        return False
-    if "img_name" in field_l and "new" not in field_l:
-        return False
-    return any(hint in field_l for hint in CUE_FIELD_HINTS)
+    return str(field or "").casefold() in {value.casefold() for value in CUE_FIELD_SET}
 
 
 def extract_zip_member(record, out_dir):
