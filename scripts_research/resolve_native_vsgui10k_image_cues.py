@@ -308,9 +308,12 @@ def compatible_example(example, copied_cue_path, image_root, cue_prefix):
     return out
 
 
-def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths):
+def write_summary(path, rows, eval_rows, balanced_rows, indexed_files, search_roots, zip_paths):
     status_counts = Counter(row["gold_status"] for row in rows)
+    ready_status_counts = Counter(gold_status(row) for row in eval_rows)
+    balanced_status_counts = Counter(gold_status(row) for row in balanced_rows)
     resolution_counts = Counter(row["resolution_status"] for row in rows)
+    resolution_status_counts = Counter((row["resolution_status"], row["gold_status"]) for row in rows)
     cue_field_counts = Counter(row["matched_cue_field"] or "(none)" for row in rows)
     cue_side_counts = Counter(row.get("cue_side_match", 0) for row in rows)
     candidate_field_counts = Counter()
@@ -326,6 +329,7 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
         "",
         f"- Image-cue rows: {len(rows)}",
         f"- Inference-ready rows: {len(eval_rows)}",
+        f"- Balanced inference-ready rows: {len(balanced_rows)}",
         f"- Rows with cue-side matched field: {cue_side_counts.get(1, 0)}",
         f"- Rows with any candidate cue value: {candidate_rows}",
         f"- Indexed image files/members: {indexed_files}",
@@ -339,9 +343,23 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
     ]
     for key, count in sorted(status_counts.items()):
         lines.append(f"| {key or '(missing)'} | {count} |")
+    lines.extend(["", "## Inference-Ready Status Counts", "", "| Split | Present | Absent | Rows |", "|---|---:|---:|---:|"])
+    lines.append(
+        f"| resolved eval | {ready_status_counts.get('present', 0)} | "
+        f"{ready_status_counts.get('absent', 0)} | {len(eval_rows)} |"
+    )
+    lines.append(
+        f"| balanced eval | {balanced_status_counts.get('present', 0)} | "
+        f"{balanced_status_counts.get('absent', 0)} | {len(balanced_rows)} |"
+    )
     lines.extend(["", "## Resolution Counts", "", "| Resolution | Count |", "|---|---:|"])
     for key, count in resolution_counts.most_common():
         lines.append(f"| {key} | {count} |")
+    lines.extend(["", "## Resolution by Status", "", "| Resolution | Present | Absent | Total |", "|---|---:|---:|---:|"])
+    for resolution, total in resolution_counts.most_common():
+        present = resolution_status_counts.get((resolution, "present"), 0)
+        absent = resolution_status_counts.get((resolution, "absent"), 0)
+        lines.append(f"| {resolution} | {present} | {absent} | {total} |")
     lines.extend(["", "## Matched Cue Fields", "", "| Field | Count |", "|---|---:|"])
     for key, count in cue_field_counts.most_common():
         lines.append(f"| {key} | {count} |")
@@ -360,6 +378,7 @@ def write_summary(path, rows, eval_rows, indexed_files, search_roots, zip_paths)
         "- `resolved_zip_only` rows can also be used because the resolver extracted the cue image from the OSF zip.",
         "- `ambiguous_*` rows need manual checking before headline evaluation because multiple assets match the same cue token.",
         "- `screen_only_not_cue` means the only matched image token was the GUI screenshot itself, not a separate target cue.",
+        "- If balanced inference-ready rows are very small, treat image-cue inference as a diagnostic pilot rather than a headline benchmark.",
         "- `missing` rows are evidence that the released fixation rows reference cue names not available in the extracted assets currently present on disk.",
         "",
     ])
@@ -462,6 +481,9 @@ def main():
         "rows": rows,
     })
     write_csv(out_dir / "native_image_cue_resolution.csv", rows)
+    write_csv(out_dir / "native_image_cue_resolved_rows.csv", [row for row in rows if row["resolution_status"].startswith("resolved")])
+    write_csv(out_dir / "native_image_cue_ambiguous_rows.csv", [row for row in rows if row["resolution_status"].startswith("ambiguous")])
+    write_csv(out_dir / "native_image_cue_missing_rows.csv", [row for row in rows if row["resolution_status"] == "missing"])
     write_json(out_dir / "native_image_cue_eval.json", eval_rows)
     write_json(out_dir / "native_image_cue_balanced_eval.json", balanced)
     write_csv(out_dir / "native_image_cue_eval.csv", [
@@ -479,6 +501,7 @@ def main():
         out_dir / "native_image_cue_resolution.md",
         rows,
         eval_rows,
+        balanced,
         len(records),
         search_roots,
         zip_paths,
