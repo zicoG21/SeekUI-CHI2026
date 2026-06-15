@@ -24,6 +24,9 @@ METHOD_SPECS = [
     ("vlm_evidence", "vlm_evidence", "vlm_evidence_predictions_{model}_vlm_evidence_{split}_evidence_aware.json"),
     ("ensemble", "ensemble", "present_absent_predictions_{model}_{split}_status_ensemble_absent_f1.json"),
     ("cv_vote_router", "cv_vote_router", "present_absent_predictions_{model}_{split}_native_v2_cv_vote_router.json"),
+    ("cv_vote_precision60", "cv_vote_router", "present_absent_predictions_{model}_{split}_native_v2_cv_vote_router_precision_ge_0p60.json"),
+    ("cv_vote_pa25", "cv_vote_router", "present_absent_predictions_{model}_{split}_native_v2_cv_vote_router_pa_rate_le_0p25.json"),
+    ("cv_vote_utility", "cv_vote_router", "present_absent_predictions_{model}_{split}_native_v2_cv_vote_router_utility_ap2_pa1.json"),
 ]
 
 

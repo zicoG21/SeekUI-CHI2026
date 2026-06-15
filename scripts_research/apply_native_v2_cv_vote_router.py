@@ -160,7 +160,59 @@ def rule_name(methods, subset, threshold):
     return f"vote_at_least_{threshold}_of_{len(subset)}::{names}"
 
 
-def select_best_rule(train_indices, gold, methods, max_subset_size):
+def present_absent_rate(row):
+    present_total = row["present_absent"] + row["present_present"]
+    return safe_div(row["present_absent"], present_total)
+
+
+def utility(row, present_absent_cost, absent_present_cost):
+    total = max(row["num_examples"], 1)
+    return -(
+        present_absent_cost * row["present_absent"]
+        + absent_present_cost * row["absent_present"]
+    ) / total
+
+
+def objective_key(row, objective, present_absent_cost, absent_present_cost):
+    if objective == "max_f1":
+        return (
+            row["absent_f1"],
+            row["accuracy"],
+            row["absent_precision"],
+            -row["present_absent"],
+            -row["rule_size"],
+        )
+    if objective == "precision_ge_0p60":
+        ok = row["absent_precision"] >= 0.60
+        return (
+            int(ok),
+            row["absent_f1"] if ok else row["absent_precision"],
+            row["accuracy"],
+            -row["present_absent"],
+            -row["rule_size"],
+        )
+    if objective == "pa_rate_le_0p25":
+        rate = present_absent_rate(row)
+        ok = rate <= 0.25
+        return (
+            int(ok),
+            row["absent_f1"] if ok else -rate,
+            row["accuracy"],
+            -row["present_absent"],
+            -row["rule_size"],
+        )
+    if objective == "utility_ap2_pa1":
+        return (
+            utility(row, present_absent_cost, absent_present_cost),
+            row["absent_f1"],
+            row["accuracy"],
+            -row["present_absent"],
+            -row["rule_size"],
+        )
+    raise ValueError(f"Unknown objective: {objective}")
+
+
+def select_best_rule(train_indices, gold, methods, max_subset_size, objective, present_absent_cost, absent_present_cost):
     rows = []
     best = None
     for subset, threshold in candidate_rules(methods, max_subset_size):
@@ -169,16 +221,13 @@ def select_best_rule(train_indices, gold, methods, max_subset_size):
             "rule": rule_name(methods, subset, threshold),
             "subset": list(subset),
             "threshold": threshold,
+            "rule_size": len(subset),
             **metrics,
         }
+        row["present_absent_rate"] = present_absent_rate(row)
+        row["utility"] = utility(row, present_absent_cost, absent_present_cost)
         rows.append(row)
-        key = (
-            row["absent_f1"],
-            row["accuracy"],
-            row["absent_precision"],
-            -row["present_absent"],
-            -len(subset),
-        )
+        key = objective_key(row, objective, present_absent_cost, absent_present_cost)
         if best is None or key > best[0]:
             best = (key, row)
     return best[1], rows
@@ -199,17 +248,27 @@ def stratified_folds(gold, folds, seed):
     return fold_rows
 
 
-def apply_cv_router(base_examples, gold, methods, folds, seed, max_subset_size):
+def apply_cv_router(base_examples, gold, methods, folds, seed, max_subset_size, objective, present_absent_cost, absent_present_cost):
     fold_rows = stratified_folds(gold, folds, seed)
     output_statuses = ["present"] * len(base_examples)
     selected_rows = []
     sweep_rows = []
     for fold_idx, test_indices in enumerate(fold_rows):
-        train_indices = [idx for idx in range(len(base_examples)) if idx not in set(test_indices)]
-        selected, sweep = select_best_rule(train_indices, gold, methods, max_subset_size)
+        test_set = set(test_indices)
+        train_indices = [idx for idx in range(len(base_examples)) if idx not in test_set]
+        selected, sweep = select_best_rule(
+            train_indices,
+            gold,
+            methods,
+            max_subset_size,
+            objective,
+            present_absent_cost,
+            absent_present_cost,
+        )
         for row in sweep:
             row = dict(row)
             row["fold"] = fold_idx
+            row["objective"] = objective
             row["selected"] = int(row["rule"] == selected["rule"])
             sweep_rows.append(row)
         for idx in test_indices:
@@ -231,27 +290,29 @@ def write_md(path, payload):
         f"- Split: `{payload['split']}`",
         f"- Model: `{payload['model']}`",
         f"- Folds: {payload['folds']}",
+        f"- Objective: `{payload['objective']}`",
         f"- Available methods: {', '.join(payload['method_names'])}",
         "",
         "## Cross-Validated Metrics",
         "",
-        "| Acc | Precision | Recall | F1 | P->A | A->P |",
-        "|---:|---:|---:|---:|---:|---:|",
+        "| Acc | Precision | Recall | F1 | P->A | A->P | P->A Rate | Utility |",
+        "|---:|---:|---:|---:|---:|---:|---:|---:|",
         (
             f"| {metrics['accuracy']:.4f} | {metrics['absent_precision']:.4f} | "
             f"{metrics['absent_recall']:.4f} | {metrics['absent_f1']:.4f} | "
-            f"{metrics['present_absent']} | {metrics['absent_present']} |"
+            f"{metrics['present_absent']} | {metrics['absent_present']} | "
+            f"{payload['present_absent_rate']:.4f} | {payload['utility']:.4f} |"
         ),
         "",
         "## Selected Fold Rules",
         "",
-        "| Fold | Rule | Train F1 | Train Acc | Test N |",
-        "|---:|---|---:|---:|---:|",
+        "| Fold | Rule | Train F1 | Train Acc | Train P->A Rate | Test N |",
+        "|---:|---|---:|---:|---:|---:|",
     ]
     for row in payload["selected_rules"]:
         lines.append(
             f"| {row['fold']} | `{row['rule']}` | {row['absent_f1']:.4f} | "
-            f"{row['accuracy']:.4f} | {row['test_examples']} |"
+            f"{row['accuracy']:.4f} | {row['present_absent_rate']:.4f} | {row['test_examples']} |"
         )
     lines.extend([
         "",
@@ -274,6 +335,13 @@ def main():
     parser.add_argument("--folds", type=int, default=5)
     parser.add_argument("--seed", type=int, default=17)
     parser.add_argument("--max-subset-size", type=int, default=4)
+    parser.add_argument(
+        "--objective",
+        default="max_f1",
+        choices=["max_f1", "precision_ge_0p60", "pa_rate_le_0p25", "utility_ap2_pa1"],
+    )
+    parser.add_argument("--present-absent-cost", type=float, default=1.0)
+    parser.add_argument("--absent-present-cost", type=float, default=2.0)
     parser.add_argument("--output", required=True)
     parser.add_argument("--metrics-output", required=True)
     parser.add_argument("--sweep-output", required=True)
@@ -296,6 +364,9 @@ def main():
         args.folds,
         args.seed,
         args.max_subset_size,
+        args.objective,
+        args.present_absent_cost,
+        args.absent_present_cost,
     )
     predictions = []
     for idx, (example, status) in enumerate(zip(base_examples, statuses)):
@@ -303,18 +374,26 @@ def main():
         row["predicted_status"] = status
         row["native_v2_cv_vote_router"] = True
         row["native_v2_cv_vote_router_folds"] = args.folds
+        row["native_v2_cv_vote_router_objective"] = args.objective
         predictions.append(row)
 
     metrics = evaluate(range(len(base_examples)), gold, statuses)
+    metrics["present_absent_rate"] = present_absent_rate(metrics)
+    metrics["utility"] = utility(metrics, args.present_absent_cost, args.absent_present_cost)
     payload = {
         "split": args.split_name,
         "model": args.model_name,
         "folds": args.folds,
         "seed": args.seed,
         "max_subset_size": args.max_subset_size,
+        "objective": args.objective,
+        "present_absent_cost": args.present_absent_cost,
+        "absent_present_cost": args.absent_present_cost,
         "method_names": [method["name"] for method in methods],
         "selected_rules": selected_rules,
         "metrics": metrics,
+        "present_absent_rate": metrics["present_absent_rate"],
+        "utility": metrics["utility"],
         "output": args.output,
     }
 

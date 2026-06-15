@@ -19,24 +19,32 @@ MODEL_NAME="${MODEL_NAME:-SeekUI}"
 FOLDS="${FOLDS:-5}"
 MAX_SUBSET_SIZE="${MAX_SUBSET_SIZE:-4}"
 SPLITS=(${NATIVE_V2_SPLITS:-native_v2_main_text_balanced native_v2_main_text_color_balanced native_v2_clean_text_all_balanced native_v2_color_instance_balanced})
+OBJECTIVES=(${NATIVE_V2_ROUTER_OBJECTIVES:-max_f1 precision_ge_0p60 pa_rate_le_0p25 utility_ap2_pa1})
 
 module load miniconda3/25.9.1
 source "$(conda info --base)/etc/profile.d/conda.sh"
 conda activate seekui
 
 for split in "${SPLITS[@]}"; do
-  out_base="$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_${split}_native_v2_cv_vote_router"
-  echo "Running native v2 CV vote router: $split"
-  python scripts_research/apply_native_v2_cv_vote_router.py \
-    --work-dir "$SEEKUI_WORK" \
-    --split-name "$split" \
-    --model-name "$MODEL_NAME" \
-    --folds "$FOLDS" \
-    --max-subset-size "$MAX_SUBSET_SIZE" \
-    --output "${out_base}.json" \
-    --metrics-output "${out_base}_status_eval.json" \
-    --sweep-output "${out_base}_sweep.csv" \
-    --summary-md "$NATIVE_DIR/processed_v2/cv_vote_router/${split}.md"
+  for objective in "${OBJECTIVES[@]}"; do
+    suffix="native_v2_cv_vote_router"
+    if [[ "$objective" != "max_f1" ]]; then
+      suffix="native_v2_cv_vote_router_${objective}"
+    fi
+    out_base="$OUTPUT_DIR/present_absent_predictions_${MODEL_NAME}_${split}_${suffix}"
+    echo "Running native v2 CV vote router: split=$split objective=$objective"
+    python scripts_research/apply_native_v2_cv_vote_router.py \
+      --work-dir "$SEEKUI_WORK" \
+      --split-name "$split" \
+      --model-name "$MODEL_NAME" \
+      --folds "$FOLDS" \
+      --max-subset-size "$MAX_SUBSET_SIZE" \
+      --objective "$objective" \
+      --output "${out_base}.json" \
+      --metrics-output "${out_base}_status_eval.json" \
+      --sweep-output "${out_base}_sweep.csv" \
+      --summary-md "$NATIVE_DIR/processed_v2/cv_vote_router/${split}_${objective}.md"
+  done
 done
 
 python scripts_research/summarize_native_vsgui_results.py \
