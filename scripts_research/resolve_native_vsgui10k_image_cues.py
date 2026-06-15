@@ -328,6 +328,15 @@ def copy_or_extract(match, out_dir, prefix):
     return str(dst)
 
 
+def match_preview(matches, limit=8):
+    rows = []
+    for match in matches[:limit]:
+        rows.append(
+            f"{match.get('kind', '')}:{match.get('match_source', '')}:{match.get('path', '')}"
+        )
+    return "; ".join(rows)
+
+
 def compatible_example(example, copied_cue_path, image_root, cue_prefix):
     out = dict(example)
     out["target_crop"] = safe_rel(copied_cue_path, image_root)
@@ -495,6 +504,7 @@ def main():
             "cue_side_match": int(cue_side_match),
             "resolution_status": resolution,
             "num_matches": len(matched),
+            "match_paths_preview": match_preview(matched),
             "chosen_kind": chosen.get("kind", "") if chosen else "",
             "chosen_path": chosen.get("path", "") if chosen else "",
             "copied_cue_path": copied,
