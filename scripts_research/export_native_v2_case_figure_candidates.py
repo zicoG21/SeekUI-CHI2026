@@ -120,8 +120,28 @@ def score_row(row):
     return (0, visibility, target_len)
 
 
-def dedupe_key(row, fields):
-    return tuple(str(row.get(field, "")).strip().casefold() for field in fields)
+def first_nonempty(row, fields):
+    for field in fields:
+        value = str(row.get(field, "")).strip()
+        if value:
+            return value
+    return ""
+
+
+def image_key(row):
+    value = first_nonempty(row, ["image", "screenshot", "img", "image_path", "resolved_image", "figure_image"])
+    if not value:
+        return ""
+    return Path(value).stem.casefold()
+
+
+def target_key(row):
+    value = first_nonempty(row, ["target", "query_text", "target_text", "target_cue", "cue"])
+    return value.casefold()
+
+
+def image_target_key(row):
+    return (image_key(row), target_key(row))
 
 
 def select_rows(rows, limit):
@@ -132,36 +152,36 @@ def select_rows(rows, limit):
 
     # First pass: maximize visual variety by requiring a unique screenshot.
     for row in sorted_rows:
-        image_key = dedupe_key(row, ["image"])
-        image_target_key = dedupe_key(row, ["image", "target"])
-        if image_target_key in seen_image_target or image_key in seen_images:
+        row_image_key = image_key(row)
+        row_image_target_key = image_target_key(row)
+        if row_image_target_key in seen_image_target or row_image_key in seen_images:
             continue
         selected.append(row)
-        seen_image_target.add(image_target_key)
-        seen_images.add(image_key)
+        seen_image_target.add(row_image_target_key)
+        seen_images.add(row_image_key)
         if len(selected) >= limit:
             return selected
 
     # Second pass: allow a repeated screenshot only if the target differs.
-    seen_targets = {dedupe_key(row, ["target"]) for row in selected}
+    seen_targets = {target_key(row) for row in selected}
     for row in sorted_rows:
-        image_target_key = dedupe_key(row, ["image", "target"])
-        target_key = dedupe_key(row, ["target"])
-        if image_target_key in seen_image_target or target_key in seen_targets:
+        row_image_target_key = image_target_key(row)
+        row_target_key = target_key(row)
+        if row_image_target_key in seen_image_target or row_target_key in seen_targets:
             continue
         selected.append(row)
-        seen_image_target.add(image_target_key)
-        seen_targets.add(target_key)
+        seen_image_target.add(row_image_target_key)
+        seen_targets.add(row_target_key)
         if len(selected) >= limit:
             return selected
 
     # Last pass: fill with any remaining non-identical screenshot-target pair.
     for row in sorted_rows:
-        image_target_key = dedupe_key(row, ["image", "target"])
-        if image_target_key in seen_image_target:
+        row_image_target_key = image_target_key(row)
+        if row_image_target_key in seen_image_target:
             continue
         selected.append(row)
-        seen_image_target.add(image_target_key)
+        seen_image_target.add(row_image_target_key)
         if len(selected) >= limit:
             break
     return selected
@@ -182,6 +202,8 @@ def copy_images(rows, data_dir, out_dir, panel):
         src = resolve_image(data_dir, row.get("image", ""))
         out_row = dict(row)
         out_row["panel"] = panel
+        out_row["dedupe_image_key"] = image_key(row)
+        out_row["dedupe_target_key"] = target_key(row)
         out_row["resolved_image"] = str(src) if src else ""
         out_row["figure_image"] = ""
         if src:
