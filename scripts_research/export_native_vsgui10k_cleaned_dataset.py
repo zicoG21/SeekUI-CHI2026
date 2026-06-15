@@ -93,6 +93,10 @@ def add_split(manifest_rows, source_json, source_csv, out_json, out_csv, name, r
     copied_json = copy_if_exists(source_json, out_json)
     copied_csv = copy_if_exists(source_csv, out_csv)
     if copied_json:
+        if not copied_csv:
+            rows = load_json(out_json, default=[])
+            write_csv(out_csv, rows)
+            copied_csv = True
         manifest_rows.append(split_record(name, role, description, out_json, out_csv if copied_csv else source_csv))
 
 
