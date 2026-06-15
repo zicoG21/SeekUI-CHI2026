@@ -64,8 +64,18 @@ python scripts_research/export_native_v2_operating_points.py \
   --output-csv "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.csv" \
   --output-md "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.md"
 
+python scripts_research/export_native_v2_recommended_cases.py \
+  --work-dir "$SEEKUI_WORK" \
+  --model-name "$MODEL_NAME" \
+  --operating-points-csv "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.csv" \
+  --out-dir "$NATIVE_DIR/processed_v2/recommended_cases" \
+  --limit "${CASE_LIMIT:-80}"
+
 echo "Native v2 CV vote router complete."
 cat "$NATIVE_DIR/processed_v2/analysis/native_v2_balanced_analysis.md"
 echo
 echo "Native v2 operating points:"
 cat "$NATIVE_DIR/processed_v2/analysis/native_v2_operating_points.md"
+echo
+echo "Native v2 recommended cases:"
+cat "$NATIVE_DIR/processed_v2/recommended_cases/native_v2_recommended_case_analysis.md"

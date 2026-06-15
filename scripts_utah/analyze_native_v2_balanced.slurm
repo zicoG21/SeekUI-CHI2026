@@ -35,8 +35,18 @@ python scripts_research/export_native_v2_operating_points.py \
   --output-csv "$OUT_DIR/native_v2_operating_points.csv" \
   --output-md "$OUT_DIR/native_v2_operating_points.md"
 
+python scripts_research/export_native_v2_recommended_cases.py \
+  --work-dir "$SEEKUI_WORK" \
+  --model-name "$MODEL_NAME" \
+  --operating-points-csv "$OUT_DIR/native_v2_operating_points.csv" \
+  --out-dir "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases" \
+  --limit "$CASE_LIMIT"
+
 echo "Native v2 balanced analysis: $OUT_DIR/native_v2_balanced_analysis.md"
 cat "$OUT_DIR/native_v2_balanced_analysis.md"
 echo
 echo "Native v2 operating points: $OUT_DIR/native_v2_operating_points.md"
 cat "$OUT_DIR/native_v2_operating_points.md"
+echo
+echo "Native v2 recommended cases:"
+cat "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_recommended_case_analysis.md"
