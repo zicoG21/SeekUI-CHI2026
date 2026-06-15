@@ -42,6 +42,12 @@ python scripts_research/export_native_v2_recommended_cases.py \
   --out-dir "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases" \
   --limit "$CASE_LIMIT"
 
+python scripts_research/export_native_v2_case_figure_plan.py \
+  --case-root "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases" \
+  --output-json "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_case_figure_plan.json" \
+  --output-csv "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_case_figure_plan.csv" \
+  --output-md "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_case_figure_plan.md"
+
 echo "Native v2 balanced analysis: $OUT_DIR/native_v2_balanced_analysis.md"
 cat "$OUT_DIR/native_v2_balanced_analysis.md"
 echo
@@ -50,3 +56,6 @@ cat "$OUT_DIR/native_v2_operating_points.md"
 echo
 echo "Native v2 recommended cases:"
 cat "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_recommended_case_analysis.md"
+echo
+echo "Native v2 case figure plan:"
+cat "$SEEKUI_WORK/outputs/native_vsgui10k/processed_v2/recommended_cases/native_v2_case_figure_plan.md"
